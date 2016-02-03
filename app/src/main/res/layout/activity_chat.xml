@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context="com.hvzhub.app.MainActivity">
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:layout_scrollFlags="scroll|enterAlways|snap"/>
+
+    </android.support.design.widget.AppBarLayout>
+
+    <android.support.v4.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:scrollbars="vertical">
+
+        <LinearLayout
+            android:id="@+id/chatbox"
+            android:layout_height="fill_parent"
+            android:layout_width="fill_parent"
+            android:orientation="vertical"
+            style="@style/AppTheme.NoActionBar"
+            android:weightSum="1">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="166dp"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="This will be the Chat Box"
+                android:id="@+id/textView2"
+                android:verticalScrollbarPosition="right" />
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/scrollView" >
+
+            </ScrollView>
+
+            <EditText
+                android:layout_width="293dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/editText"
+                android:inputType="text" />
+
+            <Button
+                android:layout_width="73dp"
+                android:layout_height="wrap_content"
+
+                android:clickable="false"
+                android:enabled="false"
+                android:text="@string/Send"
+                android:id="@+id/chatbox-send"
+                android:layout_gravity="right" />
+
+
+        </LinearLayout>
+
+    </android.support.v4.widget.NestedScrollView>
+
+</android.support.design.widget.CoordinatorLayout>
