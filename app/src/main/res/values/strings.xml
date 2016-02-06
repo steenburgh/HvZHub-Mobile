@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">HvZHub</string>
-    <string name="title_activity_login">Sign in</string>
+    <string name="title_activity_home">Home</string>
+    <string name="title_activity_login">Sign in to HvZHub</string>
 
     <!-- Massive string of text - Used to test scrolling behavior. -->
     <string name="lorem_ipsum">
