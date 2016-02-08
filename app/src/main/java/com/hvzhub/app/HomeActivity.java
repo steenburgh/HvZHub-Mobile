@@ -1,5 +1,6 @@
 package com.hvzhub.app;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -46,10 +47,13 @@ public class HomeActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-
+        //TODO: EVERYTHING
         if (id == R.id.nav_news) {
-
+            Intent news = new Intent(this, HomeActivity.class);
+            startActivity(news);
         } else if (id == R.id.nav_chat) {
+            Intent chat = new Intent(this, ChatActivity.class);
+            startActivity(chat);
 
         } else if (id == R.id.nav_report_tag) {
 

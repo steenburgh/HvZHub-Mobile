@@ -22,7 +22,8 @@
     <ScrollView
         android:id="@+id/login_form"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="255dp"
+        android:fillViewport="false">
 
         <LinearLayout
             android:id="@+id/email_login_form"
@@ -79,4 +80,11 @@
 
         </LinearLayout>
     </ScrollView>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="*Notice: This app is in Beta. You can only use this App if you are currently joined in a game currently running on HVZ Hub.*"
+        android:id="@+id/textView3" />
 </LinearLayout>
