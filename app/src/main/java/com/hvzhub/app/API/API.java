@@ -1,6 +1,7 @@
 package com.hvzhub.app.API;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
@@ -25,6 +26,9 @@ public class API {
     private static Context mCtx;
 
     // 10.0.2.2 is the local computer's address for when android is running in an emulator
+    public static final String PREFS_API = "prefs_api"; // SharedPreferences file for API
+    public static final String PREFS_SESSION_ID = "sessionID";
+
     private static final String BASE_PATH = "http://10.0.2.2:8080/api/v1/";
     private static final String LOGIN = "login";
     private static final String FIELD_PASSWORD = "password";
@@ -78,6 +82,10 @@ public class API {
                     public void onResponse(JSONObject response) {
                         try {
                             sessionID = response.getString(FIELD_SESSION_ID);
+                            SharedPreferences.Editor prefs = mCtx.getSharedPreferences(PREFS_API, Context.MODE_PRIVATE).edit();
+                            prefs.putString(PREFS_SESSION_ID, sessionID);
+                            prefs.apply();
+
                         } catch (JSONException jse) {
                             String errorMsg = mCtx.getString(R.string.unexpected_response);
                             String errorHint = mCtx.getString(R.string.unexpected_response_hint);
