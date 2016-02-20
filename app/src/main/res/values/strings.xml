@@ -28,5 +28,6 @@
     <string name="my_code">My Code</string>
     <string name="news">News</string>
     <string name="chat">Chat</string>
+    <string name="beta_notice">*Notice: This app is in Beta. You can only use this App if you are currently joined in a game currently running on HVZ Hub.*</string>
 
 </resources>

@@ -16,14 +16,12 @@
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
         android:visibility="gone" />
 
     <ScrollView
         android:id="@+id/login_form"
         android:layout_width="match_parent"
-        android:layout_height="255dp"
-        android:fillViewport="false">
+        android:layout_height="wrap_content">
 
         <LinearLayout
             android:id="@+id/email_login_form"
@@ -68,23 +66,22 @@
                 android:id="@+id/email_sign_in_button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
                 android:text="@string/action_sign_in" />
 
             <Button
                 android:id="@+id/cheatButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
                 android:text="Cheat" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="@string/beta_notice" />
 
         </LinearLayout>
     </ScrollView>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="*Notice: This app is in Beta. You can only use this App if you are currently joined in a game currently running on HVZ Hub.*"
-        android:id="@+id/textView3" />
+
 </LinearLayout>
