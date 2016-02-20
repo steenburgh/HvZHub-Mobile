@@ -1,4 +1,4 @@
-package com.hvzhub.app;
+package com.hvzhub.app.API;
 
 import android.content.Context;
 
@@ -31,7 +31,7 @@ public class APIRequestQueue {
         if (mRequestQueue == null) {
             // getApplicationContext() is key, it keeps you from leaking the
             // Activity or BroadcastReceiver if someone passes one in.
-            mRequestQueue = Volley.newRequestQueue(mCtx.getApplicationContext());
+            mRequestQueue = Volley.newRequestQueue(mCtx);
         }
         return mRequestQueue;
     }
