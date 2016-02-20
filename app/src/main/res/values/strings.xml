@@ -2,6 +2,7 @@
     <string name="app_name">HvZHub</string>
     <string name="title_activity_home">Home</string>
     <string name="title_activity_login">Sign in to HvZHub</string>
+    <string name="beta_notice">Notice: This app is in Beta. In order to use it, you must first joined a game on HvZHub.com</string>
 
     <!-- Massive string of text - Used to test scrolling behavior. -->
     <string name="lorem_ipsum">
@@ -28,7 +29,6 @@
     <string name="my_code">My Code</string>
     <string name="news">News</string>
     <string name="chat">Chat</string>
-    <string name="beta_notice">*Notice: This app is in Beta. You can only use this App if you are currently joined in a game currently running on HVZ Hub.*</string>
     <string name="settings">Settings</string>
 
     <!--Network related error messages-->
