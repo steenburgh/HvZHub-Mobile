@@ -16,7 +16,7 @@ public class GameActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home);
+        setContentView(R.layout.activity_game);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -29,6 +29,11 @@ public class GameActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        getFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, ChatFragment.newInstance(null, null))
+                .addToBackStack(null)
+                .commit();
     }
 
 
@@ -48,12 +53,11 @@ public class GameActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
         //TODO: EVERYTHING
+        // TODO: Find previous instance + open it
+        //
         if (id == R.id.nav_news) {
-            Intent news = new Intent(this, GameActivity.class);
-            startActivity(news);
+
         } else if (id == R.id.nav_chat) {
-            Intent chat = new Intent(this, ChatActivity.class);
-            startActivity(chat);
 
         } else if (id == R.id.nav_report_tag) {
 
