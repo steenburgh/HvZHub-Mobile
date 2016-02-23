@@ -10,7 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
-public class HomeActivity extends AppCompatActivity
+public class GameActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener{
 
     @Override
@@ -49,7 +49,7 @@ public class HomeActivity extends AppCompatActivity
         int id = item.getItemId();
         //TODO: EVERYTHING
         if (id == R.id.nav_news) {
-            Intent news = new Intent(this, HomeActivity.class);
+            Intent news = new Intent(this, GameActivity.class);
             startActivity(news);
         } else if (id == R.id.nav_chat) {
             Intent chat = new Intent(this, ChatActivity.class);

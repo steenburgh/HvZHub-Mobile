@@ -67,7 +67,7 @@ public class LoginActivity extends AppCompatActivity {
         cheatButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(LoginActivity.this, HomeActivity.class);
+                Intent i = new Intent(LoginActivity.this, GameActivity.class);
                 startActivity(i);
             }
         });
@@ -126,7 +126,7 @@ public class LoginActivity extends AppCompatActivity {
                         public void onLoginSuccess() {
                             showProgress(false);
                             finish();
-                            Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                            Intent intent = new Intent(LoginActivity.this, GameActivity.class);
                             startActivity(intent);
                         }
                     },
