@@ -1,7 +1,9 @@
 package com.hvzhub.app;
 
+import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -12,6 +14,9 @@ import android.view.MenuItem;
 
 public class GameActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener{
+
+    private ChatFragment cf;
+    private NewsFragment nf;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,10 +35,7 @@ public class GameActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        getFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, ChatFragment.newInstance(null, null))
-                .addToBackStack(null)
-                .commit();
+        switchToTab(R.id.nav_news); // Open the default tab
     }
 
 
@@ -47,29 +49,51 @@ public class GameActivity extends AppCompatActivity
         }
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
+
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
-        int id = item.getItemId();
-        //TODO: EVERYTHING
-        // TODO: Find previous instance + open it
-        //
-        if (id == R.id.nav_news) {
+        switchToTab(item.getItemId());
+        return true;
+    }
 
-        } else if (id == R.id.nav_chat) {
-
-        } else if (id == R.id.nav_report_tag) {
-
-        } else if (id == R.id.nav_heatmap) {
-
-        } else if (id == R.id.nav_my_code) {
-
+    public void switchToTab(int id) {
+        Fragment toSwitch = null;
+        switch(id) {
+            case R.id.nav_news:
+                if (nf == null) {
+                    nf = NewsFragment.newInstance(null, null);
+                }
+                toSwitch = nf;
+                break;
+            case R.id.nav_chat:
+                if (cf == null) {
+                    cf = ChatFragment.newInstance(null, null);
+                }
+                toSwitch = cf;
+                break;
+            case R.id.nav_report_tag:
+                break;
+            case R.id.nav_heatmap:
+                break;
+            case R.id.nav_my_code:
+                break;
+            case R.id.nav_settings:
+                break;
         }
+
+        getFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, toSwitch)
+                .addToBackStack(null)
+                .commit();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
-        return true;
+
+        // Ensure that the action bar is visible.
+        // It might have been hidden by scrolling in a NestedScrollView like in NewsFragment.
+        AppBarLayout abl = (AppBarLayout) findViewById(R.id.appbar_layout);
+        abl.setExpanded(true, true);
     }
 
 }
