@@ -11,8 +11,8 @@
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
-    <string name="prompt_password">Password</string>
-    <string name="action_sign_in">Sign in</string>
+    <string name="prompt_password">Enter Tag Code</string>
+    <string name="action_sign_in">Report Tag</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
@@ -40,5 +40,11 @@
     <string name="generic_connection_error_hint">Check your internet connection and try again</string>
     <string name="network_not_available">Unable to connect to the internet</string>
     <string name="network_not_available_hint">Check your internet connection and try again</string>
+    <string name="title_activity_report_tag">Report Tag</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email
+        completions."
+    </string>
 
 </resources>
