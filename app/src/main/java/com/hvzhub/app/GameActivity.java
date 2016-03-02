@@ -75,25 +75,28 @@ public class GameActivity extends AppCompatActivity
             case R.id.nav_report_tag:
                 break;
             case R.id.nav_heatmap:
+                Intent i = new Intent(this, HeatMapActivity.class);
+                startActivity(i);
                 break;
             case R.id.nav_my_code:
                 break;
             case R.id.nav_settings:
                 break;
         }
+        if (toSwitch != null) {
+            getFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, toSwitch)
+                    .addToBackStack(null)
+                    .commit();
 
-        getFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, toSwitch)
-                .addToBackStack(null)
-                .commit();
+            DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+            drawer.closeDrawer(GravityCompat.START);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-
-        // Ensure that the action bar is visible.
-        // It might have been hidden by scrolling in a NestedScrollView like in NewsFragment.
-        AppBarLayout abl = (AppBarLayout) findViewById(R.id.appbar_layout);
-        abl.setExpanded(true, true);
+            // Ensure that the action bar is visible.
+            // It might have been hidden by scrolling in a NestedScrollView like in NewsFragment.
+            AppBarLayout abl = (AppBarLayout) findViewById(R.id.appbar_layout);
+            abl.setExpanded(true, true);
+        }
     }
 
 }

@@ -5,7 +5,6 @@
     <string name="beta_notice">Notice: This app is in Beta. In order to use it, you must first joined a game on HvZHub.com</string>
 
 
-
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Enter Tag Code</string>
@@ -45,5 +44,6 @@
     </string>
     <string name="newsDefault">This is the NewsView\n\n\nThere will be news here.\n\n\n
     If all goes to plan\n\n\n\n\n\n\n\n\n\nMore news</string>
+    <string name="title_activity_heat_map">HeatMap</string>
 
 </resources>
