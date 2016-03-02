@@ -40,5 +40,11 @@
     <string name="generic_connection_error_hint">Check your internet connection and try again</string>
     <string name="network_not_available">Unable to connect to the internet</string>
     <string name="network_not_available_hint">Check your internet connection and try again</string>
+    <string name="retry">Retry</string>
+
+    <!--Nothing to see here, move along-->
+    <string name="hack_the_planet">HACK THE PLANET!!</string>
+    <string name="ayy">ayy</string>
+    <string name="lmao">lmao</string>
 
 </resources>
