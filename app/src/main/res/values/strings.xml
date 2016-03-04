@@ -7,19 +7,17 @@
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
-    <string name="prompt_password">Enter Tag Code</string>
-    <string name="action_sign_in">Report Tag</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign In</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
-    <string name="Send">Send</string>
-    <string name="title_activity_nav_drawer">NavDrawerActivity</string>
 
     <!--Nav Drawer-->
+    <string name="title_activity_nav_drawer">NavDrawerActivity</string>
+    <string name="loading">Loading…</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-
-    <string name="loading">Loading…</string>
     <string name="report_tag">Report Tag</string>
     <string name="heatmap">Heatmap</string>
     <string name="my_code">My Code</string>
@@ -36,14 +34,27 @@
     <string name="generic_connection_error_hint">Check your internet connection and try again</string>
     <string name="network_not_available">Unable to connect to the internet</string>
     <string name="network_not_available_hint">Check your internet connection and try again</string>
-    <string name="title_activity_report_tag">Report Tag</string>
-    <string name="action_sign_in_short">Sign in</string>
-    <string name="error_invalid_password">This password is too short</string>
-    <string name="permission_rationale">"Contacts permissions are needed for providing email
-        completions."
-    </string>
+    <string name="retry">Retry</string>
+
+    <!--Chat-->
+    <string name="Send">Send</string>
+
+    <!--News-->
     <string name="newsDefault">This is the NewsView\n\n\nThere will be news here.\n\n\n
     If all goes to plan\n\n\n\n\n\n\n\n\n\nMore news</string>
+
+    <!--Heatmap-->
     <string name="title_activity_heat_map">HeatMap</string>
+
+    <!--Report Tag-->
+    <string name="title_activity_report_tag">Report Tag</string>
+    <string name="report">Report</string>
+
+    <!--Nothing to see here, move along-->
+    <string name="hack_the_planet">HACK THE PLANET!!</string>
+    <string name="ayy">ayy</string>
+    <string name="lmao">lmao</string>
+    <string name="enter_code">Enter Code</string>
+
 
 </resources>
