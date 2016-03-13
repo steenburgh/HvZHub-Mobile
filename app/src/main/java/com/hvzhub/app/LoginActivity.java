@@ -220,7 +220,7 @@ public class LoginActivity extends AppCompatActivity {
 
                         Log.i("Response", s.uuid + " : " + s.createdOn);
                     } else {
-                        // TODO: Parse error response to indicate bad password or username
+                        showProgress(false);
                         APIError apiError = ErrorUtils.parseError(response);
                         String err = apiError.error.toLowerCase();
                         if (err.contains("email")) {
@@ -230,7 +230,7 @@ public class LoginActivity extends AppCompatActivity {
                             mPasswordView.setError(getString(R.string.error_incorrect_password));
                             mPasswordView.requestFocus();
                         } else {
-                            showProgress(false);
+
                             AlertDialog.Builder b = new AlertDialog.Builder(LoginActivity.this);
                             b.setTitle(getString(R.string.unexpected_response))
                                     .setMessage(getString(R.string.unexpected_response_hint))
