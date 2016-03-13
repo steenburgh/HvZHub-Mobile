@@ -185,7 +185,6 @@ public class LoginActivity extends AppCompatActivity {
 
                         Log.i("Response", s.uuid + " : " + s.createdOn);
                     } else {
-                        showProgress(false);
                         APIError apiError = ErrorUtils.parseError(response);
                         String err = apiError.error.toLowerCase();
                         if (err.contains("email")) {

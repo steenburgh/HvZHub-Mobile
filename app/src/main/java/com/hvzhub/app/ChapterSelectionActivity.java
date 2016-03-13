@@ -4,12 +4,13 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -18,10 +19,8 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 
 import com.hvzhub.app.API.API;
-import com.hvzhub.app.API.ErrorUtils;
 import com.hvzhub.app.API.HvZHubClient;
 import com.hvzhub.app.API.NetworkUtils;
-import com.hvzhub.app.API.model.APIError;
 import com.hvzhub.app.API.model.Chapters.Chapter;
 import com.hvzhub.app.API.model.Chapters.ChapterListContainer;
 import com.hvzhub.app.API.model.Status;
@@ -54,6 +53,12 @@ public class ChapterSelectionActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // TODO: Remove this
+                SharedPreferences.Editor prefs = getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).edit();
+                prefs.putString(API.PREFS_CHAPTER_URL, "u_of_test");
+                prefs.putInt(API.PREFS_GAME_ID, 3);
+                prefs.apply();
+
                 // TODO: Remove this
                 Intent i = new Intent(ChapterSelectionActivity.this, GameActivity.class);
                 startActivity(i);
@@ -216,12 +221,12 @@ public class ChapterSelectionActivity extends AppCompatActivity {
                 String chapterUrl = getSharedPreferences(API.PREFS_API, MODE_PRIVATE).getString(API.PREFS_CHAPTER_URL, null);
                 // If no chapter was selected, log them out and take them back to the login screen
                 if (chapterUrl == null) {
-                    API.getInstance(this).logout();
-                    Intent i = new Intent(ChapterSelectionActivity.this, LoginActivity.class);
-                    startActivity(i);
+                    // Logout and finish() this activity
+                    API.getInstance(this).logout(this, true);
+                } else {
+                    // Else, just close this activity
+                    finish();
                 }
-                // Else, close this activity
-                finish();
                 return true;
             default:
                 // If we got here, the user's action was not recognized.

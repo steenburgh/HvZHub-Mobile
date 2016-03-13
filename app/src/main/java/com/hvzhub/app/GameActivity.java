@@ -15,8 +15,9 @@ import android.view.MenuItem;
 public class GameActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener{
 
-    private ChatFragment cf;
-    private NewsFragment nf;
+    private ChatFragment chatFragment;
+    private NewsFragment newsFragment;
+    private MyCodeFragment myCodeFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,16 +62,16 @@ public class GameActivity extends AppCompatActivity
         Fragment toSwitch = null;
         switch(id) {
             case R.id.nav_news:
-                if (nf == null) {
-                    nf = NewsFragment.newInstance(null, null);
+                if (newsFragment == null) {
+                    newsFragment = NewsFragment.newInstance(null, null);
                 }
-                toSwitch = nf;
+                toSwitch = newsFragment;
                 break;
             case R.id.nav_chat:
-                if (cf == null) {
-                    cf = ChatFragment.newInstance(null, null);
+                if (chatFragment == null) {
+                    chatFragment = ChatFragment.newInstance(null, null);
                 }
-                toSwitch = cf;
+                toSwitch = chatFragment;
                 break;
             case R.id.nav_report_tag:
                 break;
@@ -79,6 +80,10 @@ public class GameActivity extends AppCompatActivity
                 startActivity(i);
                 break;
             case R.id.nav_my_code:
+                if (myCodeFragment == null) {
+                    myCodeFragment = MyCodeFragment.newInstance();
+                }
+                toSwitch = myCodeFragment;
                 break;
             case R.id.nav_settings:
                 break;
