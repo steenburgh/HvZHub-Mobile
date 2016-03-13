@@ -26,11 +26,13 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.hvzhub.app.API.API;
+import com.hvzhub.app.API.ErrorUtils;
 import com.hvzhub.app.API.HvZHubClient;
+import com.hvzhub.app.API.model.APIError;
 import com.hvzhub.app.API.model.Chapter;
 import com.hvzhub.app.API.model.ChapterListContainer;
-import com.hvzhub.app.API.model.LoginRequest;
-import com.hvzhub.app.API.model.Session;
+import com.hvzhub.app.API.model.Login.LoginRequest;
+import com.hvzhub.app.API.model.Login.Session;
 
 import java.util.List;
 
@@ -198,33 +200,51 @@ public class LoginActivity extends AppCompatActivity {
         } else {
             showProgress(true);
             HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
-            LoginRequest lr = new LoginRequest(email, password);
+            LoginRequest lr = new LoginRequest(email, password, true);
             Call<Session> call = client.login(lr);
             call.enqueue(new Callback<Session>() {
                 @Override
                 public void onResponse(Call<Session> call, Response<Session> response) {
                     showProgress(false);
                     if (response.isSuccessful()) {
-                        Session s = response.body();
+                        // Login successful. Start the rest of the app
                         finish();
                         Intent intent = new Intent(LoginActivity.this, GameActivity.class);
                         startActivity(intent);
-                        // TODO: Add uuid to sharedprefs
+
+                        // Persist the uuid in sharedPrefs
                         SharedPreferences.Editor prefs = getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).edit();
+                        Session s = response.body();
                         prefs.putString(API.PREFS_SESSION_ID, s.uuid);
                         prefs.apply();
+
                         Log.i("Response", s.uuid + " : " + s.createdOn);
                     } else {
                         // TODO: Parse error response to indicate bad password or username
-                        Log.i("Response Error", response.errorBody().toString());
-                        Log.d("Error", "Login Response wasn't successful");
-                    }
+                        APIError apiError = ErrorUtils.parseError(response);
+                        String err = apiError.error.toLowerCase();
+                        if (err.contains("email")) {
+                            mEmailView.setError(getString(R.string.error_invalid_email));
+                            mEmailView.requestFocus();
+                        } else if (err.contains("password")) {
+                            mPasswordView.setError(getString(R.string.error_incorrect_password));
+                            mPasswordView.requestFocus();
+                        } else {
+                            showProgress(false);
+                            AlertDialog.Builder b = new AlertDialog.Builder(LoginActivity.this);
+                            b.setTitle(getString(R.string.unexpected_response))
+                                    .setMessage(getString(R.string.unexpected_response_hint))
+                                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            // Do nothing
+                                        }
+                                    })
+                                    .show();
+                            Log.i("Login Response Error", apiError.error);
+                        }
 
-//                    mEmailView.setError(getString(R.string.error_invalid_email));
-//                    mEmailView.requestFocus();
-//
-//                    mPasswordView.setError(getString(R.string.error_incorrect_password));
-//                    mPasswordView.requestFocus();
+                    }
                 }
 
                 @Override
@@ -233,12 +253,6 @@ public class LoginActivity extends AppCompatActivity {
                     AlertDialog.Builder b = new AlertDialog.Builder(LoginActivity.this);
                     b.setTitle(getString(R.string.generic_connection_error))
                         .setMessage(getString(R.string.generic_connection_error_hint))
-                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                // Do nothing
-                            }
-                        })
                         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {

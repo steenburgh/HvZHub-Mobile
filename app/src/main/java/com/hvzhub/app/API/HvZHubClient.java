@@ -1,8 +1,8 @@
 package com.hvzhub.app.API;
 
 import com.hvzhub.app.API.model.ChapterListContainer;
-import com.hvzhub.app.API.model.LoginRequest;
-import com.hvzhub.app.API.model.Session;
+import com.hvzhub.app.API.model.Login.LoginRequest;
+import com.hvzhub.app.API.model.Login.Session;
 
 import retrofit2.Call;
 import retrofit2.http.Body;

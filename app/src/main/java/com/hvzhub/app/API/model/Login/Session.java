@@ -1,4 +1,4 @@
-package com.hvzhub.app.API.model;
+package com.hvzhub.app.API.model.Login;
 
 public class Session {
     public String createdOn;
