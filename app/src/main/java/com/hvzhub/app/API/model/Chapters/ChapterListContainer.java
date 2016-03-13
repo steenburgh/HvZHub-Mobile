@@ -1,4 +1,6 @@
-package com.hvzhub.app.API.model;
+package com.hvzhub.app.API.model.Chapters;
+
+import com.hvzhub.app.API.model.Chapters.Chapter;
 
 import java.util.List;
 
