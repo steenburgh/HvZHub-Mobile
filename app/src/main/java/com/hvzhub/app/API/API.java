@@ -1,6 +1,11 @@
 package com.hvzhub.app.API;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+
+import com.hvzhub.app.API.model.Login.Session;
 
 /**
  * A wrapper for the JSON API
@@ -13,6 +18,7 @@ public class API {
     // 10.0.2.2 is the local computer's address for when android is running in an emulator
     public static final String PREFS_API = "prefs_api"; // SharedPreferences file for API
     public static final String PREFS_SESSION_ID = "sessionID";
+    public static final String PREFS_CHAPTER_URL = "chapterUrl";
 
     private static final String BASE_PATH = "http://10.0.2.2:8080/api/v1/";
     private static final String LOGIN = "login";
@@ -45,4 +51,9 @@ public class API {
         return mHvZHubClient;
     }
 
+    public void logout() {
+        SharedPreferences.Editor prefs = mCtx.getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).edit();
+        prefs.putString(API.PREFS_SESSION_ID, null);
+        prefs.apply();
+    }
 }
