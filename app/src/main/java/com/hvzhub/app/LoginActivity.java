@@ -180,7 +180,7 @@ public class LoginActivity extends AppCompatActivity {
             // There was an error; don't attempt login and focus the first
             // form field with an error.
             focusView.requestFocus();
-        } else if (!networkIsAvailable()) {
+        } else if (!NetworkUtils.networkIsAvailable(this)) {
             AlertDialog.Builder b = new AlertDialog.Builder(LoginActivity.this);
             b.setTitle(getString(R.string.network_not_available))
                     .setMessage(getString(R.string.network_not_available_hint))
