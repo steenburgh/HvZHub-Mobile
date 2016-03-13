@@ -1,8 +1,6 @@
 package com.hvzhub.app.API;
 
 import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 
 /**
  * A wrapper for the JSON API

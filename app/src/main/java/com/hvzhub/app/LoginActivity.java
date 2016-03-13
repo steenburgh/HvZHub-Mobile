@@ -101,7 +101,7 @@ public class LoginActivity extends AppCompatActivity {
         call.enqueue(new Callback<ChapterListContainer>() {
             @Override
             public void onResponse(Call<ChapterListContainer> call, Response<ChapterListContainer> response) {
-                if (response.isSuccess()) {
+                if (response.isSuccessful()) {
                     Log.d("HTTP_GET_RESPONSE", response.raw().toString());
                     ChapterListContainer chapterContainer = response.body();
                     List<Chapter> chapters = chapterContainer.chapters;
@@ -204,7 +204,7 @@ public class LoginActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(Call<Session> call, Response<Session> response) {
                     showProgress(false);
-                    if (response.isSuccess()) {
+                    if (response.isSuccessful()) {
                         Session s = response.body();
                         finish();
                         Intent intent = new Intent(LoginActivity.this, GameActivity.class);
