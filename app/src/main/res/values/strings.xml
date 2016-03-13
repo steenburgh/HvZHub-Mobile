@@ -30,7 +30,7 @@
     <string name="connection_timeout_hint">Looks like HvZHub is down  :(</string>
     <string name="unexpected_response">Unexpected response from HvZHub.com</string>
     <string name="unexpected_response_hint">Contact the HvZHub.com dev team if this issue persists.</string>
-    <string name="generic_connection_error">Error connecting to HvZHub.com</string>
+    <string name="generic_connection_error">Couldn't connect to HvZHub.com</string>
     <string name="generic_connection_error_hint">Check your internet connection and try again. It\'s also possible that HvZHub.com is down.</string>
     <string name="network_not_available">Unable to connect to the internet</string>
     <string name="network_not_available_hint">Check your internet connection and try again</string>
@@ -55,6 +55,7 @@
     <string name="ayy">ayy</string>
     <string name="lmao">lmao</string>
     <string name="enter_code">Enter Code</string>
+    <string name="select_a_chapter">Select a Chapter</string>
 
 
 </resources>

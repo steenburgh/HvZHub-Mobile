@@ -8,8 +8,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 
@@ -28,13 +26,10 @@ import android.widget.TextView;
 import com.hvzhub.app.API.API;
 import com.hvzhub.app.API.ErrorUtils;
 import com.hvzhub.app.API.HvZHubClient;
+import com.hvzhub.app.API.NetworkUtils;
 import com.hvzhub.app.API.model.APIError;
-import com.hvzhub.app.API.model.Chapter;
-import com.hvzhub.app.API.model.ChapterListContainer;
 import com.hvzhub.app.API.model.Login.LoginRequest;
 import com.hvzhub.app.API.model.Login.Session;
-
-import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -81,7 +76,7 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         mLoginFormView = findViewById(R.id.login_form);
-        mProgressView = findViewById(R.id.login_progress);
+        mProgressView = findViewById(R.id.progress);
 
         // TODO: Remove this
         Button cheatButton = (Button) findViewById(R.id.cheat_button);
@@ -93,44 +88,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-    }
-
-
-    // TODO: Use this
-    private void getChapterList() {
-        HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
-        Call<ChapterListContainer> call = client.chapters();
-        call.enqueue(new Callback<ChapterListContainer>() {
-            @Override
-            public void onResponse(Call<ChapterListContainer> call, Response<ChapterListContainer> response) {
-                if (response.isSuccessful()) {
-                    Log.d("HTTP_GET_RESPONSE", response.raw().toString());
-                    ChapterListContainer chapterContainer = response.body();
-                    List<Chapter> chapters = chapterContainer.chapters;
-
-                    for (Chapter chapter : chapters) {
-                        Log.i("GET Chapters", "Id: " + chapter.id + " Name: " + chapter.name);
-                    }
-                } else {
-                    Log.d("Error", "Response was unsuccessful");
-                }
-
-            }
-
-            @Override
-            public void onFailure(Call<ChapterListContainer> call, Throwable t) {
-                Log.d("Error", t.getMessage());
-            }
-        });
-    }
-
-
-
-    public boolean networkIsAvailable() {
-        ConnectivityManager connectivityManager =
-                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
     /**
@@ -209,8 +166,16 @@ public class LoginActivity extends AppCompatActivity {
                     if (response.isSuccessful()) {
                         // Login successful. Start the rest of the app
                         finish();
-                        Intent intent = new Intent(LoginActivity.this, GameActivity.class);
-                        startActivity(intent);
+
+                        String chapterUrl = getSharedPreferences(API.PREFS_API, MODE_PRIVATE).getString(API.PREFS_CHAPTER_URL, null);
+                        if (chapterUrl == null) {
+                            Intent intent = new Intent(LoginActivity.this, ChapterSelectionActivity.class);
+                            startActivity(intent);
+                        } else {
+                            Intent intent = new Intent(LoginActivity.this, GameActivity.class);
+                            startActivity(intent);
+                        }
+
 
                         // Persist the uuid in sharedPrefs
                         SharedPreferences.Editor prefs = getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).edit();
@@ -252,14 +217,14 @@ public class LoginActivity extends AppCompatActivity {
                     showProgress(false);
                     AlertDialog.Builder b = new AlertDialog.Builder(LoginActivity.this);
                     b.setTitle(getString(R.string.generic_connection_error))
-                        .setMessage(getString(R.string.generic_connection_error_hint))
-                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                // Do nothing
-                            }
-                        })
-                        .show();
+                            .setMessage(getString(R.string.generic_connection_error_hint))
+                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // Do nothing
+                                }
+                            })
+                            .show();
                     Log.d("Error", t.getMessage());
                 }
             });
