@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -151,6 +152,12 @@ public class MyCodeFragment extends Fragment {
         errorMsg.setText(String.format("%s %s", msg, getString(R.string.tap_to_retry)));
         TextView errorHint = (TextView) errorView.findViewById(R.id.error_hint);
         errorHint.setText(hint);
+
+        // Make the LinearLayout react when clicked
+        // Source: http://stackoverflow.com/a/28087443
+        TypedValue outValue = new TypedValue();
+        getActivity().getApplicationContext().getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
+        errorView.setBackgroundResource(outValue.resourceId);
     }
 
     private void showProgress(final boolean showProgress) {
