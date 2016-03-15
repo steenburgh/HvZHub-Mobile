@@ -221,8 +221,17 @@ public class ChapterSelectionActivity extends AppCompatActivity {
                 String chapterUrl = getSharedPreferences(API.PREFS_API, MODE_PRIVATE).getString(API.PREFS_CHAPTER_URL, null);
                 // If no chapter was selected, log them out and take them back to the login screen
                 if (chapterUrl == null) {
-                    // Logout and finish() this activity
-                    API.getInstance(this).logout(this, true);
+                    // Logout
+
+                    // Clear the sessionID
+                    SharedPreferences.Editor prefs = getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).edit();
+                    prefs.putString(API.PREFS_SESSION_ID, null);
+                    prefs.apply();
+
+                    // Show the login screen again
+                    Intent i = new Intent(this, LoginActivity.class);
+                    startActivity(i);
+                    finish();
                 } else {
                     // Else, just close this activity
                     finish();

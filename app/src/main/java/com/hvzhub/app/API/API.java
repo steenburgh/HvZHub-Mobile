@@ -48,30 +48,4 @@ public class API {
         }
         return mHvZHubClient;
     }
-
-    /**
-     * Logout, and close the provided activity
-     *
-     * @param activity The activity calling logout.
-     @ @param closeActivity whether or not to close the activity after logging out
-     */
-    public void logout(Activity activity, boolean closeActivity) {
-        SharedPreferences.Editor prefs = mCtx.getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).edit();
-        prefs.putString(API.PREFS_SESSION_ID, null);
-        prefs.apply();
-        Toast t = Toast.makeText(
-                mCtx,
-                R.string.you_have_been_logged_out,
-                Toast.LENGTH_LONG
-        );
-        t.show();
-
-        if (closeActivity) {
-            activity.finish();
-        }
-        Intent i = new Intent(activity, LoginActivity.class);
-        activity.startActivity(i);
-
-
-    }
 }

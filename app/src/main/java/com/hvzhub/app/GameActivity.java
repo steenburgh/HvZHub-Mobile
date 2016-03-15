@@ -1,7 +1,10 @@
 package com.hvzhub.app;
 
+import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.NavigationView;
@@ -11,9 +14,12 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.widget.Toast;
+
+import com.hvzhub.app.API.API;
 
 public class GameActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener{
+        implements NavigationView.OnNavigationItemSelectedListener, OnLogoutListener{
 
     private ChatFragment chatFragment;
     private NewsFragment newsFragment;
@@ -60,7 +66,7 @@ public class GameActivity extends AppCompatActivity
 
     public void switchToTab(int id) {
         Fragment toSwitch = null;
-        switch(id) {
+        switch (id) {
             case R.id.nav_news:
                 if (newsFragment == null) {
                     newsFragment = NewsFragment.newInstance(null, null);
@@ -104,4 +110,23 @@ public class GameActivity extends AppCompatActivity
         }
     }
 
+    @Override
+    public void onLogout() {
+        SharedPreferences.Editor prefs = getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).edit();
+        prefs.putString(API.PREFS_SESSION_ID, null);
+        prefs.apply();
+
+        // Notify the user
+        Toast t = Toast.makeText(
+                this,
+                R.string.you_have_been_logged_out,
+                Toast.LENGTH_LONG
+        );
+        t.show();
+
+        // Load the login screen
+        Intent i = new Intent(this, LoginActivity.class);
+        startActivity(i);
+        finish();
+    }
 }

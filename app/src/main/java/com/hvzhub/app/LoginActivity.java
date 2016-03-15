@@ -146,13 +146,13 @@ public class LoginActivity extends AppCompatActivity {
                         public void onClick(DialogInterface dialog, int which) {
                             attemptLogin();
                         }
-                })
+                    })
                     .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             // Do nothing
                         }
-                })
+                    })
                 .show();
         } else {
             showProgress(true);

@@ -3,6 +3,7 @@ package com.hvzhub.app;
 import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +29,8 @@ public class MyCodeFragment extends Fragment {
     ProgressBar progressBar;
     LinearLayout myCodeContainer;
     LinearLayout errorView;
+
+    private OnLogoutListener mListener;
 
     public MyCodeFragment() {
         // Required empty public constructor
@@ -94,14 +97,22 @@ public class MyCodeFragment extends Fragment {
                         APIError apiError = ErrorUtils.parseError(response);
                         String err = apiError.error.toLowerCase();
                         if (err.contains(getString(R.string.invalid_session_id))) {
-                            // Logout and finish this activity
+                            // Notify the parent activity that the user should be logged out
                             // Don't bother stopping the loading animation
-                            API.getInstance(getActivity().getApplicationContext()).logout(getActivity(), true);
+                            mListener.onLogout();
                         } else {
                             setError(getString(R.string.unexpected_response), getString(R.string.unexpected_response_hint));
                             showProgress(false);
                             showContentView(false);
                             showErrorView(true);
+                            Log.i("API Error", "Error connecting to HvZHub.com");
+
+                            if (err.equals("")) {
+                                Log.i("API Error", String.format("Error was: %s", err));
+                            } else {
+                                Log.i("API Error", response.body().toString());
+                            }
+
                         }
 
                     }
@@ -144,5 +155,22 @@ public class MyCodeFragment extends Fragment {
 
     private void showProgress(final boolean showProgress) {
         progressBar.setVisibility(showProgress ? View.VISIBLE : View.GONE);
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof OnLogoutListener) {
+            mListener = (OnLogoutListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must be an instance of OnLogoutListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
     }
 }
