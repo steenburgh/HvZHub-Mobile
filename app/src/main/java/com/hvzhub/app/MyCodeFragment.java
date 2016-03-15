@@ -1,7 +1,9 @@
 package com.hvzhub.app;
 
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
@@ -76,6 +78,23 @@ public class MyCodeFragment extends Fragment {
             showProgress(false);
             showErrorView(true);
             showContentView(false);
+
+            AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+            b.setTitle(getString(R.string.network_not_available))
+                    .setMessage(getString(R.string.network_not_available_hint))
+                    .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            updateMyCode();
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // Do nothing
+                        }
+                    })
+                    .show();
             return;
         }
         int gameId = getActivity().getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).getInt(API.PREFS_GAME_ID, -1);
