@@ -46,7 +46,6 @@ public class LoginActivity extends AppCompatActivity {
     private View mLoginFormView;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -153,7 +152,7 @@ public class LoginActivity extends AppCompatActivity {
                             // Do nothing
                         }
                     })
-                .show();
+                    .show();
         } else {
             showProgress(true);
             HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
@@ -175,7 +174,6 @@ public class LoginActivity extends AppCompatActivity {
                             Intent intent = new Intent(LoginActivity.this, GameActivity.class);
                             startActivity(intent);
                         }
-
 
                         // Persist the uuid in sharedPrefs
                         SharedPreferences.Editor prefs = getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).edit();
