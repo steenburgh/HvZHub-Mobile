@@ -25,51 +25,40 @@ import com.hvzhub.app.API.ErrorUtils;
 import com.hvzhub.app.API.HvZHubClient;
 import com.hvzhub.app.API.NetworkUtils;
 import com.hvzhub.app.API.model.APIError;
-import com.hvzhub.app.API.model.Chapters.Chapter;
-import com.hvzhub.app.API.model.Chapters.ChapterListContainer;
+import com.hvzhub.app.API.model.Games.Game;
+import com.hvzhub.app.API.model.Games.GameListContainer;
 import com.hvzhub.app.API.model.Status;
 import com.hvzhub.app.API.model.Uuid;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ChapterSelectionActivity extends AppCompatActivity {
+public class GameSelectionActivity extends AppCompatActivity {
 
     ListView listView;
-    ArrayAdapter<Chapter> adapter;
-    List<Chapter> chapterList;
+    ArrayAdapter<Game> adapter;
+    List<Game> gameList;
 
     ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chapter_selection);
+        setContentView(R.layout.activity_game_selection);
 
         listView = (ListView) findViewById(R.id.list_view);
-        chapterList = new ArrayList<>();
-        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, chapterList);
+        gameList = new ArrayList<>();
+        adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, gameList);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                // TODO: Remove this
-//                SharedPreferences.Editor prefs = getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).edit();
-//                prefs.putString(API.PREFS_CHAPTER_URL, "u_of_test");
-//                prefs.putInt(API.PREFS_GAME_ID, 3);
-//                prefs.apply();
-//
-//                // TODO: Remove this
-//                Intent i = new Intent(ChapterSelectionActivity.this, GameActivity.class);
-//                startActivity(i);
-//                finish();
-
-                // TODO: Fix this method
-                joinChapter(chapterList.get(position));
+                joinGame(gameList.get(position));
             }
         });
 
@@ -79,21 +68,20 @@ public class ChapterSelectionActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_close_white);
         }
 
-        getChapterList();
+        getGameList();
     }
 
-    private void getChapterList() {
+    private void getGameList() {
         if (!NetworkUtils.networkIsAvailable(this)) {
-            AlertDialog.Builder b = new AlertDialog.Builder(ChapterSelectionActivity.this);
+            AlertDialog.Builder b = new AlertDialog.Builder(GameSelectionActivity.this);
             b.setTitle(getString(R.string.network_not_available))
                     .setMessage(getString(R.string.network_not_available_hint))
                     .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                             getChapterList();
+                            getGameList();
                         }
                     })
                     .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -107,22 +95,23 @@ public class ChapterSelectionActivity extends AppCompatActivity {
             HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
 
             String uuid = getSharedPreferences(API.PREFS_API, MODE_PRIVATE).getString(API.PREFS_SESSION_ID, null);
-            Call<ChapterListContainer> call = client.getChapters(new Uuid(uuid));
-            call.enqueue(new Callback<ChapterListContainer>() {
+            Call<GameListContainer> call = client.getGames(new Uuid(uuid));
+            call.enqueue(new Callback<GameListContainer>() {
                 @Override
-                public void onResponse(Call<ChapterListContainer> call, Response<ChapterListContainer> response) {
+                public void onResponse(Call<GameListContainer> call, Response<GameListContainer> response) {
                     showProgress(false);
                     if (response.isSuccessful()) {
-                        chapterList.clear();
-                        chapterList.addAll(response.body().chapters);
+                        gameList.clear();
+                        gameList.addAll(response.body().games);
+                        Collections.sort(gameList); // Ensure the list is sorted. See Game.compareTo() for more info
                     } else {
-                        AlertDialog.Builder b = new AlertDialog.Builder(ChapterSelectionActivity.this);
+                        AlertDialog.Builder b = new AlertDialog.Builder(GameSelectionActivity.this);
                         b.setTitle(getString(R.string.unexpected_response))
                                 .setMessage(getString(R.string.unexpected_response_hint))
                                 .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        getChapterList();
+                                        getGameList();
                                     }
                                 })
                                 .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -135,16 +124,16 @@ public class ChapterSelectionActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onFailure(Call<ChapterListContainer> call, Throwable t) {
+                public void onFailure(Call<GameListContainer> call, Throwable t) {
                     showProgress(false);
 
-                    AlertDialog.Builder b = new AlertDialog.Builder(ChapterSelectionActivity.this);
+                    AlertDialog.Builder b = new AlertDialog.Builder(GameSelectionActivity.this);
                     b.setTitle(getString(R.string.generic_connection_error))
                             .setMessage(getString(R.string.generic_connection_error_hint))
                             .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    getChapterList();
+                                    getGameList();
                                 }
                             })
                             .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -159,32 +148,32 @@ public class ChapterSelectionActivity extends AppCompatActivity {
         }
     }
 
-    private void joinChapter(final Chapter chapter) {
+    private void joinGame(final Game game) {
         showProgress(true);
         HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
         String uuid = getSharedPreferences(API.PREFS_API, MODE_PRIVATE).getString(API.PREFS_SESSION_ID, null);
-        Call<Status> call = client.joinChapter(chapter.getUrl(), new Uuid(uuid));
+        Call<Status> call = client.joinGame(game.id, new Uuid(uuid));
         call.enqueue(new Callback<Status>() {
             @Override
             public void onResponse(Call<Status> call, Response<Status> response) {
                 showProgress(false);
                 if (response.isSuccessful()) {
                     SharedPreferences.Editor prefs = getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).edit();
-                    prefs.putString(API.PREFS_CHAPTER_URL, chapter.getUrl());
+                    prefs.putInt(API.PREFS_GAME_ID, game.id);
                     prefs.apply();
 
-                    Intent i = new Intent(ChapterSelectionActivity.this, GameSelectionActivity.class);
+                    Intent i = new Intent(GameSelectionActivity.this, GameActivity.class);
                     startActivity(i);
                 } else {
                     APIError apiError = ErrorUtils.parseError(response);
                     String err = apiError.error.toLowerCase();
                     if (err.equals(getString(R.string.invalid_session_id))) {
                         // This should never happen, but if it does, log the user out so they can obtain a new sessionID
-                        Toast t = Toast.makeText(ChapterSelectionActivity.this, R.string.unexpected_response, Toast.LENGTH_LONG);
+                        Toast t = Toast.makeText(GameSelectionActivity.this, R.string.unexpected_response, Toast.LENGTH_LONG);
                         t.show();
                         logout();
                     } else {
-                        AlertDialog.Builder b = new AlertDialog.Builder(ChapterSelectionActivity.this);
+                        AlertDialog.Builder b = new AlertDialog.Builder(GameSelectionActivity.this);
                         b.setTitle(getString(R.string.unexpected_response))
                                 .setMessage(getString(R.string.unexpected_response_hint))
                                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
@@ -194,16 +183,15 @@ public class ChapterSelectionActivity extends AppCompatActivity {
                                     }
                                 })
                                 .show();
-                        Log.i("Join Chapter Error", apiError.error);
+                        Log.i("Join Game Error", apiError.error);
                     }
-
                 }
             }
 
             @Override
             public void onFailure(Call<Status> call, Throwable t) {
                 showProgress(false);
-                AlertDialog.Builder b = new AlertDialog.Builder(ChapterSelectionActivity.this);
+                AlertDialog.Builder b = new AlertDialog.Builder(GameSelectionActivity.this);
                 b.setTitle(getString(R.string.generic_connection_error))
                         .setMessage(getString(R.string.generic_connection_error_hint))
                         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
@@ -219,7 +207,7 @@ public class ChapterSelectionActivity extends AppCompatActivity {
     }
 
     /**
-     * Shows the progress UI and hides the selection form.
+     * Shows the progress UI and hides the login form.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     private void showProgress(final boolean show) {
@@ -258,15 +246,7 @@ public class ChapterSelectionActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                String chapterUrl = getSharedPreferences(API.PREFS_API, MODE_PRIVATE).getString(API.PREFS_CHAPTER_URL, null);
-                // If no chapter was set already
-                // log them out and take them back to the login screen
-                if (chapterUrl == null) {
-                    logout();
-                } else {
-                    // Else, just close this activity
-                    finish();
-                }
+                onBackPressed();
                 return true;
             default:
                 // If we got here, the user's action was not recognized.

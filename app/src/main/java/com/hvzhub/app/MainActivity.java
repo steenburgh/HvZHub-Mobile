@@ -21,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
         // Decide which activity to start
         String sessionID = getSharedPreferences(API.PREFS_API, MODE_PRIVATE).getString(API.PREFS_SESSION_ID, null);
         String chapterUrl = getSharedPreferences(API.PREFS_API, MODE_PRIVATE).getString(API.PREFS_CHAPTER_URL, null);
+        int gameId = getSharedPreferences(API.PREFS_API, MODE_PRIVATE).getInt(API.PREFS_GAME_ID, -1);
         if (sessionID == null) {
             finish();
             Intent i = new Intent(this, LoginActivity.class);
@@ -31,6 +32,11 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, ChapterSelectionActivity.class);
             startActivity(intent);
             Log.i("MainActivity", "ChapterUrl not found. Showing chapter selection screen");
+        } else if (gameId == -1) {
+            finish();
+            Intent intent = new Intent(this, GameSelectionActivity.class);
+            startActivity(intent);
+            Log.i("MainActivity", "gameId not found. Showing chapter selection screen");
         } else {
             finish();
             Intent intent = new Intent(this, GameActivity.class);

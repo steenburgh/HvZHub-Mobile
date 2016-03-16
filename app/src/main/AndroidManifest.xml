@@ -41,6 +41,9 @@
         <activity android:name=".ChapterSelectionActivity"
             android:label="@string/select_a_chapter"/>
 
+        <activity android:name=".GameSelectionActivity"
+            android:label="@string/choose_a_game"/>
+
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
