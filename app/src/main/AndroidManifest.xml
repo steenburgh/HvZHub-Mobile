@@ -34,9 +34,6 @@
         <activity
             android:name=".LoginActivity"
             android:label="@string/title_activity_login" />
-        <activity
-            android:name=".ReportTagActivity"
-            android:label="@string/title_activity_report_tag"/>
 
         <activity android:name=".ChapterSelectionActivity"
             android:label="@string/select_a_chapter"/>

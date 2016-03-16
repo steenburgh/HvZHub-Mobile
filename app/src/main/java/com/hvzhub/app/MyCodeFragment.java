@@ -70,32 +70,9 @@ public class MyCodeFragment extends Fragment {
         progressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
         errorView = (LinearLayout) view.findViewById(R.id.error_view);
         updateMyCode();
-        tryToTagMyself();
     }
 
-    private void tryToTagMyself() {
-        int gameId = getActivity().getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).getInt(API.PREFS_GAME_ID, -1);
-        HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
-        String uuid = getActivity().getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).getString(API.PREFS_SESSION_ID, null);
-        TagPlayerRequest tpr = new TagPlayerRequest(
-                new Uuid(uuid),
-                "ASDFGR",
-                new Date()
-        );
-        Call<APISuccess> call = client.reportTag(gameId, tpr);
-        call.enqueue(new Callback<APISuccess>() {
-            @Override
-            public void onResponse(Call<APISuccess> call, Response<APISuccess> response) {
 
-            }
-
-            @Override
-            public void onFailure(Call<APISuccess> call, Throwable t) {
-
-            }
-        });
-
-    }
     private void updateMyCode() {
         showProgress(true);
         showErrorView(false);

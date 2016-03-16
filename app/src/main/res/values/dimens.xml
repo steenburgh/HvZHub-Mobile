@@ -7,4 +7,6 @@
     <dimen name="nav_header_height">160dp</dimen>
     <dimen name="tag_code_size">60sp</dimen>
     <dimen name="tag_code_vertical_margin">20dp</dimen>
+    <dimen name="header_size">40sp</dimen>
+    <dimen name="date_size">25sp</dimen>
 </resources>
