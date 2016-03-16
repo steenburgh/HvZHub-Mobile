@@ -1,11 +1,15 @@
 package com.hvzhub.app.API;
 
+import com.hvzhub.app.API.model.APISuccess;
 import com.hvzhub.app.API.model.Chapters.ChapterListContainer;
 import com.hvzhub.app.API.model.Code;
 import com.hvzhub.app.API.model.Login.LoginRequest;
 import com.hvzhub.app.API.model.Login.Session;
 import com.hvzhub.app.API.model.Status;
+import com.hvzhub.app.API.model.TagPlayerRequest;
 import com.hvzhub.app.API.model.Uuid;
+
+import java.util.UUID;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -29,5 +33,11 @@ public interface HvZHubClient {
     Call<Code> getMyCode(
             @Path("id") int id,
             @Body Uuid uuid
+    );
+
+    @POST("games/{id}/tag_player")
+    Call<APISuccess> reportTag(
+            @Path("id") int id,
+            @Body TagPlayerRequest tagPlayerRequest
     );
 }
