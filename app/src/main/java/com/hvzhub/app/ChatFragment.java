@@ -1,6 +1,7 @@
 package com.hvzhub.app;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -8,6 +9,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+
+import com.hvzhub.app.API.API;
+import com.hvzhub.app.API.model.Login.Session;
+import com.hvzhub.app.Prefs.ChatPrefs;
 
 
 public class ChatFragment extends Fragment {
@@ -57,6 +62,22 @@ public class ChatFragment extends Fragment {
         getActivity().setTitle(getActivity().getString(R.string.chat));
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_chat, container, false);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        SharedPreferences.Editor prefs = getActivity().getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).edit();
+        prefs.putBoolean(ChatPrefs.IS_OPEN, false);
+        prefs.apply();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        SharedPreferences.Editor prefs = getActivity().getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).edit();
+        prefs.putBoolean(ChatPrefs.IS_OPEN, true);
+        prefs.apply();
     }
 
     @Override

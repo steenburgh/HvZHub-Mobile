@@ -1,4 +1,4 @@
-package com.hvzhub.app.GCM;
+package com.hvzhub.app.Prefs;
 
 public class QuickstartPreferences {
 

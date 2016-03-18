@@ -10,7 +10,7 @@ import android.util.Log;
 import com.google.android.gms.gcm.GcmPubSub;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
-import com.hvzhub.app.GCM.QuickstartPreferences;
+import com.hvzhub.app.Prefs.QuickstartPreferences;
 
 import java.io.IOException;
 

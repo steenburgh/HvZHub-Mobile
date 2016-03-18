@@ -1,6 +1,5 @@
 package com.hvzhub.app;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -19,13 +18,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.hvzhub.app.API.API;
-import com.hvzhub.app.GCM.QuickstartPreferences;
+import com.hvzhub.app.Prefs.QuickstartPreferences;
 
 public class GameActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnLogoutListener{
@@ -103,6 +101,7 @@ public class GameActivity extends AppCompatActivity
             isReceiverRegistered = true;
         }
     }
+
     /**
      * Check the device to make sure it has the Google Play Services APK. If
      * it doesn't, display a dialog that allows users to download the APK from

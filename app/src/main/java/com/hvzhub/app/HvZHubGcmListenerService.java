@@ -4,6 +4,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -11,8 +12,7 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
-import com.hvzhub.app.GameActivity;
-import com.hvzhub.app.R;
+import com.hvzhub.app.Prefs.ChatPrefs;
 
 public class HvZHubGcmListenerService extends GcmListenerService {
     private static final String TAG = "HvZHubGcmListener";
@@ -49,7 +49,11 @@ public class HvZHubGcmListenerService extends GcmListenerService {
          * In some cases it may be useful to show a notification indicating to the user
          * that a message was received.
          */
-        sendNotification(message);
+        boolean chatIsOpen = getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).getBoolean(ChatPrefs.IS_OPEN, false);
+
+        if (!chatIsOpen) {
+            sendNotification(message);
+        }
         // [END_EXCLUDE]
     }
     // [END receive_message]
