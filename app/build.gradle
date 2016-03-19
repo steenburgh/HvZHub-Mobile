@@ -33,8 +33,8 @@ dependencies {
     compile 'com.google.android.gms:play-services-maps:8.4.0'
     compile 'com.google.android.gms:play-services-gcm:8.4.0'
     compile 'com.google.maps.android:android-maps-utils:0.4.3'
-    compile files('libs/greendao-1.3.0.jar')
-    compile files('libs/greendao-generator.jar')
+    compile 'de.greenrobot:greendao:2.1.0'
+    compile 'de.greenrobot:greendao-generator:2.1.0'
     compile 'org.freemarker:freemarker:2.3.23'
 }
 
