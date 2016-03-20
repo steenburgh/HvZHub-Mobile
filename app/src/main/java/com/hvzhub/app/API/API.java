@@ -5,10 +5,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.hvzhub.app.LoginActivity;
 import com.hvzhub.app.R;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * A wrapper for the JSON API
@@ -25,6 +33,7 @@ public class API {
     public static final String PREFS_GAME_ID = "gameID";
 
     private static final String BASE_PATH = "http://10.0.2.2:8080/api/v1/";
+    public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
     /* This is implemented as a 'singleton'
      * This means that API is an object that can only be instantiated once
@@ -47,5 +56,17 @@ public class API {
             return ServiceGenerator.createService(HvZHubClient.class);
         }
         return mHvZHubClient;
+    }
+
+    public static Date dateFromUtcString(String dateStr) throws ParseException {
+        DateFormat dateFormat = new SimpleDateFormat(API.DATE_FORMAT);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return dateFormat.parse(dateStr);
+    }
+
+    public static String utcStringFromDate(Date date) {
+        DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return dateFormat.format(date);
     }
 }
