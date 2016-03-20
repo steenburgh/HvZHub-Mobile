@@ -17,7 +17,7 @@ import java.io.IOException;
 public class RegistrationIntentService extends IntentService {
 
     private static final String TAG = "RegIntentService";
-    private static final String[] TOPICS = {"global"};
+    private static final String[] TOPICS = {"global", "games_3_chat_human"};
 
     public RegistrationIntentService() {
         super(TAG);
@@ -85,6 +85,7 @@ public class RegistrationIntentService extends IntentService {
         GcmPubSub pubSub = GcmPubSub.getInstance(this);
         for (String topic : TOPICS) {
             pubSub.subscribe(token, "/topics/" + topic, null);
+            Log.d(TAG, String.format("Subscribed to: /topics/%s", topic));
         }
     }
     // [END subscribe_topics]

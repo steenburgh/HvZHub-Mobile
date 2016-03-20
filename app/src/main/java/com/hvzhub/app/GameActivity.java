@@ -23,13 +23,18 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.hvzhub.app.API.API;
+import com.hvzhub.app.DB.DB;
+import com.hvzhub.app.DB.Message;
 import com.hvzhub.app.Prefs.QuickstartPreferences;
+
+import java.util.Date;
+import java.util.List;
 
 public class GameActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnLogoutListener{
 
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "GameActivity";
 
     private ChatFragment chatFragment;
     private NewsFragment newsFragment;
@@ -40,6 +45,7 @@ public class GameActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_game);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -154,7 +160,7 @@ public class GameActivity extends AppCompatActivity
                 break;
             case R.id.nav_chat:
                 if (chatFragment == null) {
-                    chatFragment = ChatFragment.newInstance(null, null);
+                    chatFragment = ChatFragment.newInstance();
                 }
                 toSwitch = chatFragment;
                 break;

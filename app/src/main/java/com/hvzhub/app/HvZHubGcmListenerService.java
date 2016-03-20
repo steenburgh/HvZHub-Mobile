@@ -15,6 +15,7 @@ import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
 import com.hvzhub.app.API.API;
+import com.hvzhub.app.DB.DB;
 import com.hvzhub.app.Prefs.ChatPrefs;
 
 import java.text.ParseException;
@@ -84,22 +85,21 @@ public class HvZHubGcmListenerService extends GcmListenerService {
             return false;
         }
 
-//        DB.getInstance(this).addMessageToChat(
-//                userId,
-//                name,
-//                message,
-//                date,
-//                msgId,
-//                "human"
-//        );
+        DB.getInstance(this).addMessageToChat(
+                userId,
+                name,
+                message,
+                date,
+                msgId,
+                DB.HUMAN_CHAT
+        );
 
 
         boolean chatIsOpen = getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).getBoolean(ChatPrefs.IS_OPEN, false);
         SharedPreferences.Editor editor = getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).edit();
-        editor.putString(ChatPrefs.MESSAGE, "BAD. DONT USE THIS");
         editor.apply();
 
-        Intent messageReceived = new Intent(ChatPrefs.MESSAGE_RECEIVED);
+        Intent messageReceived = new Intent(ChatPrefs.MESSAGE_RECEIVED_BROADCAST);
         Log.d(TAG, "Sending broadcast: message received ");
         LocalBroadcastManager.getInstance(this).sendBroadcast(messageReceived);
 

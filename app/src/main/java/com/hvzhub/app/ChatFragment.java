@@ -1,29 +1,36 @@
 package com.hvzhub.app;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 
-import com.hvzhub.app.API.API;
-import com.hvzhub.app.API.model.Login.Session;
+import com.hvzhub.app.DB.DB;
+import com.hvzhub.app.DB.Message;
 import com.hvzhub.app.Prefs.ChatPrefs;
+
+import java.util.List;
 
 
 public class ChatFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private final String TAG = "ChatFragment";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private BroadcastReceiver msgBroadcastReceiver;
+    private boolean msgReceiverIsRegistered;
+
+    List<Message> messages;
+    ArrayAdapter<Message> adapter;
 
     public ChatFragment() {
         // Required empty public constructor
@@ -38,22 +45,13 @@ public class ChatFragment extends Fragment {
      * @return A new instance of fragment ChatFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static ChatFragment newInstance(String param1, String param2) {
-        ChatFragment fragment = new ChatFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
+    public static ChatFragment newInstance() {
+        return new ChatFragment();
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
@@ -62,27 +60,73 @@ public class ChatFragment extends Fragment {
         getActivity().setTitle(getActivity().getString(R.string.chat));
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_chat, container, false);
+
+        // TODO: Programmatically update text hint based on which side you're chatting with
     }
 
     @Override
-    public void onPause() {
-        super.onPause();
-        SharedPreferences.Editor prefs = getActivity().getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).edit();
-        prefs.putBoolean(ChatPrefs.IS_OPEN, false);
-        prefs.apply();
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        ListView lv = (ListView) view.findViewById(R.id.list_view);
+        messages = DB.getInstance(getActivity().getApplicationContext()).getMessages(DB.HUMAN_CHAT);
+        adapter = new ArrayAdapter<>(getActivity().getApplicationContext(), android.R.layout.simple_list_item_1, messages);
+        lv.setAdapter(adapter);
+
+        msgBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.i(TAG, "Received notification - new chat message");
+                List<Message> msgsFromDB = DB.getInstance(getActivity().getApplicationContext()).getMessages(DB.HUMAN_CHAT);
+                Message messageObj = msgsFromDB.get(0);
+                messages.add(messageObj);
+                adapter.notifyDataSetChanged();
+                Log.i(TAG, messageObj.getMessage());
+
+            }
+        };
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        registerMsgReceiver();
+
+        // Chat is now open
         SharedPreferences.Editor prefs = getActivity().getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).edit();
         prefs.putBoolean(ChatPrefs.IS_OPEN, true);
         prefs.apply();
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+
+        LocalBroadcastManager.getInstance(getActivity().getApplicationContext()).unregisterReceiver(msgBroadcastReceiver);
+        msgReceiverIsRegistered = false;
+
+        // Chat is now closed
+        SharedPreferences.Editor prefs = getActivity().getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).edit();
+        prefs.putBoolean(ChatPrefs.IS_OPEN, false);
+        prefs.apply();
+    }
+
+    private void registerMsgReceiver() {
+        if (!msgReceiverIsRegistered) {
+            LocalBroadcastManager.getInstance(getActivity().getApplicationContext())
+                    .registerReceiver(
+                            msgBroadcastReceiver,
+                            new IntentFilter(ChatPrefs.MESSAGE_RECEIVED_BROADCAST)
+                    );
+            msgReceiverIsRegistered = true;
+        }
+    }
+
+    @Override
     public void onStop() {
         super.onStop();
+
+        // Hide keyboard
         if (getView() != null) {
             final InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);

@@ -1,58 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<GridLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/chatbox"
-    style="@style/AppTheme.NoActionBar"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/content"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:fitsSystemWindows="true"
-    android:scrollbars="vertical"
-    android:weightSum="1"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.hvzhub.app.ChatFragment">
 
-    <EditText
-        android:id="@+id/editText"
-        android:layout_width="269dp"
-        android:layout_height="wrap_content"
-        android:layout_column="0"
-        android:layout_row="1"
-        android:hint="Message"
-        android:inputType="text" />
-
-    <Button
-        android:id="@+id/send"
-        android:layout_width="wrap_content"
-
-        android:layout_height="wrap_content"
-        android:layout_column="0"
-        android:layout_gravity="right"
-        android:layout_row="1"
-        android:clickable="false"
-        android:enabled="false"
-        android:text="@string/Send" />
-
-    <ScrollView
-        android:id="@+id/scrollView"
+    <ListView
+        android:id="@+id/list_view"
+        android:background="#e9e9e9"
         android:layout_width="match_parent"
-        android:layout_height="211dp"
-        android:layout_column="0"
-        android:layout_row="0">
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:layout_above="@+id/send_box">
+    </ListView>
 
-        <TextView
-            android:id="@+id/textView2"
-            android:layout_width="match_parent"
-            android:layout_height="166dp"
-            android:layout_column="0"
-            android:layout_marginLeft="10dp"
-            android:layout_marginTop="10dp"
-            android:layout_row="1"
-            android:text="This will be the Chat Box"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:verticalScrollbarPosition="right"
+    <View
+        android:layout_alignTop="@id/send_box"
+        android:layout_height="1dp"
+        android:layout_width="match_parent"
+        android:background="@color/colorDivider" />
 
-            />
-    </ScrollView>
+    <LinearLayout
+        android:id="@id/send_box"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin">
 
+        <EditText
+            android:inputType="textAutoCorrect|textMultiLine"
+            android:scrollHorizontally="false"
+            android:hint="@string/type_a_message"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_gravity="center"/>
 
-</GridLayout>
+        <ImageButton
+            android:contentDescription="@string/Send"
+            android:src="@drawable/ic_send"
+            android:tint="@color/colorPrimaryDark"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="?android:selectableItemBackground" />
+    </LinearLayout>
+
+</RelativeLayout>

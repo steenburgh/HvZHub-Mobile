@@ -3,10 +3,17 @@ package com.hvzhub.app.DB;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 public class DB {
+    public static final String HUMAN_CHAT = "human";
+    public static final String ZOMBIE_CHAT = "zombie";
+    public static final String MOD_CHAT = "mod";
+
     private static DB mInstance;
     private final Context mCtx;
 
@@ -16,7 +23,6 @@ public class DB {
     DaoSession daoSession;
     MessageDao messageDao;
     ChatDao chatDao;
-    List<Message> messageList;
 
     private DB(Context context) {
         mCtx = context;
@@ -38,7 +44,7 @@ public class DB {
         daoMaster = new DaoMaster(hvzHubDB);
 
         // Create database and tables if non existent
-        //Use methods in DaoMaster to create initial database table
+        // Use methods in DaoMaster to create initial database table
         //
         DaoMaster.createAllTables(hvzHubDB, true);
 
@@ -64,19 +70,33 @@ public class DB {
         List<Chat> chats = chatDao.queryBuilder()
                 .where(ChatDao.Properties.Name.eq(chatName))
                 .list();
+
+        // If the chat doesn't exist, create it
+        if (chats.isEmpty()) {
+            createChat(chatName);
+            chats = chatDao.queryBuilder()
+                    .where(ChatDao.Properties.Name.eq(chatName))
+                    .list();
+        }
+
         return chats.get(0);
     }
 
-    private List<Message> getMessages(String chatName) {
+    public List<Message> getMessages(String chatName) {
         Chat chat = getChat(chatName);
-        messageList = chat.getMessages();
+        List<Message> messageList = chat.getMessages();
 
         // (cont.) If list is null, then database tables were created for first time in
         // (cont.) previous lines, so call "closeReopenDatabase()"
         if (messageList == null) {
             closeReopenDatabase();
+            return new LinkedList<>();
+        } else if (messageList.isEmpty()) {
+            // If messageList is empty, return an empty LinkedList instead of an EmptyList
+            return new LinkedList<>();
+        } else {
+            return messageList;
         }
-        return messageList;
     }
 
     public Message addMessageToChat(
@@ -87,6 +107,7 @@ public class DB {
             int msgId,
             String chatName
     ) {
+        openDatabase();
         Chat chat = getChat(chatName);
         List<Message> messages = chat.getMessages();
         Message msgObject = new Message(
@@ -99,12 +120,22 @@ public class DB {
                 chat.getId()
         );
         daoSession.insert(msgObject);
-        messages.add(msgObject);
 
-        //Close and reopen database to ensure object is saved
+        // If messages is empty, greenDAO returns an immutable, empty list object
+        // To fix this up, we need to reset
+        if (messages.isEmpty()) {
+            chat.resetMessages(); // This also adds the message object to the list
+        } else {
+            messages.add(msgObject);
+        }
+
         closeReopenDatabase();
-
         return msgObject;
+    }
+
+    private void closeReopenDatabase() {
+        closeDatabase();
+        openDatabase();
     }
 
     private void closeDatabase() {
@@ -113,9 +144,7 @@ public class DB {
         hvzHubDBHelper.close();
     }
 
-    private void closeReopenDatabase() {
-        closeDatabase();
-
+    public void openDatabase() {
         hvzHubDBHelper = new DaoMaster.DevOpenHelper(mCtx, "ORM.sqlite", null);
         hvzHubDB = hvzHubDBHelper.getWritableDatabase();
 
