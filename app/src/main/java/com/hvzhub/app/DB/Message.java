@@ -90,8 +90,4 @@ public class Message {
         this.chatId = chatId;
     }
 
-    @Override
-    public String toString() {
-        return String.format("Name: %s\n Message: %s", name, message);
-    }
 }

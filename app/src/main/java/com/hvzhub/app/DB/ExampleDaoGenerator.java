@@ -33,6 +33,6 @@ public class ExampleDaoGenerator {
         chat.addStringProperty("name"); // Zombie human or mod
         ToMany chatToMessages = chat.addToMany(message, chatId);
         chatToMessages.setName("messages");
-        chatToMessages.orderDesc(timestamp); // In a scrollable list, scrolling up through chats goes back in time
+        chatToMessages.orderAsc(timestamp); // Newest messages go at the bottom
     }
 }

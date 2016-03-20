@@ -1,9 +1,10 @@
 package com.hvzhub.app.DB;
 
-import java.util.List;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
+
+import java.util.List;
 
 import de.greenrobot.dao.AbstractDao;
 import de.greenrobot.dao.Property;
@@ -149,7 +150,7 @@ public class MessageDao extends AbstractDao<Message, Long> {
             if (chat_MessagesQuery == null) {
                 QueryBuilder<Message> queryBuilder = queryBuilder();
                 queryBuilder.where(Properties.ChatId.eq(null));
-                queryBuilder.orderRaw("T.'TIMESTAMP' DESC");
+                queryBuilder.orderRaw("T.'TIMESTAMP' ASC");
                 chat_MessagesQuery = queryBuilder.build();
             }
         }
