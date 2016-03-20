@@ -12,9 +12,9 @@ public class TagPlayerRequest {
     @SerializedName("tagged_on")
     public String taggedOn;
 
-    public Uuid uuid;
+    public String uuid;
 
-    public TagPlayerRequest(Uuid uuid, String taggedCode, Date taggedOnDateUtc) {
+    public TagPlayerRequest(String uuid, String taggedCode, Date taggedOnDateUtc) {
         this.taggedCode = taggedCode;
         this.taggedOn = API.utcStringFromDate(taggedOnDateUtc);
         this.uuid = uuid;
