@@ -158,7 +158,7 @@ public class MyCodeFragment extends Fragment {
                             if (err.equals("")) {
                                 Log.i("API Error", String.format("Error was: %s", err));
                             } else {
-                                Log.i("API Error", response.body().toString());
+                                Log.i("API Error", response.errorBody().toString());
                             }
 
                         }
