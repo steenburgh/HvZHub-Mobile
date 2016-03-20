@@ -13,7 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.ListView;
 
 import com.hvzhub.app.DB.DB;
@@ -28,9 +28,10 @@ public class ChatFragment extends Fragment {
 
     private BroadcastReceiver msgBroadcastReceiver;
     private boolean msgReceiverIsRegistered;
+    private boolean chatNeedsToBeRefreshed = true;
 
     List<Message> messages;
-    ArrayAdapter<Message> adapter;
+    ChatAdapter adapter;
 
     public ChatFragment() {
         // Required empty public constructor
@@ -47,11 +48,13 @@ public class ChatFragment extends Fragment {
     // TODO: Rename and change types and number of parameters
     public static ChatFragment newInstance() {
         return new ChatFragment();
+
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        chatNeedsToBeRefreshed = true;
     }
 
     @Override
@@ -70,19 +73,19 @@ public class ChatFragment extends Fragment {
 
         ListView lv = (ListView) view.findViewById(R.id.list_view);
         messages = DB.getInstance(getActivity().getApplicationContext()).getMessages(DB.HUMAN_CHAT);
-        adapter = new ArrayAdapter<>(getActivity().getApplicationContext(), android.R.layout.simple_list_item_1, messages);
+        adapter = new ChatAdapter(getActivity().getApplicationContext(), messages);
         lv.setAdapter(adapter);
 
         msgBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Log.i(TAG, "Received notification - new chat message");
+
                 List<Message> msgsFromDB = DB.getInstance(getActivity().getApplicationContext()).getMessages(DB.HUMAN_CHAT);
-                Message messageObj = msgsFromDB.get(0);
+                Message messageObj = msgsFromDB.get(msgsFromDB.size() - 1);
                 messages.add(messageObj);
                 adapter.notifyDataSetChanged();
+                Log.i(TAG, "Received new chat message:");
                 Log.i(TAG, messageObj.getMessage());
-
             }
         };
     }
