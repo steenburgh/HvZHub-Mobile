@@ -9,10 +9,16 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
+import android.text.Html;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
+import com.hvzhub.app.API.API;
 import com.hvzhub.app.Prefs.ChatPrefs;
+
+import java.text.ParseException;
+import java.util.Date;
 
 public class HvZHubGcmListenerService extends GcmListenerService {
     private static final String TAG = "HvZHubGcmListener";
@@ -27,43 +33,90 @@ public class HvZHubGcmListenerService extends GcmListenerService {
     // [START receive_message]
     @Override
     public void onMessageReceived(String from, Bundle data) {
-        String message = data.getString("message");
+        String rawData = data.toString();
         Log.d(TAG, "From: " + from);
-        Log.d(TAG, "Message: " + message);
+        Log.d(TAG, "Raw Data: " + rawData);
 
         if (from.startsWith("/topics/")) {
-            // message received from some topic.
+            handleChatMessage(data);
         } else {
             // normal downstream message.
         }
-
-        // [START_EXCLUDE]
-        /**
-         * Production applications would usually process the message here.
-         * Eg: - Syncing with server.
-         *     - Store message in local database.
-         *     - Update UI.
-         */
-
-        /**
-         * In some cases it may be useful to show a notification indicating to the user
-         * that a message was received.
-         */
-        boolean chatIsOpen = getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).getBoolean(ChatPrefs.IS_OPEN, false);
-
-        if (!chatIsOpen) {
-            sendNotification(message);
-        }
-        // [END_EXCLUDE]
     }
     // [END receive_message]
+
+    private boolean handleChatMessage(Bundle data) {
+        String uidString = data.getString("uid");
+        int userId;
+        if (uidString != null) {
+            userId = Integer.parseInt(uidString);
+        } else {
+            Log.e(TAG, "No user ID received for Chat message");
+            return false;
+        }
+
+        String name = data.getString("n");
+        if (name != null) {
+            name = Html.fromHtml(name).toString();
+        }
+
+        String message = data.getString("x");
+        if (message != null) {
+            message = Html.fromHtml(message).toString();
+        }
+
+        String msgIdString = data.getString("uid");
+        int msgId;
+        if (msgIdString != null) {
+            msgId = Integer.parseInt(msgIdString);
+        } else {
+            Log.e(TAG, "No message ID received for Chat message");
+            return false;
+        }
+
+
+        String dateStr = data.getString("t");
+        Date date;
+        try {
+            date = API.dateFromUtcString(dateStr);
+        } catch (ParseException e) {
+            Log.e(TAG, String.format("Error parsing date from string: %s", dateStr));
+            return false;
+        }
+
+//        DB.getInstance(this).addMessageToChat(
+//                userId,
+//                name,
+//                message,
+//                date,
+//                msgId,
+//                "human"
+//        );
+
+
+        boolean chatIsOpen = getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).getBoolean(ChatPrefs.IS_OPEN, false);
+        SharedPreferences.Editor editor = getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).edit();
+        editor.putString(ChatPrefs.MESSAGE, "BAD. DONT USE THIS");
+        editor.apply();
+
+        Intent messageReceived = new Intent(ChatPrefs.MESSAGE_RECEIVED);
+        Log.d(TAG, "Sending broadcast: message received ");
+        LocalBroadcastManager.getInstance(this).sendBroadcast(messageReceived);
+
+        if (!chatIsOpen) {
+            sendNotification(name, message);
+        }
+
+        return true;
+    }
+
 
     /**
      * Create and show a simple notification containing the received GCM message.
      *
      * @param message GCM message received.
      */
-    private void sendNotification(String message) {
+    private void sendNotification(String title, String message) {
         Intent intent = new Intent(this, GameActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
@@ -72,8 +125,8 @@ public class HvZHubGcmListenerService extends GcmListenerService {
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle("GCM Message")
+                .setSmallIcon(android.R.drawable.ic_menu_upload)
+                .setContentTitle(title)
                 .setContentText(message)
                 .setAutoCancel(true)
                 .setSound(defaultSoundUri)
