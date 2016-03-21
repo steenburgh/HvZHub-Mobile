@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 
@@ -129,6 +130,9 @@ public class LoginActivity extends AppCompatActivity {
         }
         if (mPasswordView.getText().toString().toLowerCase().equals("god")) {
             Snackbar sb = Snackbar.make(mPasswordView, R.string.hack_the_planet, Snackbar.LENGTH_SHORT);
+            View view = sb.getView();
+            TextView tv = (TextView) view.findViewById(android.support.design.R.id.snackbar_text);
+            tv.setTextColor(Color.WHITE);
             sb.show();
         }
 

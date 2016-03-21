@@ -187,11 +187,6 @@ public class GameActivity extends AppCompatActivity
 
             DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
             drawer.closeDrawer(GravityCompat.START);
-
-            // Ensure that the action bar is visible.
-            // It might have been hidden by scrolling in a NestedScrollView like in NewsFragment.
-            AppBarLayout abl = (AppBarLayout) findViewById(R.id.appbar_layout);
-            abl.setExpanded(true, true);
         }
     }
 
