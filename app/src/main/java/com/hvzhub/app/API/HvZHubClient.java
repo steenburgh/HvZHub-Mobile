@@ -2,6 +2,8 @@ package com.hvzhub.app.API;
 
 import com.hvzhub.app.API.model.APISuccess;
 import com.hvzhub.app.API.model.Chapters.ChapterListContainer;
+import com.hvzhub.app.API.model.Chat.PostChatResponse;
+import com.hvzhub.app.API.model.Chat.PostChatRequest;
 import com.hvzhub.app.API.model.Code;
 import com.hvzhub.app.API.model.Games.GameListContainer;
 import com.hvzhub.app.API.model.Login.LoginRequest;
@@ -9,8 +11,6 @@ import com.hvzhub.app.API.model.Login.Session;
 import com.hvzhub.app.API.model.Status;
 import com.hvzhub.app.API.model.TagPlayerRequest;
 import com.hvzhub.app.API.model.Uuid;
-
-import java.util.UUID;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -51,5 +51,11 @@ public interface HvZHubClient {
     Call<APISuccess> reportTag(
             @Path("id") int id,
             @Body TagPlayerRequest tagPlayerRequest
+    );
+
+    @POST("games/{id}/post_chat")
+    Call<PostChatResponse> postChat(
+            @Path("id") int id,
+            @Body PostChatRequest postChatRequest
     );
 }

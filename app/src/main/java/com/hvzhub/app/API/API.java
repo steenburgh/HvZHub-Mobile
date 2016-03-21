@@ -32,7 +32,6 @@ public class API {
     public static final String PREFS_CHAPTER_URL = "chapterUrl";
     public static final String PREFS_GAME_ID = "gameID";
 
-    private static final String BASE_PATH = "http://10.0.2.2:8080/api/v1/";
     public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
     /* This is implemented as a 'singleton'
