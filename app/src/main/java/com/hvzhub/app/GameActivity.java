@@ -35,16 +35,22 @@ public class GameActivity extends AppCompatActivity
 
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private static final String TAG = "GameActivity";
+    public static final String ARG_FRAGMENT_NAME = "fragmentName";
 
     private ChatFragment chatFragment;
+    public static final int CHAT_FRAGMENT = 1;
     private NewsFragment newsFragment;
+    public static final int NEWS_FRAGMENT = 2;
     private MyCodeFragment myCodeFragment;
+    public static final int MY_CODE_FRAGMENT = 3;
     private BroadcastReceiver mRegistrationBroadcastReceiver;
     private boolean isReceiverRegistered;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
 
         setContentView(R.layout.activity_game);
 
@@ -60,7 +66,27 @@ public class GameActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        switchToTab(R.id.nav_news); // Open the default tab
+        // Open the initial fragment
+        if (getIntent() != null && getIntent().getExtras() != null) {
+            int fragmentToOpen = getIntent().getExtras().getInt(ARG_FRAGMENT_NAME);
+            switch(fragmentToOpen) {
+                case CHAT_FRAGMENT:
+                    switchToTab(R.id.nav_chat);
+                    break;
+                case NEWS_FRAGMENT:
+                    switchToTab(R.id.nav_news);
+                    break;
+                case MY_CODE_FRAGMENT:
+                    switchToTab(R.id.nav_my_code);
+                    break;
+                default:
+                    switchToTab(R.id.nav_news);
+            }
+        } else {
+            switchToTab(R.id.nav_news);
+        }
+
+
 
         mRegistrationBroadcastReceiver = new BroadcastReceiver() {
             @Override

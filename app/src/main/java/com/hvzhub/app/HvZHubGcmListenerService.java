@@ -103,7 +103,9 @@ public class HvZHubGcmListenerService extends GcmListenerService {
         Log.d(TAG, "Sending broadcast: message received ");
         LocalBroadcastManager.getInstance(this).sendBroadcast(messageReceived);
 
-        if (!chatIsOpen) {
+        boolean notificationsEnabled = getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).getBoolean(ChatPrefs.NOTIFICATIONS_ENABLED, false);
+        notificationsEnabled = false;
+        if (!chatIsOpen && notificationsEnabled) {
             sendNotification(name, message);
         }
 
@@ -119,9 +121,18 @@ public class HvZHubGcmListenerService extends GcmListenerService {
     private void sendNotification(String title, String message) {
         Intent intent = new Intent(this, GameActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        // Launch the chat activity if clicked
+        Bundle b = new Bundle();
+        b.putInt(GameActivity.ARG_FRAGMENT_NAME, GameActivity.CHAT_FRAGMENT);
+        intent.putExtras(b);
+
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
                 PendingIntent.FLAG_ONE_SHOT);
 
+
+
+        // Create the notification
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
