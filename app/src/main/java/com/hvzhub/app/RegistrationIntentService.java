@@ -18,7 +18,10 @@ import java.io.IOException;
 public class RegistrationIntentService extends IntentService {
 
     private static final String TAG = "RegIntentService";
-    private static final String[] TOPICS = {"global", "games_3_chat_human"};
+    public static final String ARG_TO_SUBRCRIBE = "toSubscribe";
+    public static final String ARG_TO_UNSUBRCRIBE = "toUnsubsrcibe";
+    private String[] toSubscribe;
+    private String[] toUnsubscribe;
 
     public RegistrationIntentService() {
         super(TAG);
@@ -27,6 +30,14 @@ public class RegistrationIntentService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+        if (intent.getExtras() != null) {
+            Bundle extras = intent.getExtras();
+            toSubscribe = extras.getStringArray(ARG_TO_SUBRCRIBE);
+            toUnsubscribe = extras.getStringArray(ARG_TO_UNSUBRCRIBE);
+        } else {
+            throw new RuntimeException("RegistrationIntentService must be called with arguments.");
+        }
 
         try {
             // [START register_for_gcm]
@@ -41,54 +52,38 @@ public class RegistrationIntentService extends IntentService {
             // [END get_token]
             Log.i(TAG, "GCM Registration Token: " + token);
 
-            // TODO: Implement this method to send any registration to your app's servers.
-            sendRegistrationToServer(token);
-
             // Subscribe to topic channels
-            subscribeTopics(token);
+            updateSubscriptions(token);
 
             // You should store a boolean that indicates whether the generated token has been
             // sent to your server. If the boolean is false, send the token to your server,
             // otherwise your server should have already received the token.
-            sharedPreferences.edit().putBoolean(QuickstartPreferences.SENT_TOKEN_TO_SERVER, true).apply();
+            sharedPreferences.edit().putBoolean(GCMRegistationPrefs.SENT_TOKEN_TO_SERVER, true).apply();
             // [END register_for_gcm]
         } catch (Exception e) {
-            Log.d(TAG, "Failed to complete token refresh", e);
+            Log.e(TAG, "Failed to complete token refresh", e);
             // If an exception happens while fetching the new token or updating our registration data
             // on a third-party server, this ensures that we'll attempt the update at a later time.
-            sharedPreferences.edit().putBoolean(QuickstartPreferences.SENT_TOKEN_TO_SERVER, false).apply();
+            sharedPreferences.edit().putBoolean(GCMRegistationPrefs.SENT_TOKEN_TO_SERVER, false).apply();
         }
         // Notify UI that registration has completed, so the progress indicator can be hidden.
-        Intent registrationComplete = new Intent(QuickstartPreferences.REGISTRATION_COMPLETE);
+        Intent registrationComplete = new Intent(GCMRegistationPrefs.REGISTRATION_COMPLETE);
         LocalBroadcastManager.getInstance(this).sendBroadcast(registrationComplete);
     }
 
-    /**
-     * Persist registration to third-party servers.
-     *
-     * Modify this method to associate the user's GCM registration token with any server-side account
-     * maintained by your application.
-     *
-     * @param token The new token.
-     */
-    private void sendRegistrationToServer(String token) {
-        // Add custom implementation, as needed.
-    }
 
-    /**
-     * Subscribe to any GCM topics of interest, as defined by the TOPICS constant.
-     *
-     * @param token GCM token
-     * @throws IOException if unable to reach the GCM PubSub service
-     */
-    // [START subscribe_topics]
-    private void subscribeTopics(String token) throws IOException {
+    private void updateSubscriptions(String token) throws IOException {
         GcmPubSub pubSub = GcmPubSub.getInstance(this);
-        for (String topic : TOPICS) {
+
+        for (String topic : toSubscribe) {
             pubSub.subscribe(token, "/topics/" + topic, null);
             Log.d(TAG, String.format("Subscribed to: /topics/%s", topic));
         }
+
+        for (String topic : toUnsubscribe) {
+            pubSub.unsubscribe(token, "/topics/" + topic);
+            Log.d(TAG, String.format("Unsubscribed from: /topics/%s", topic));
+        }
     }
-    // [END subscribe_topics]
 
 }

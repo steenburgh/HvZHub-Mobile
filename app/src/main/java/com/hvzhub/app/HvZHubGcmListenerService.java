@@ -17,6 +17,7 @@ import com.google.android.gms.gcm.GcmListenerService;
 import com.hvzhub.app.API.API;
 import com.hvzhub.app.DB.DB;
 import com.hvzhub.app.Prefs.ChatPrefs;
+import com.hvzhub.app.Prefs.GamePrefs;
 
 import java.text.ParseException;
 import java.util.Date;
@@ -85,13 +86,14 @@ public class HvZHubGcmListenerService extends GcmListenerService {
             return false;
         }
 
+        boolean isHuman = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
         DB.getInstance(this).addMessageToChat(
                 userId,
                 name,
                 message,
                 date,
                 msgId,
-                DB.HUMAN_CHAT
+                isHuman ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT
         );
 
 
@@ -104,7 +106,6 @@ public class HvZHubGcmListenerService extends GcmListenerService {
         LocalBroadcastManager.getInstance(this).sendBroadcast(messageReceived);
 
         boolean notificationsEnabled = getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).getBoolean(ChatPrefs.NOTIFICATIONS_ENABLED, false);
-        notificationsEnabled = false;
         if (!chatIsOpen && notificationsEnabled) {
             sendNotification(name, message);
         }

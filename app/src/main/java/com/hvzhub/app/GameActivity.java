@@ -8,7 +8,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.NavigationView;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
@@ -22,12 +21,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.hvzhub.app.API.API;
-import com.hvzhub.app.DB.DB;
-import com.hvzhub.app.DB.Message;
-
-import java.util.Date;
-import java.util.List;
+import com.hvzhub.app.Prefs.ChatPrefs;
 import com.hvzhub.app.Prefs.GCMRegistationPrefs;
 import com.hvzhub.app.Prefs.GamePrefs;
 
@@ -101,6 +95,10 @@ public class GameActivity extends AppCompatActivity
                 } else {
                     Log.i(TAG, "An error occurred while either fetching the InstanceID token, sending the fetched token to the server or subscribing to the PubSub topic.");
                 }
+
+                getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).edit()
+                    .putBoolean(ChatPrefs.NOTIFICATIONS_ENABLED, true)
+                    .apply();
             }
         };
 
@@ -108,10 +106,51 @@ public class GameActivity extends AppCompatActivity
         registerReceiver();
 
         if (checkPlayServices()) {
-            // Start IntentService to register this application with GCM.
-            Intent intent = new Intent(this, RegistrationIntentService.class);
-            startService(intent);
+            updateNotificationSubscriptions();
         }
+    }
+
+    public void updateNotificationSubscriptions() {
+        Intent intent = new Intent(this, RegistrationIntentService.class);
+        SharedPreferences prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE);
+        int gameId = prefs.getInt(GamePrefs.PREFS_GAME_ID, -1);
+        if (gameId == -1) {
+            onLogout();
+            return;
+        }
+        boolean isHuman = prefs.getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+        boolean isAdmin = prefs.getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+
+        if (isAdmin) {
+            String[] topics = {
+                    String.format("games_%d_chat_human", gameId),
+                    String.format("games_%d_chat_zombie", gameId)
+            };
+            intent.putExtra(RegistrationIntentService.ARG_TO_SUBRCRIBE, topics);
+        } else {
+            String[] toSubscribe = {
+                String.format(
+                    "games_%d_chat_%s",
+                    gameId,
+                    isHuman ? "human" : "zombie"
+                ),
+            };
+            intent.putExtra(RegistrationIntentService.ARG_TO_SUBRCRIBE, toSubscribe);
+
+            // Make sure to unsubscribe from the other side's chat
+            String[] toUnsubscribe = {
+                    String.format(
+                            "games_%d_chat_%s",
+                            gameId,
+                            isHuman ? "zombie" : "human"
+                    ),
+            };
+            intent.putExtra(RegistrationIntentService.ARG_TO_UNSUBRCRIBE, toUnsubscribe);
+        }
+
+
+        // Start IntentService to register this application with GCM.
+        startService(intent);
     }
 
     @Override

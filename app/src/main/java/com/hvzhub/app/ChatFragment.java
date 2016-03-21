@@ -92,7 +92,8 @@ public class ChatFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         listView = (ListView) view.findViewById(R.id.list_view);
-        messages = DB.getInstance(getActivity().getApplicationContext()).getMessages(DB.HUMAN_CHAT);
+        boolean isHuman = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+        messages = DB.getInstance(getActivity().getApplicationContext()).getMessages(isHuman ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
         adapter = new ChatAdapter(getActivity().getApplicationContext(), messages);
         listView.setAdapter(adapter);
 
@@ -100,12 +101,24 @@ public class ChatFragment extends Fragment {
             @Override
             public void onReceive(Context context, Intent intent) {
 
-                List<Message> msgsFromDB = DB.getInstance(getActivity().getApplicationContext()).getMessages(DB.HUMAN_CHAT);
-                Message messageObj = msgsFromDB.get(msgsFromDB.size() - 1);
-                messages.add(messageObj);
+                boolean isHuman = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+                boolean justTurned = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_JUST_TURNED, false);
+                List<Message> msgsFromDB = DB.getInstance(getActivity().getApplicationContext()).getMessages(isHuman ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
+                if (justTurned) {
+                    messages.clear();
+                    messages.addAll(msgsFromDB);
+                    getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit()
+                            .putBoolean(GamePrefs.PREFS_JUST_TURNED, false)
+                            .apply();
+                    Log.d(TAG, "Player was just turned. Reloading chat list");
+                } else {
+                    Message messageObj = msgsFromDB.get(msgsFromDB.size() - 1);
+                    messages.add(messageObj);
+                    Log.i(TAG, "Received new chat message:");
+                    Log.i(TAG, messageObj.getMessage());
+                }
                 adapter.notifyDataSetChanged();
-                Log.i(TAG, "Received new chat message:");
-                Log.i(TAG, messageObj.getMessage());
+
             }
         };
 
@@ -152,7 +165,7 @@ public class ChatFragment extends Fragment {
         String uuid = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
         int gameId = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
         int userId = 1;
-        boolean isHuman = true;
+        boolean isHuman = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
 
         HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
         Call<PostChatResponse> call = client.postChat(
