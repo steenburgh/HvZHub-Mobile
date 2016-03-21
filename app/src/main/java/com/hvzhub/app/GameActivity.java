@@ -24,6 +24,7 @@ public class GameActivity extends AppCompatActivity
     private ChatFragment chatFragment;
     private NewsFragment newsFragment;
     private MyCodeFragment myCodeFragment;
+    private ReportTagFragment reportTagFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +81,10 @@ public class GameActivity extends AppCompatActivity
                 toSwitch = chatFragment;
                 break;
             case R.id.nav_report_tag:
+                if (reportTagFragment == null) {
+                    reportTagFragment = ReportTagFragment.newInstance();
+                }
+                toSwitch = reportTagFragment;
                 break;
             case R.id.nav_heatmap:
                 Intent i = new Intent(this, HeatMapActivity.class);

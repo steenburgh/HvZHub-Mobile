@@ -101,7 +101,7 @@ public class ReportTagFragment extends Fragment {
         HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
         String uuid = getActivity().getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).getString(API.PREFS_SESSION_ID, null);
         TagPlayerRequest tpr = new TagPlayerRequest(
-                new Uuid(uuid),
+                uuid,
                 "ASDFGR",
                 new Date()
         );
