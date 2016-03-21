@@ -14,7 +14,6 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
@@ -39,6 +38,7 @@ import com.hvzhub.app.API.model.Chat.PostChatResponse;
 import com.hvzhub.app.DB.DB;
 import com.hvzhub.app.DB.Message;
 import com.hvzhub.app.Prefs.ChatPrefs;
+import com.hvzhub.app.Prefs.GamePrefs;
 
 import java.util.List;
 
@@ -149,8 +149,8 @@ public class ChatFragment extends Fragment {
         }
 
         showProgress(true);
-        String uuid = getActivity().getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).getString(API.PREFS_SESSION_ID, null);
-        int gameId = getActivity().getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).getInt(API.PREFS_GAME_ID, -1);
+        String uuid = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
+        int gameId = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
         int userId = 1;
         boolean isHuman = true;
 

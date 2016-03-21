@@ -26,12 +26,6 @@ public class API {
     private static Context mCtx;
     private HvZHubClient mHvZHubClient = null;
 
-    // 10.0.2.2 is the local computer's address for when android is running in an emulator
-    public static final String PREFS_API = "prefs_api"; // SharedPreferences file for API
-    public static final String PREFS_SESSION_ID = "sessionID";
-    public static final String PREFS_CHAPTER_URL = "chapterUrl";
-    public static final String PREFS_GAME_ID = "gameID";
-
     public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
     /* This is implemented as a 'singleton'

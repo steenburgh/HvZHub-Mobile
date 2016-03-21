@@ -31,6 +31,7 @@ import com.hvzhub.app.API.NetworkUtils;
 import com.hvzhub.app.API.model.APIError;
 import com.hvzhub.app.API.model.Login.LoginRequest;
 import com.hvzhub.app.API.model.Login.Session;
+import com.hvzhub.app.Prefs.GamePrefs;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -170,7 +171,7 @@ public class LoginActivity extends AppCompatActivity {
                         // Login successful. Start the rest of the app
                         finish();
 
-                        String chapterUrl = getSharedPreferences(API.PREFS_API, MODE_PRIVATE).getString(API.PREFS_CHAPTER_URL, null);
+                        String chapterUrl = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
                         if (chapterUrl == null) {
                             Intent intent = new Intent(LoginActivity.this, ChapterSelectionActivity.class);
                             startActivity(intent);
@@ -180,9 +181,9 @@ public class LoginActivity extends AppCompatActivity {
                         }
 
                         // Persist the uuid in sharedPrefs
-                        SharedPreferences.Editor prefs = getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).edit();
+                        SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
                         Session s = response.body();
-                        prefs.putString(API.PREFS_SESSION_ID, s.uuid);
+                        prefs.putString(GamePrefs.PREFS_SESSION_ID, s.uuid);
                         prefs.apply();
 
                         Log.i("Response", s.uuid + " : " + s.createdOn);

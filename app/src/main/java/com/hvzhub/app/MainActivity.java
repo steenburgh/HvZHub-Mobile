@@ -1,12 +1,11 @@
 package com.hvzhub.app;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
-import com.hvzhub.app.API.API;
+import com.hvzhub.app.Prefs.GamePrefs;
 
 /**
  * Placeholder activity - Has no view + simply checks if the user is logged in + opens the
@@ -19,9 +18,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // Decide which activity to start
-        String sessionID = getSharedPreferences(API.PREFS_API, MODE_PRIVATE).getString(API.PREFS_SESSION_ID, null);
-        String chapterUrl = getSharedPreferences(API.PREFS_API, MODE_PRIVATE).getString(API.PREFS_CHAPTER_URL, null);
-        int gameId = getSharedPreferences(API.PREFS_API, MODE_PRIVATE).getInt(API.PREFS_GAME_ID, -1);
+        String sessionID = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
+        String chapterUrl = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
+        int gameId = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
         if (sessionID == null) {
             finish();
             Intent i = new Intent(this, LoginActivity.class);

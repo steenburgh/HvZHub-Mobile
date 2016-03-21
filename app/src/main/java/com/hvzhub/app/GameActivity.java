@@ -25,10 +25,11 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.hvzhub.app.API.API;
 import com.hvzhub.app.DB.DB;
 import com.hvzhub.app.DB.Message;
-import com.hvzhub.app.Prefs.QuickstartPreferences;
 
 import java.util.Date;
 import java.util.List;
+import com.hvzhub.app.Prefs.GCMRegistationPrefs;
+import com.hvzhub.app.Prefs.GamePrefs;
 
 public class GameActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnLogoutListener{
@@ -94,7 +95,7 @@ public class GameActivity extends AppCompatActivity
                 SharedPreferences sharedPreferences =
                         PreferenceManager.getDefaultSharedPreferences(context);
                 boolean sentToken = sharedPreferences
-                        .getBoolean(QuickstartPreferences.SENT_TOKEN_TO_SERVER, false);
+                        .getBoolean(GCMRegistationPrefs.SENT_TOKEN_TO_SERVER, false);
                 if (sentToken) {
                     Log.i(TAG, "Token retrieved and sent to server!");
                 } else {
@@ -129,7 +130,7 @@ public class GameActivity extends AppCompatActivity
     private void registerReceiver(){
         if(!isReceiverRegistered) {
             LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
-                    new IntentFilter(QuickstartPreferences.REGISTRATION_COMPLETE));
+                    new IntentFilter(GCMRegistationPrefs.REGISTRATION_COMPLETE));
             isReceiverRegistered = true;
         }
     }
@@ -218,8 +219,8 @@ public class GameActivity extends AppCompatActivity
 
     @Override
     public void onLogout() {
-        SharedPreferences.Editor prefs = getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).edit();
-        prefs.putString(API.PREFS_SESSION_ID, null);
+        SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
+        prefs.putString(GamePrefs.PREFS_SESSION_ID, null);
         prefs.apply();
 
         // Notify the user

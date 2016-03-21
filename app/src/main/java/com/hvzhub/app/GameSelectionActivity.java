@@ -29,6 +29,7 @@ import com.hvzhub.app.API.model.Games.Game;
 import com.hvzhub.app.API.model.Games.GameListContainer;
 import com.hvzhub.app.API.model.Status;
 import com.hvzhub.app.API.model.Uuid;
+import com.hvzhub.app.Prefs.GamePrefs;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -94,7 +95,7 @@ public class GameSelectionActivity extends AppCompatActivity {
             showProgress(true);
             HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
 
-            String uuid = getSharedPreferences(API.PREFS_API, MODE_PRIVATE).getString(API.PREFS_SESSION_ID, null);
+            String uuid = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
             Call<GameListContainer> call = client.getGames(new Uuid(uuid));
             call.enqueue(new Callback<GameListContainer>() {
                 @Override
@@ -151,15 +152,15 @@ public class GameSelectionActivity extends AppCompatActivity {
     private void joinGame(final Game game) {
         showProgress(true);
         HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
-        String uuid = getSharedPreferences(API.PREFS_API, MODE_PRIVATE).getString(API.PREFS_SESSION_ID, null);
+        String uuid = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
         Call<Status> call = client.joinGame(game.id, new Uuid(uuid));
         call.enqueue(new Callback<Status>() {
             @Override
             public void onResponse(Call<Status> call, Response<Status> response) {
                 showProgress(false);
                 if (response.isSuccessful()) {
-                    SharedPreferences.Editor prefs = getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).edit();
-                    prefs.putInt(API.PREFS_GAME_ID, game.id);
+                    SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
+                    prefs.putInt(GamePrefs.PREFS_GAME_ID, game.id);
                     prefs.apply();
 
                     Intent i = new Intent(GameSelectionActivity.this, GameActivity.class);
@@ -257,8 +258,8 @@ public class GameSelectionActivity extends AppCompatActivity {
 
     private void logout() {
         // Clear the sessionID
-        SharedPreferences.Editor prefs = getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).edit();
-        prefs.putString(API.PREFS_SESSION_ID, null);
+        SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
+        prefs.putString(GamePrefs.PREFS_SESSION_ID, null);
         prefs.apply();
 
         // Show the login screen again

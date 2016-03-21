@@ -3,6 +3,7 @@ package com.hvzhub.app;
 import android.app.IntentService;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -10,7 +11,7 @@ import android.util.Log;
 import com.google.android.gms.gcm.GcmPubSub;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
-import com.hvzhub.app.Prefs.QuickstartPreferences;
+import com.hvzhub.app.Prefs.GCMRegistationPrefs;
 
 import java.io.IOException;
 

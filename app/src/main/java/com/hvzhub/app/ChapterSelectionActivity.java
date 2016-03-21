@@ -29,6 +29,7 @@ import com.hvzhub.app.API.model.Chapters.Chapter;
 import com.hvzhub.app.API.model.Chapters.ChapterListContainer;
 import com.hvzhub.app.API.model.Status;
 import com.hvzhub.app.API.model.Uuid;
+import com.hvzhub.app.Prefs.GamePrefs;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +59,7 @@ public class ChapterSelectionActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 //                // TODO: Remove this
-//                SharedPreferences.Editor prefs = getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).edit();
+//                SharedPreferences.Editor prefs = getSharedPreferences(API.PREFS_GAME, Context.MODE_PRIVATE).edit();
 //                prefs.putString(API.PREFS_CHAPTER_URL, "u_of_test");
 //                prefs.putInt(API.PREFS_GAME_ID, 3);
 //                prefs.apply();
@@ -106,7 +107,7 @@ public class ChapterSelectionActivity extends AppCompatActivity {
             showProgress(true);
             HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
 
-            String uuid = getSharedPreferences(API.PREFS_API, MODE_PRIVATE).getString(API.PREFS_SESSION_ID, null);
+            String uuid = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
             Call<ChapterListContainer> call = client.getChapters(new Uuid(uuid));
             call.enqueue(new Callback<ChapterListContainer>() {
                 @Override
@@ -162,15 +163,15 @@ public class ChapterSelectionActivity extends AppCompatActivity {
     private void joinChapter(final Chapter chapter) {
         showProgress(true);
         HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
-        String uuid = getSharedPreferences(API.PREFS_API, MODE_PRIVATE).getString(API.PREFS_SESSION_ID, null);
+        String uuid = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
         Call<Status> call = client.joinChapter(chapter.getUrl(), new Uuid(uuid));
         call.enqueue(new Callback<Status>() {
             @Override
             public void onResponse(Call<Status> call, Response<Status> response) {
                 showProgress(false);
                 if (response.isSuccessful()) {
-                    SharedPreferences.Editor prefs = getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).edit();
-                    prefs.putString(API.PREFS_CHAPTER_URL, chapter.getUrl());
+                    SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
+                    prefs.putString(GamePrefs.PREFS_CHAPTER_URL, chapter.getUrl());
                     prefs.apply();
 
                     Intent i = new Intent(ChapterSelectionActivity.this, GameSelectionActivity.class);
@@ -258,7 +259,7 @@ public class ChapterSelectionActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                String chapterUrl = getSharedPreferences(API.PREFS_API, MODE_PRIVATE).getString(API.PREFS_CHAPTER_URL, null);
+                String chapterUrl = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
                 // If no chapter was set already
                 // log them out and take them back to the login screen
                 if (chapterUrl == null) {
@@ -277,8 +278,8 @@ public class ChapterSelectionActivity extends AppCompatActivity {
 
     private void logout() {
         // Clear the sessionID
-        SharedPreferences.Editor prefs = getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).edit();
-        prefs.putString(API.PREFS_SESSION_ID, null);
+        SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
+        prefs.putString(GamePrefs.PREFS_SESSION_ID, null);
         prefs.apply();
 
         // Show the login screen again
