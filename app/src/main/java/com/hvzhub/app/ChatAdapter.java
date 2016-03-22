@@ -7,11 +7,10 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.hvzhub.app.DB.Message;
+import com.hvzhub.app.API.model.Chat.Message;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 public class ChatAdapter extends BaseAdapter {
@@ -70,12 +69,11 @@ public class ChatAdapter extends BaseAdapter {
         // Get the data item for this position
         final Message msgObject = getItem(position);
         DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
-        Date date = msgObject.getTimestamp();
 
         // Populate the data into the template view using the data object
-        viewHolder.name.setText(msgObject.getName());
-        viewHolder.date.setText(dateFormat.format(date));
-        viewHolder.message.setText(msgObject.getMessage());
+        viewHolder.name.setText(msgObject.name);
+        viewHolder.date.setText(dateFormat.format(msgObject.timestamp));
+        viewHolder.message.setText(msgObject.message);
 
         // Return the completed view to render on screen
         return convertView;

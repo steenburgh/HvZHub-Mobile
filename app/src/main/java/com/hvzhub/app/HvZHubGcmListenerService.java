@@ -15,6 +15,7 @@ import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
 import com.hvzhub.app.API.API;
+import com.hvzhub.app.API.model.Chat.Message;
 import com.hvzhub.app.DB.DB;
 import com.hvzhub.app.Prefs.ChatPrefs;
 import com.hvzhub.app.Prefs.GamePrefs;
@@ -87,12 +88,13 @@ public class HvZHubGcmListenerService extends GcmListenerService {
         }
 
         boolean isHuman = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
-        DB.getInstance(this).addMessageToChat(
-                userId,
-                name,
-                message,
-                date,
-                msgId,
+        DB.getInstance(this).addMessageToChat(new Message(
+                        userId,
+                        name,
+                        message,
+                        date,
+                        msgId
+                ),
                 isHuman ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT
         );
 

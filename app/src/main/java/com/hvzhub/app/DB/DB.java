@@ -4,8 +4,6 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -93,22 +91,34 @@ public class DB {
 
     public List<Message> getMessages(String chatName) {
         Chat chat = getChat(chatName);
-        List<Message> messageList = chat.getMessages();
+        List<Message> messages = chat.getMessages();
 
         // (cont.) If list is null, then database tables were created for first time in
         // (cont.) previous lines, so call "closeReopenDatabase()"
-        if (messageList == null) {
+        if (messages == null) {
             closeReopenDatabase();
             return new LinkedList<>();
-        } else if (messageList.isEmpty()) {
+        } else if (messages.isEmpty()) {
             // If messageList is empty, return an empty LinkedList instead of an EmptyList
             return new LinkedList<>();
         } else {
-            return messageList;
+            return messages;
         }
     }
 
-    public Message addMessageToChat(
+    public com.hvzhub.app.API.model.Chat.Message addMessageToChat(com.hvzhub.app.API.model.Chat.Message message, String chatName) {
+        addMessageToChat(
+                message.userId,
+                message.name,
+                message.message,
+                message.timestamp,
+                message.msgId,
+                chatName
+        );
+        return message;
+    }
+
+    public void addMessageToChat(
             int userId,
             String name,
             String message,
@@ -139,7 +149,6 @@ public class DB {
         }
 
         closeReopenDatabase();
-        return msgObject;
     }
 
     private void closeReopenDatabase() {

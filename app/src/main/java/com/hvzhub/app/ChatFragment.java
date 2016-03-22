@@ -33,13 +33,16 @@ import com.hvzhub.app.API.ErrorUtils;
 import com.hvzhub.app.API.HvZHubClient;
 import com.hvzhub.app.API.NetworkUtils;
 import com.hvzhub.app.API.model.APIError;
+import com.hvzhub.app.API.model.Chat.Message;
+import com.hvzhub.app.API.model.Chat.MessageListContainer;
 import com.hvzhub.app.API.model.Chat.PostChatRequest;
 import com.hvzhub.app.API.model.Chat.PostChatResponse;
+import com.hvzhub.app.API.model.Uuid;
 import com.hvzhub.app.DB.DB;
-import com.hvzhub.app.DB.Message;
 import com.hvzhub.app.Prefs.ChatPrefs;
 import com.hvzhub.app.Prefs.GamePrefs;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import retrofit2.Call;
