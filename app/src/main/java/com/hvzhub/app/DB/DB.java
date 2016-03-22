@@ -2,6 +2,7 @@ package com.hvzhub.app.DB;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,6 +14,7 @@ public class DB {
     public static final String HUMAN_CHAT = "human";
     public static final String ZOMBIE_CHAT = "zombie";
     public static final String MOD_CHAT = "mod";
+    public static final String TAG = "DB";
 
     private static DB mInstance;
     private final Context mCtx;
@@ -55,6 +57,13 @@ public class DB {
         // From DaoSession instance, get instance of EventDao
         messageDao = daoSession.getMessageDao();
         chatDao = daoSession.getChatDao();
+    }
+
+    public void wipeDatabase() {
+        chatDao.deleteAll();
+        messageDao.deleteAll();
+        closeReopenDatabase();
+        Log.d(TAG, "Wiped all tables.");
     }
 
 
