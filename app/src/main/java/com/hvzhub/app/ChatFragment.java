@@ -55,13 +55,13 @@ public class ChatFragment extends Fragment {
 
     private BroadcastReceiver msgBroadcastReceiver;
     private boolean msgReceiverIsRegistered;
-    private boolean chatNeedsToBeRefreshed = true;
     private OnLogoutListener mListener;
+    private static final int MESSAGES_TO_FETCH_AT_ONCE = 25;
 
     List<Message> messages;
     ChatAdapter adapter;
     ListView listView;
-    EditText message;
+    EditText messageObj;
     ImageButton send;
     ProgressBar progressBar;
 
@@ -71,13 +71,11 @@ public class ChatFragment extends Fragment {
 
     public static ChatFragment newInstance() {
         return new ChatFragment();
-
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        chatNeedsToBeRefreshed = true;
     }
 
     @Override
@@ -93,39 +91,37 @@ public class ChatFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         listView = (ListView) view.findViewById(R.id.list_view);
-        boolean isHuman = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
-        messages = DB.getInstance(getActivity().getApplicationContext()).getMessages(isHuman ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
+        if (messages == null) {
+            messages = new LinkedList<>();
+        }
         adapter = new ChatAdapter(getActivity().getApplicationContext(), messages);
         listView.setAdapter(adapter);
+
+        if (messages.size() == 0) {
+            // First load0
+            refreshMessages();
+        } else {
+            // Fragment is simply being re-opened
+            // Check the DB for new messages and add them to the list
+            final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+            List<com.hvzhub.app.DB.Message> msgsFromDb = DB.getInstance(getActivity().getApplicationContext()).getMessages(isHuman ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
+            for(com.hvzhub.app.DB.Message dbMsg : msgsFromDb) {
+                messages.add(new Message(dbMsg));
+            }
+
+            // Clear the message cache
+            DB.getInstance(getActivity().getApplicationContext()).wipeDatabase();
+        }
 
         msgBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-
-                boolean isHuman = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
-                boolean justTurned = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_JUST_TURNED, false);
-                List<Message> msgsFromDB = DB.getInstance(getActivity().getApplicationContext()).getMessages(isHuman ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
-                if (justTurned) {
-                    messages.clear();
-                    messages.addAll(msgsFromDB);
-                    getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit()
-                            .putBoolean(GamePrefs.PREFS_JUST_TURNED, false)
-                            .apply();
-                    Log.d(TAG, "Player was just turned. Reloading chat list");
-                } else {
-                    Message messageObj = msgsFromDB.get(msgsFromDB.size() - 1);
-                    messages.add(messageObj);
-                    Log.i(TAG, "Received new chat message:");
-                    Log.i(TAG, messageObj.getMessage());
-                }
-                adapter.notifyDataSetChanged();
-
+                addMessagesFromDb();
             }
         };
 
-        message = (EditText) view.findViewById(R.id.compose_msg);
+        messageObj = (EditText) view.findViewById(R.id.compose_msg);
         send = (ImageButton) view.findViewById(R.id.send);
         send.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -135,13 +131,136 @@ public class ChatFragment extends Fragment {
         });
 
         progressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
+
+
+    }
+
+    /**
+     * Messages are added to the DB when ChatFragment isn't open to receive them.
+     * Retrieve these messages and add them to the message list
+     */
+    private void addMessagesFromDb() {
+        boolean justTurned = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_JUST_TURNED, false);
+        if (justTurned) {
+            DB.getInstance(getActivity().getApplicationContext()).wipeDatabase();
+            refreshMessages();
+            getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit()
+                    .putBoolean(GamePrefs.PREFS_JUST_TURNED, false)
+                    .apply();
+            Log.d(TAG, "Player was just turned. Reloading chat list");
+        } else {
+            final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+            List<com.hvzhub.app.DB.Message> msgsFromDb = DB.getInstance(getActivity().getApplicationContext()).getMessages(isHuman ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
+            for (com.hvzhub.app.DB.Message dbMsg : msgsFromDb) {
+                messages.add(new Message(dbMsg));
+            }
+            Log.i(TAG, "Received new chat message(s), populating chat list.");
+            DB.getInstance(getActivity().getApplicationContext()).wipeDatabase();
+        }
+
+        adapter.notifyDataSetChanged();
+    }
+
+    private void loadMoreMessages() {
+        getMsgsFromServer(false);
+    }
+
+    private void refreshMessages() {
+        getMsgsFromServer(true);
+    }
+
+    private void getMsgsFromServer(final boolean refresh) {
+        getMsgsFromServer(refresh, MESSAGES_TO_FETCH_AT_ONCE);
+    }
+    private void getMsgsFromServer(final boolean refresh, final int numToFetch) {
+        if (!NetworkUtils.networkIsAvailable(getActivity())) {
+            AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+            b.setTitle(getString(R.string.network_not_available))
+                    .setMessage(getString(R.string.network_not_available_hint))
+                    .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            getMsgsFromServer(refresh);
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    })
+                    .show();
+        } else {
+            HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
+            String uuid = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
+            int gameId = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
+            boolean isHuman = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+
+            Call<MessageListContainer> call = client.getChats(
+                    new Uuid(uuid),
+                    gameId,
+                    isHuman ? 'T' : 'F',
+                    refresh ? 0 : messages.size(),
+                    numToFetch
+            );
+            call.enqueue(new Callback<MessageListContainer>() {
+                @Override
+                public void onResponse(Call<MessageListContainer> call, Response<MessageListContainer> response) {
+                    if (response.isSuccessful()) {
+                        if (refresh) {
+                            messages.clear();
+                        }
+                        messages.addAll(0, response.body().messages);
+                        adapter.notifyDataSetChanged();
+                        DB.getInstance(getActivity().getApplicationContext()).wipeDatabase();
+                    } else {
+                        AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                        b.setTitle(getString(R.string.unexpected_response))
+                            .setMessage(getString(R.string.unexpected_response_hint))
+                            .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    getMsgsFromServer(refresh);
+                                }
+                            })
+                            .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                }
+                            })
+                            .show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<MessageListContainer> call, Throwable t) {
+                    AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                    b.setTitle(getString(R.string.generic_connection_error))
+                        .setMessage(getString(R.string.generic_connection_error_hint))
+                        .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                getMsgsFromServer(refresh);
+                            }
+                        })
+                        .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        })
+                        .show();
+                }
+            });
+        }
+
+
+
     }
 
     private void sendMsg() {
-        message.setError(null);
-        if (TextUtils.isEmpty(message.getText())) {
-            message.setError(getString(R.string.enter_a_message));
-            message.requestFocus();
+        messageObj.setError(null);
+        if (TextUtils.isEmpty(messageObj.getText())) {
+            messageObj.setError(getString(R.string.enter_a_message));
+            messageObj.requestFocus();
             return;
         }
         if (!NetworkUtils.networkIsAvailable(getActivity().getApplicationContext())) {
@@ -176,7 +295,7 @@ public class ChatFragment extends Fragment {
                 new PostChatRequest(
                         uuid,
                         userId,
-                        message.getText().toString(),
+                        messageObj.getText().toString(),
                         isHuman
                 )
         );
@@ -185,7 +304,7 @@ public class ChatFragment extends Fragment {
             public void onResponse(Call<PostChatResponse> call, Response<PostChatResponse> response) {
                 showProgress(false);
                 if (response.isSuccessful()) {
-                    message.setText("");
+                    messageObj.setText("");
                 } else {
                     APIError apiError = ErrorUtils.parseError(response);
                     String err = apiError.error.toLowerCase();
