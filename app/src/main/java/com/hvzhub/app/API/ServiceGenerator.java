@@ -3,6 +3,8 @@ package com.hvzhub.app.API;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.util.Date;
+
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -30,7 +32,7 @@ public class ServiceGenerator {
             httpClient.addInterceptor(logging);
 
             Gson gson = new GsonBuilder()
-                    .setDateFormat(API.DATE_FORMAT)
+                    .registerTypeAdapter(Date.class, new DateConverter())
                     .create();
 
             builder = new Retrofit.Builder()
