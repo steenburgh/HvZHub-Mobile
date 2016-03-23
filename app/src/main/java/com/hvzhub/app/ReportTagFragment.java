@@ -25,6 +25,7 @@ import com.hvzhub.app.API.model.APISuccess;
 import com.hvzhub.app.API.model.Code;
 import com.hvzhub.app.API.model.TagPlayerRequest;
 import com.hvzhub.app.API.model.Uuid;
+import com.hvzhub.app.Prefs.GamePrefs;
 
 import java.util.Date;
 
@@ -97,9 +98,9 @@ public class ReportTagFragment extends Fragment {
     }
 
     private void tryToTag() {
-        int gameId = getActivity().getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).getInt(API.PREFS_GAME_ID, -1);
+        int gameId = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
         HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
-        String uuid = getActivity().getSharedPreferences(API.PREFS_API, Context.MODE_PRIVATE).getString(API.PREFS_SESSION_ID, null);
+        String uuid = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
         TagPlayerRequest tpr = new TagPlayerRequest(
                 uuid,
                 "ASDFGR",
