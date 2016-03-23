@@ -1,58 +1,35 @@
 package com.hvzhub.app;
 
+import android.app.Activity;
 import android.app.Fragment;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.NavigationView;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.hvzhub.app.API.API;
-import com.hvzhub.app.DB.DB;
-import com.hvzhub.app.DB.Message;
-
-import java.util.Date;
-import java.util.List;
-import com.hvzhub.app.Prefs.GCMRegistationPrefs;
 import com.hvzhub.app.Prefs.GamePrefs;
 
 public class GameActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnLogoutListener{
 
-    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-    private static final String TAG = "GameActivity";
-    public static final String ARG_FRAGMENT_NAME = "fragmentName";
-
     private ChatFragment chatFragment;
-    public static final int CHAT_FRAGMENT = 1;
     private NewsFragment newsFragment;
-    public static final int NEWS_FRAGMENT = 2;
     private MyCodeFragment myCodeFragment;
-    public static final int MY_CODE_FRAGMENT = 3;
-    private BroadcastReceiver mRegistrationBroadcastReceiver;
-    private boolean isReceiverRegistered;
+    private ReportTagFragment reportTagFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
-
         setContentView(R.layout.activity_game);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -67,95 +44,8 @@ public class GameActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        // Open the initial fragment
-        if (getIntent() != null && getIntent().getExtras() != null) {
-            int fragmentToOpen = getIntent().getExtras().getInt(ARG_FRAGMENT_NAME);
-            switch(fragmentToOpen) {
-                case CHAT_FRAGMENT:
-                    switchToTab(R.id.nav_chat);
-                    break;
-                case NEWS_FRAGMENT:
-                    switchToTab(R.id.nav_news);
-                    break;
-                case MY_CODE_FRAGMENT:
-                    switchToTab(R.id.nav_my_code);
-                    break;
-                default:
-                    switchToTab(R.id.nav_news);
-            }
-        } else {
-            switchToTab(R.id.nav_news);
-        }
-
-
-
-        mRegistrationBroadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                SharedPreferences sharedPreferences =
-                        PreferenceManager.getDefaultSharedPreferences(context);
-                boolean sentToken = sharedPreferences
-                        .getBoolean(GCMRegistationPrefs.SENT_TOKEN_TO_SERVER, false);
-                if (sentToken) {
-                    Log.i(TAG, "Token retrieved and sent to server!");
-                } else {
-                    Log.i(TAG, "An error occurred while either fetching the InstanceID token, sending the fetched token to the server or subscribing to the PubSub topic.");
-                }
-            }
-        };
-
-        // Registering BroadcastReceiver
-        registerReceiver();
-
-        if (checkPlayServices()) {
-            // Start IntentService to register this application with GCM.
-            Intent intent = new Intent(this, RegistrationIntentService.class);
-            startService(intent);
-        }
+        switchToTab(R.id.nav_news); // Open the default tab
     }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        registerReceiver();
-    }
-
-    @Override
-    protected void onPause() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
-        isReceiverRegistered = false;
-        super.onPause();
-    }
-
-    private void registerReceiver(){
-        if(!isReceiverRegistered) {
-            LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
-                    new IntentFilter(GCMRegistationPrefs.REGISTRATION_COMPLETE));
-            isReceiverRegistered = true;
-        }
-    }
-
-    /**
-     * Check the device to make sure it has the Google Play Services APK. If
-     * it doesn't, display a dialog that allows users to download the APK from
-     * the Google Play Store or enable it in the device's system settings.
-     */
-    private boolean checkPlayServices() {
-        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
-        int resultCode = apiAvailability.isGooglePlayServicesAvailable(this);
-        if (resultCode != ConnectionResult.SUCCESS) {
-            if (apiAvailability.isUserResolvableError(resultCode)) {
-                apiAvailability.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST)
-                        .show();
-            } else {
-                Log.i(TAG, "This device is not supported.");
-                finish();
-            }
-            return false;
-        }
-        return true;
-    }
-
 
 
     @Override
@@ -187,11 +77,15 @@ public class GameActivity extends AppCompatActivity
                 break;
             case R.id.nav_chat:
                 if (chatFragment == null) {
-                    chatFragment = ChatFragment.newInstance();
+                    chatFragment = ChatFragment.newInstance(null, null);
                 }
                 toSwitch = chatFragment;
                 break;
             case R.id.nav_report_tag:
+                if (reportTagFragment == null) {
+                    reportTagFragment = ReportTagFragment.newInstance();
+                }
+                toSwitch = reportTagFragment;
                 break;
             case R.id.nav_heatmap:
                 Intent i = new Intent(this, HeatMapActivity.class);
