@@ -11,17 +11,21 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.database.DataSetObserver;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.LocalBroadcastManager;
+import android.text.Html;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AbsListView;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -51,17 +55,21 @@ import retrofit2.Response;
 
 
 public class ChatFragment extends Fragment {
-    private final String TAG = "ChatFragment";
+    private static final int MESSAGES_TO_FETCH_AT_ONCE = 20; // TODO: Make this work with lower numbers
+    private static final String TAG = "ChatFragment";
 
     private BroadcastReceiver msgBroadcastReceiver;
     private boolean msgReceiverIsRegistered;
     private OnLogoutListener mListener;
-    private static final int MESSAGES_TO_FETCH_AT_ONCE = 25;
+    private ViewGroup mContainer;
+    private boolean loading;
+    private boolean atBeginningOfChats;
+    private View loadingHeader;
 
     List<Message> messages;
     ChatAdapter adapter;
     ListView listView;
-    EditText messageObj;
+    EditText messageBox;
     ImageButton send;
     ProgressBar progressBar;
 
@@ -82,21 +90,48 @@ public class ChatFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         getActivity().setTitle(getActivity().getString(R.string.chat));
+
         // Inflate the layout for this fragment
+        mContainer = container;
         return inflater.inflate(R.layout.fragment_chat, container, false);
 
-        // TODO: Programmatically update text hint based on which side you're chatting with
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        loading = false;
+        atBeginningOfChats = false;
+
         listView = (ListView) view.findViewById(R.id.list_view);
+
+        // Set up the listView to automatically load more items when the top of the view is reached
+        listView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                if (!atBeginningOfChats && firstVisibleItem == 0 && totalItemCount != 0) {
+                    if (!loading) {
+                        loadMoreMessages(); // Sets loading to true
+                    }
+                }
+            }
+        });
+
         if (messages == null) {
             messages = new LinkedList<>();
         }
         adapter = new ChatAdapter(getActivity().getApplicationContext(), messages);
+
+        // Due to the way listView works in android, if we want to add a headerView later,
+        // it must be first added before the adapter is set, and then removed immediately afterwards
+        loadingHeader = getActivity().getLayoutInflater().inflate(R.layout.loader_list_item, null);
+        listView.addHeaderView(loadingHeader);
         listView.setAdapter(adapter);
+        listView.removeHeaderView(loadingHeader);
 
         if (messages.size() == 0) {
             // First load0
@@ -104,14 +139,7 @@ public class ChatFragment extends Fragment {
         } else {
             // Fragment is simply being re-opened
             // Check the DB for new messages and add them to the list
-            final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
-            List<com.hvzhub.app.DB.Message> msgsFromDb = DB.getInstance(getActivity().getApplicationContext()).getMessages(isHuman ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
-            for(com.hvzhub.app.DB.Message dbMsg : msgsFromDb) {
-                messages.add(new Message(dbMsg));
-            }
-
-            // Clear the message cache
-            DB.getInstance(getActivity().getApplicationContext()).wipeDatabase();
+            addMessagesFromDb();
         }
 
         msgBroadcastReceiver = new BroadcastReceiver() {
@@ -121,7 +149,10 @@ public class ChatFragment extends Fragment {
             }
         };
 
-        messageObj = (EditText) view.findViewById(R.id.compose_msg);
+        messageBox = (EditText) view.findViewById(R.id.compose_msg);
+        final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+        messageBox.setHint(isHuman ? R.string.chatting_with_humans : R.string.chatting_with_zombies);
+
         send = (ImageButton) view.findViewById(R.id.send);
         send.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -131,8 +162,6 @@ public class ChatFragment extends Fragment {
         });
 
         progressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
-
-
     }
 
     /**
@@ -152,7 +181,13 @@ public class ChatFragment extends Fragment {
             final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
             List<com.hvzhub.app.DB.Message> msgsFromDb = DB.getInstance(getActivity().getApplicationContext()).getMessages(isHuman ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
             for (com.hvzhub.app.DB.Message dbMsg : msgsFromDb) {
-                messages.add(new Message(dbMsg));
+                Message msgObj = new Message(dbMsg);
+
+                // Parse HTML characters so they appear correctly
+                msgObj.message = Html.fromHtml(msgObj.message).toString();
+                msgObj.name = Html.fromHtml(msgObj.name).toString();
+
+                messages.add(msgObj);
             }
             Log.i(TAG, "Received new chat message(s), populating chat list.");
             DB.getInstance(getActivity().getApplicationContext()).wipeDatabase();
@@ -172,6 +207,7 @@ public class ChatFragment extends Fragment {
     private void getMsgsFromServer(final boolean refresh) {
         getMsgsFromServer(refresh, MESSAGES_TO_FETCH_AT_ONCE);
     }
+
     private void getMsgsFromServer(final boolean refresh, final int numToFetch) {
         if (!NetworkUtils.networkIsAvailable(getActivity())) {
             AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
@@ -190,6 +226,7 @@ public class ChatFragment extends Fragment {
                     })
                     .show();
         } else {
+            showListViewProgress(true);
             HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
             String uuid = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
             int gameId = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
@@ -208,14 +245,88 @@ public class ChatFragment extends Fragment {
                     if (response.isSuccessful()) {
                         if (refresh) {
                             messages.clear();
+                            showListViewProgress(false);
+                        } else {
+                            loading = false;
                         }
-                        messages.addAll(0, response.body().messages);
-                        adapter.notifyDataSetChanged();
-                        DB.getInstance(getActivity().getApplicationContext()).wipeDatabase();
+
+                        List<Message> msgsFromServer = response.body().messages;
+                        if (msgsFromServer.isEmpty()) {
+                            Log.d(TAG, "Reached beginning of chats. Not loading any more");
+
+                            showListViewProgress(false);
+
+                            atBeginningOfChats = true;
+                        } else {
+//                            final int index = listView.getFirstVisiblePosition() + msgsFromServer.size();
+//                            View v = listView.getChildAt(0);
+//                            final int top = (v == null) ? 0 : v.getTop();
+
+                            //  {  Retrieve new items here  }
+                            for (Message msgObj : msgsFromServer) {
+                                // Parse HTML characters so they appear correctly,
+                                // For example the 'star' character next to a moderator name.
+                                msgObj.message = Html.fromHtml(msgObj.message).toString();
+                                msgObj.name = Html.fromHtml(msgObj.name).toString();
+                            }
+                            messages.addAll(0, msgsFromServer);
+
+                            final int positionToSave = listView.getFirstVisiblePosition() + msgsFromServer.size();
+                            adapter.notifyDataSetChanged(); // <-- Update the adapter
+
+
+                            if (!refresh) {
+                                listView.post(new Runnable() {
+
+                                    @Override
+                                    public void run() {
+//                                        listView.setSelectionFromTop(index, top);
+                                        listView.setSelection(positionToSave + 1);
+                                    }
+                                });
+
+                                listView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+
+                                    @Override
+                                    public boolean onPreDraw() {
+                                        if (listView.getFirstVisiblePosition() == positionToSave) {
+                                            listView.getViewTreeObserver().removeOnPreDrawListener(this);
+                                            return true;
+                                        } else {
+                                            return false;
+                                        }
+                                    }
+                                });
+//                                listView.setSelectionFromTop(index, top);
+                            }
+                            //DB.getInstance(getActivity().getApplicationContext()).wipeDatabase();
+                        }
                     } else {
+                        showListViewProgress(false);
                         AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
                         b.setTitle(getString(R.string.unexpected_response))
-                            .setMessage(getString(R.string.unexpected_response_hint))
+                                .setMessage(getString(R.string.unexpected_response_hint))
+                                .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        getMsgsFromServer(refresh);
+                                    }
+                                })
+                                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                    }
+                                })
+                                .show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<MessageListContainer> call, Throwable t) {
+                    showListViewProgress(false);
+                    AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                    b.setTitle(getString(R.string.generic_connection_error))
+                            .setMessage(getString(R.string.generic_connection_error_hint))
                             .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -228,39 +339,18 @@ public class ChatFragment extends Fragment {
                                 }
                             })
                             .show();
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<MessageListContainer> call, Throwable t) {
-                    AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
-                    b.setTitle(getString(R.string.generic_connection_error))
-                        .setMessage(getString(R.string.generic_connection_error_hint))
-                        .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                getMsgsFromServer(refresh);
-                            }
-                        })
-                        .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        })
-                        .show();
                 }
             });
         }
 
 
-
     }
 
     private void sendMsg() {
-        messageObj.setError(null);
-        if (TextUtils.isEmpty(messageObj.getText())) {
-            messageObj.setError(getString(R.string.enter_a_message));
-            messageObj.requestFocus();
+        messageBox.setError(null);
+        if (TextUtils.isEmpty(messageBox.getText())) {
+            messageBox.setError(getString(R.string.enter_a_message));
+            messageBox.requestFocus();
             return;
         }
         if (!NetworkUtils.networkIsAvailable(getActivity().getApplicationContext())) {
@@ -283,7 +373,7 @@ public class ChatFragment extends Fragment {
             return;
         }
 
-        showProgress(true);
+        showSendProgress(true);
         String uuid = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
         int gameId = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
         int userId = 1;
@@ -295,16 +385,16 @@ public class ChatFragment extends Fragment {
                 new PostChatRequest(
                         uuid,
                         userId,
-                        messageObj.getText().toString(),
+                        messageBox.getText().toString(),
                         isHuman
                 )
         );
         call.enqueue(new Callback<PostChatResponse>() {
             @Override
             public void onResponse(Call<PostChatResponse> call, Response<PostChatResponse> response) {
-                showProgress(false);
+                showSendProgress(false);
                 if (response.isSuccessful()) {
-                    messageObj.setText("");
+                    messageBox.setText("");
                 } else {
                     APIError apiError = ErrorUtils.parseError(response);
                     String err = apiError.error.toLowerCase();
@@ -332,7 +422,7 @@ public class ChatFragment extends Fragment {
 
             @Override
             public void onFailure(Call<PostChatResponse> call, Throwable t) {
-                showProgress(false);
+                showSendProgress(false);
                 // TODO: Make this an alert box
                 Snackbar snackbar = Snackbar.make(listView, R.string.generic_connection_error, Snackbar.LENGTH_LONG);
                 View view = snackbar.getView();
@@ -347,7 +437,7 @@ public class ChatFragment extends Fragment {
      * Shows the loader and hides disables the send UI.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
-    private void showProgress(final boolean show) {
+    private void showSendProgress(final boolean show) {
         // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
         // for very easy animations. If available, use these APIs to fade-in
         // the progress spinner.
@@ -378,6 +468,26 @@ public class ChatFragment extends Fragment {
 
             progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
             send.setVisibility(show ? View.INVISIBLE : View.VISIBLE);
+        }
+    }
+
+    private void showListViewProgress(boolean show) {
+
+        loading = show;
+        if (show) {
+            if (listView.getHeaderViewsCount() != 0) {
+                return; // If the progress view is already displayed, don't add another one
+            } else {
+                if (loadingHeader != null) {
+                    loadingHeader = getActivity().getLayoutInflater().inflate(R.layout.loader_list_item, null);
+                }
+                listView.addHeaderView(loadingHeader);
+            }
+
+        } else {
+            if (loadingHeader != null) {
+                listView.removeHeaderView(loadingHeader);
+            }
         }
     }
 

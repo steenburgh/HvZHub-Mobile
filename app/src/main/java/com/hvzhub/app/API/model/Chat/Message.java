@@ -1,5 +1,7 @@
 package com.hvzhub.app.API.model.Chat;
 
+import android.text.Html;
+
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Date;
