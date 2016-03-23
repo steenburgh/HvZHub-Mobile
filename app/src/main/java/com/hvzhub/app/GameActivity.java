@@ -99,6 +99,9 @@ public class GameActivity extends AppCompatActivity
                 break;
             case R.id.nav_settings:
                 break;
+            case R.id.nav_logout:
+                onLogout();
+                break;
         }
         if (toSwitch != null) {
             getFragmentManager().beginTransaction()

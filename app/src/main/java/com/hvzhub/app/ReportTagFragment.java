@@ -11,10 +11,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CalendarView;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.TimePicker;
 
 import com.hvzhub.app.API.API;
 import com.hvzhub.app.API.ErrorUtils;
@@ -27,17 +30,23 @@ import com.hvzhub.app.API.model.TagPlayerRequest;
 import com.hvzhub.app.API.model.Uuid;
 import com.hvzhub.app.Prefs.GamePrefs;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ReportTagFragment extends Fragment {
+public class ReportTagFragment extends Fragment implements DatePicker.OnDateChangedListener, TimePicker.OnTimeChangedListener{
     EditText submitCode;
     ProgressBar progressBar;
     LinearLayout myCodeContainer;
     LinearLayout errorView;
+    TextView TimeInput;
+    TextView DateInput;
+
 
     private OnLogoutListener mListener;
 
@@ -75,7 +84,7 @@ public class ReportTagFragment extends Fragment {
         });
         submitCode = (EditText) view.findViewById(R.id.tag_reported);
 
-        TextView DateInput = (TextView) view.findViewById(R.id.date);
+        DateInput = (TextView) view.findViewById(R.id.date);
         DateInput.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -83,7 +92,7 @@ public class ReportTagFragment extends Fragment {
             }
         });
 
-        TextView TimeInput = (TextView) view.findViewById(R.id.time);
+        TimeInput = (TextView) view.findViewById(R.id.time);
         TimeInput.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -178,5 +187,30 @@ public class ReportTagFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onDateChanged(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+        Calendar c = Calendar.getInstance();
+        // Update the associated calendar
+        c.set(year, monthOfYear, dayOfMonth);
+
+        // Update the associated textview
+        DateFormat dateFormat = SimpleDateFormat.getDateInstance();
+        String strDate = dateFormat.format(c.getTime());
+        DateInput.setText(strDate);
+    }
+
+    @Override
+    public void onTimeChanged(TimePicker view, int hourOfDay, int minute) {
+        Calendar c = Calendar.getInstance();
+        // Update the associated calendar
+        c.set(Calendar.HOUR_OF_DAY, hourOfDay);
+        c.set(Calendar.MINUTE, minute);
+
+        // Update the associated textview
+        DateFormat timeFormat = SimpleDateFormat.getTimeInstance(DateFormat.SHORT);
+        String strTime = timeFormat.format(c.getTime());
+        TimeInput.setText(strTime);
     }
 }
