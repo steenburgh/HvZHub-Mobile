@@ -127,7 +127,7 @@ public class ChatFragment extends Fragment {
         if (messages == null) {
             messages = new LinkedList<>();
         }
-        adapter = new ChatAdapter(getActivity().getApplicationContext(), messages);
+        adapter = new ChatAdapter(getActivity(), messages);
 
         // Due to the way listView works in android, if we want to add a headerView later,
         // it must be first added before the adapter is set, and then removed immediately afterwards
