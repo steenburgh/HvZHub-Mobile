@@ -244,12 +244,10 @@ public class ChatFragment extends Fragment {
                     refresh ? 0 : messages.size(),
                     numToFetch
             );
+
             call.enqueue(new Callback<MessageListContainer>() {
                 @Override
                 public void onResponse(Call<MessageListContainer> call, Response<MessageListContainer> response) {
-//                    showListViewProgress(false);
-
-
                     if (response.isSuccessful()) {
                         if (refresh) {
                             messages.clear();
@@ -290,6 +288,9 @@ public class ChatFragment extends Fragment {
                                     public boolean onPreDraw() {
                                         if (listView.getFirstVisiblePosition() == positionToSave) {
                                             listView.getViewTreeObserver().removeOnPreDrawListener(this);
+
+                                            // Don't hide call showListViewProgress to hide
+                                            // the loader, as this causes the list to jerk upwards
                                             loading = false;
                                             return true;
                                         } else {
@@ -302,8 +303,7 @@ public class ChatFragment extends Fragment {
                                 loading = false;
                             }
 
-
-                            //DB.getInstance(getActivity().getApplicationContext()).wipeDatabase();
+                            DB.getInstance(getActivity().getApplicationContext()).wipeDatabase();
                         }
                     } else {
                         showListViewProgress(false);
