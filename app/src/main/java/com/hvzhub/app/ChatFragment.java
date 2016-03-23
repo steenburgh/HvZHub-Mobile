@@ -28,8 +28,10 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.hvzhub.app.API.API;
@@ -115,6 +117,7 @@ public class ChatFragment extends Fragment {
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
                 if (!atBeginningOfChats && firstVisibleItem == 0 && totalItemCount != 0) {
                     if (!loading) {
+                        loading = true; // This *must* be set *immediately* or the this block will be called multiple times in succession
                         loadMoreMessages(); // Sets loading to true
                     }
                 }
@@ -209,6 +212,7 @@ public class ChatFragment extends Fragment {
     }
 
     private void getMsgsFromServer(final boolean refresh, final int numToFetch) {
+        Log.i(TAG, "Getting new messages");
         if (!NetworkUtils.networkIsAvailable(getActivity())) {
             AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
             b.setTitle(getString(R.string.network_not_available))
@@ -227,6 +231,7 @@ public class ChatFragment extends Fragment {
                     .show();
         } else {
             showListViewProgress(true);
+            loading = true;
             HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
             String uuid = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
             int gameId = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
@@ -242,27 +247,21 @@ public class ChatFragment extends Fragment {
             call.enqueue(new Callback<MessageListContainer>() {
                 @Override
                 public void onResponse(Call<MessageListContainer> call, Response<MessageListContainer> response) {
+//                    showListViewProgress(false);
+
+
                     if (response.isSuccessful()) {
                         if (refresh) {
                             messages.clear();
-                            showListViewProgress(false);
-                        } else {
-                            loading = false;
                         }
 
                         List<Message> msgsFromServer = response.body().messages;
                         if (msgsFromServer.isEmpty()) {
                             Log.d(TAG, "Reached beginning of chats. Not loading any more");
-
                             showListViewProgress(false);
-
                             atBeginningOfChats = true;
+                            loading = false;
                         } else {
-//                            final int index = listView.getFirstVisiblePosition() + msgsFromServer.size();
-//                            View v = listView.getChildAt(0);
-//                            final int top = (v == null) ? 0 : v.getTop();
-
-                            //  {  Retrieve new items here  }
                             for (Message msgObj : msgsFromServer) {
                                 // Parse HTML characters so they appear correctly,
                                 // For example the 'star' character next to a moderator name.
@@ -271,38 +270,44 @@ public class ChatFragment extends Fragment {
                             }
                             messages.addAll(0, msgsFromServer);
 
-                            final int positionToSave = listView.getFirstVisiblePosition() + msgsFromServer.size();
-                            adapter.notifyDataSetChanged(); // <-- Update the adapter
 
-
+                            // If we're in loadMore mode, save the current position so the list
+                            // doesn't jerk upwards when new content is loaded
                             if (!refresh) {
-                                listView.post(new Runnable() {
+                                final int positionToSave = listView.getFirstVisiblePosition() + msgsFromServer.size();
 
+                                adapter.notifyDataSetChanged();
+                                listView.post(new Runnable() {
                                     @Override
                                     public void run() {
-//                                        listView.setSelectionFromTop(index, top);
-                                        listView.setSelection(positionToSave + 1);
+                                        listView.setSelection(positionToSave);
                                     }
                                 });
-
+                                // Don't draw the list until the list's position has been updated.
+                                // This effectively skips drawing the frames where the list jerks.
                                 listView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-
                                     @Override
                                     public boolean onPreDraw() {
                                         if (listView.getFirstVisiblePosition() == positionToSave) {
                                             listView.getViewTreeObserver().removeOnPreDrawListener(this);
+                                            loading = false;
                                             return true;
                                         } else {
                                             return false;
                                         }
                                     }
                                 });
-//                                listView.setSelectionFromTop(index, top);
+                            } else {
+                                adapter.notifyDataSetChanged();
+                                loading = false;
                             }
+
+
                             //DB.getInstance(getActivity().getApplicationContext()).wipeDatabase();
                         }
                     } else {
                         showListViewProgress(false);
+                        loading = false;
                         AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
                         b.setTitle(getString(R.string.unexpected_response))
                                 .setMessage(getString(R.string.unexpected_response_hint))
@@ -324,6 +329,7 @@ public class ChatFragment extends Fragment {
                 @Override
                 public void onFailure(Call<MessageListContainer> call, Throwable t) {
                     showListViewProgress(false);
+                    loading = false;
                     AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
                     b.setTitle(getString(R.string.generic_connection_error))
                             .setMessage(getString(R.string.generic_connection_error_hint))
@@ -472,18 +478,14 @@ public class ChatFragment extends Fragment {
     }
 
     private void showListViewProgress(boolean show) {
-
-        loading = show;
         if (show) {
-            if (listView.getHeaderViewsCount() != 0) {
-                return; // If the progress view is already displayed, don't add another one
-            } else {
+            // If the progress view is already displayed, don't add another one
+            if (listView.getHeaderViewsCount() == 0) {
                 if (loadingHeader != null) {
                     loadingHeader = getActivity().getLayoutInflater().inflate(R.layout.loader_list_item, null);
                 }
                 listView.addHeaderView(loadingHeader);
             }
-
         } else {
             if (loadingHeader != null) {
                 listView.removeHeaderView(loadingHeader);
