@@ -6,8 +6,8 @@
     android:clickable="true"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp">
+    android:paddingTop="@dimen/widget_horizontal_margin"
+    android:paddingBottom="@dimen/widget_horizontal_margin">
 
     <ImageView
         android:id="@+id/retry_button"

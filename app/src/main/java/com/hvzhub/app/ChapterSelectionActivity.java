@@ -58,18 +58,6 @@ public class ChapterSelectionActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                // TODO: Remove this
-//                SharedPreferences.Editor prefs = getSharedPreferences(API.PREFS_GAME, Context.MODE_PRIVATE).edit();
-//                prefs.putString(API.PREFS_CHAPTER_URL, "u_of_test");
-//                prefs.putInt(API.PREFS_GAME_ID, 3);
-//                prefs.apply();
-//
-//                // TODO: Remove this
-//                Intent i = new Intent(ChapterSelectionActivity.this, GameActivity.class);
-//                startActivity(i);
-//                finish();
-
-                // TODO: Fix this method
                 joinChapter(chapterList.get(position));
             }
         });
@@ -116,6 +104,7 @@ public class ChapterSelectionActivity extends AppCompatActivity {
                     if (response.isSuccessful()) {
                         chapterList.clear();
                         chapterList.addAll(response.body().chapters);
+                        adapter.notifyDataSetChanged();
                     } else {
                         AlertDialog.Builder b = new AlertDialog.Builder(ChapterSelectionActivity.this);
                         b.setTitle(getString(R.string.unexpected_response))

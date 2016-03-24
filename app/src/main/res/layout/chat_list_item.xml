@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_weight="1"
+            android:id="@+id/name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            tools:text="Duncan Steenburgh"
+            android:textAppearance="?android:textAppearanceSmall"
+            android:textColor="@color/colorPrimaryDark"/>
+
+        <android.support.v4.widget.Space
+            android:layout_width="@dimen/widget_horizontal_margin"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="10/13/16 22:00:59 PM"
+            android:textAppearance="?android:textAppearanceSmall"
+            android:textColor="@color/colorSecondaryText"/>
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_marginTop="2dp"
+        android:id="@+id/message"
+        android:autoLink="all"
+        android:textIsSelectable="true"
+        android:textColor="@color/colorPrimaryText"
+        tools:text="This is a message from the mods. Surrender now so you can be assimilated. The end of the world is night. Wait I mean nigh. Whatever. Anyways, come with me if you want to live, but don't die because that is often fatal. Also zombies. Lots of zombies. And brainssss. Sweet brainssssss. Come here for a brain party. I promise I won't eat you."
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

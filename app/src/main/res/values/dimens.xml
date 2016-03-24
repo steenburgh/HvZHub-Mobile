@@ -9,4 +9,6 @@
     <dimen name="tag_code_vertical_margin">20dp</dimen>
     <dimen name="header_size">40sp</dimen>
     <dimen name="date_size">25sp</dimen>
+    <dimen name="widget_horizontal_margin">8dp</dimen>
+    <dimen name="widget_vertical_margin">8dp</dimen>
 </resources>

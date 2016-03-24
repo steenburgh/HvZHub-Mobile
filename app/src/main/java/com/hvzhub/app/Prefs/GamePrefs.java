@@ -8,4 +8,5 @@ public class GamePrefs {
     public static final String PREFS_GAME_ID = "gameID";
     public static final String PREFS_IS_HUMAN = "isHuman";
     public static final String PREFS_IS_ADMIN = "isAdmin";
+    public static final String PREFS_JUST_TURNED = "justTurned";
 }
