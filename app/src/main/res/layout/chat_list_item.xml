@@ -41,6 +41,7 @@
         android:textIsSelectable="true"
         android:textColor="@color/colorPrimaryText"
         tools:text="This is a message from the mods. Surrender now so you can be assimilated. The end of the world is night. Wait I mean nigh. Whatever. Anyways, come with me if you want to live, but don't die because that is often fatal. Also zombies. Lots of zombies. And brainssss. Sweet brainssssss. Come here for a brain party. I promise I won't eat you."
+        android:textAppearance="?android:textAppearanceMedium"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
