@@ -10,6 +10,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.hvzhub.app.API.model.Games.News.GameNewsItem;
+import com.hvzhub.app.API.model.Games.News.Player;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -94,18 +95,39 @@ public class GameNewsAdapter extends BaseAdapter {
                         context.getString(R.string.joined_the_game)
                 );
                 return Html.fromHtml(messageRaw);
-            case GameNewsItem.TAG_WITH_ASSISTANTS: // TODO: Implement assistants
+            case GameNewsItem.TAG_WITH_ASSISTANTS:
+                messageRaw = String.format(
+                        "<font color='%1$s'>%2$s</font> %3$s <font color='%1$s'>%4$s</font> %5$s %6$s",
+                        nameColorString,
+                        newsItem.player0Name,
+                        context.getString(R.string.was_tagged_by),
+                        newsItem.player1Name,
+                        context.getString(R.string.with_help_from),
+                        getAssistantsString(newsItem.assistants, nameColorString)
+                );
+                return Html.fromHtml(messageRaw);
             case GameNewsItem.TAG:
                 //noinspection ResourceType
                 messageRaw = String.format(
-                        "<font color='%1$s'>%2$s</font> %3$s <font color='%4$s'>%1$s</font>",
+                        "<font color='%1$s'>%2$s</font> %3$s <font color='%1$s'>%4$s</font>",
                         nameColorString,
                         newsItem.player0Name,
                         context.getString(R.string.was_tagged_by),
                         newsItem.player1Name
                 );
                 return Html.fromHtml(messageRaw);
-            case GameNewsItem.TAG_OZ_WITH_ASSISTANTS: // TODO: Implement assistants
+            case GameNewsItem.TAG_OZ_WITH_ASSISTANTS:
+                //noinspection ResourceType
+                messageRaw = String.format(
+                        "<font color='%s'>%s</font> %s %s %s %s",
+                        nameColorString,
+                        newsItem.player0Name,
+                        context.getString(R.string.was_tagged_by),
+                        context.getString(R.string.an_oz),
+                        context.getString(R.string.with_help_from),
+                        getAssistantsString(newsItem.assistants, nameColorString)
+                );
+                return Html.fromHtml(messageRaw);
             case GameNewsItem.TAG_OZ:
                 //noinspection ResourceType
                 messageRaw = String.format(
@@ -128,6 +150,29 @@ public class GameNewsAdapter extends BaseAdapter {
             default:
                 return context.getString(R.string.error_loading_item);
         }
+    }
+
+    private String getAssistantsString(List<Player> assistants, String nameColorString) {
+        StringBuilder asstStrBuilder = new StringBuilder();
+        for (int i = 0; i < assistants.size(); i++) {
+            Player asst = assistants.get(i);
+            asstStrBuilder.append(
+                    String.format(
+                            "<font color='%s'>%s</font>",
+                            nameColorString,
+                            asst.name
+                    )
+            );
+
+            if (i == assistants.size() - 2) {
+                asstStrBuilder.append(' ');
+                asstStrBuilder.append(context.getString(R.string.and));
+                asstStrBuilder.append(' ');
+            } else if (i < assistants.size() - 2) {
+                asstStrBuilder.append(", ");
+            }
+        }
+        return asstStrBuilder.toString();
     }
 
 
