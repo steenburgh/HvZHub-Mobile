@@ -27,7 +27,7 @@ import com.hvzhub.app.Prefs.GCMRegistationPrefs;
 import com.hvzhub.app.Prefs.GamePrefs;
 
 public class GameActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnLogoutListener{
+        implements NavigationView.OnNavigationItemSelectedListener, OnLogoutListener {
 
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private static final String TAG = "GameActivity";
@@ -44,6 +44,8 @@ public class GameActivity extends AppCompatActivity
     public static final int MY_CODE_FRAGMENT = 4;
     private BroadcastReceiver mRegistrationBroadcastReceiver;
     private boolean isReceiverRegistered;
+
+    public int curTab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,28 +66,31 @@ public class GameActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         // Open the initial fragment
-        if (getIntent() != null && getIntent().getExtras() != null) {
-            int fragmentToOpen = getIntent().getExtras().getInt(ARG_FRAGMENT_NAME);
-            switch(fragmentToOpen) {
-                case CHAT_FRAGMENT:
-                    switchToTab(R.id.nav_chat);
-                    break;
-                case MOD_UPDATES_FRAGMENT:
-                    switchToTab(R.id.nav_mod_updates);
-                    break;
-                case GAME_NEWS_FRAGMENT:
-                    switchToTab(R.id.nav_game_news);
-                    break;
-                case MY_CODE_FRAGMENT:
-                    switchToTab(R.id.nav_my_code);
-                    break;
-                default:
-                    switchToTab(R.id.nav_mod_updates);
-            }
+        int fragmentToOpen;
+        if (savedInstanceState != null) {
+            fragmentToOpen = savedInstanceState.getInt(ARG_FRAGMENT_NAME);
+        } else if (getIntent() != null && getIntent().getExtras() != null) {
+            fragmentToOpen = getIntent().getExtras().getInt(ARG_FRAGMENT_NAME);
         } else {
-            switchToTab(R.id.nav_mod_updates);
+            fragmentToOpen = MOD_UPDATES_FRAGMENT;
         }
-
+        switch (fragmentToOpen) {
+            case CHAT_FRAGMENT:
+                switchToTab(R.id.nav_chat);
+                break;
+            case MOD_UPDATES_FRAGMENT:
+                switchToTab(R.id.nav_mod_updates);
+                break;
+            case GAME_NEWS_FRAGMENT:
+                switchToTab(R.id.nav_game_news);
+                break;
+            case MY_CODE_FRAGMENT:
+                switchToTab(R.id.nav_my_code);
+                break;
+            default:
+                switchToTab(R.id.nav_mod_updates);
+                break;
+        }
 
 
         mRegistrationBroadcastReceiver = new BroadcastReceiver() {
@@ -102,8 +107,8 @@ public class GameActivity extends AppCompatActivity
                 }
 
                 getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).edit()
-                    .putBoolean(ChatPrefs.NOTIFICATIONS_ENABLED, true)
-                    .apply();
+                        .putBoolean(ChatPrefs.NOTIFICATIONS_ENABLED, true)
+                        .apply();
             }
         };
 
@@ -134,11 +139,11 @@ public class GameActivity extends AppCompatActivity
             intent.putExtra(RegistrationIntentService.ARG_TO_SUBRCRIBE, topics);
         } else {
             String[] toSubscribe = {
-                String.format(
-                    "games_%d_chat_%s",
-                    gameId,
-                    isHuman ? "human" : "zombie"
-                ),
+                    String.format(
+                            "games_%d_chat_%s",
+                            gameId,
+                            isHuman ? "human" : "zombie"
+                    ),
             };
             intent.putExtra(RegistrationIntentService.ARG_TO_SUBRCRIBE, toSubscribe);
 
@@ -171,8 +176,8 @@ public class GameActivity extends AppCompatActivity
         super.onPause();
     }
 
-    private void registerReceiver(){
-        if(!isReceiverRegistered) {
+    private void registerReceiver() {
+        if (!isReceiverRegistered) {
             LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
                     new IntentFilter(GCMRegistationPrefs.REGISTRATION_COMPLETE));
             isReceiverRegistered = true;
@@ -201,7 +206,6 @@ public class GameActivity extends AppCompatActivity
     }
 
 
-
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -228,18 +232,21 @@ public class GameActivity extends AppCompatActivity
                     modUpdatesFragment = ModUpdatesFragment.newInstance();
                 }
                 toSwitch = modUpdatesFragment;
+                curTab = MOD_UPDATES_FRAGMENT;
                 break;
             case R.id.nav_game_news:
                 if (gameNewsFragment == null) {
                     gameNewsFragment = GameNewsFragment.newInstance();
                 }
                 toSwitch = gameNewsFragment;
+                curTab = GAME_NEWS_FRAGMENT;
                 break;
             case R.id.nav_chat:
                 if (chatFragment == null) {
                     chatFragment = ChatFragment.newInstance();
                 }
                 toSwitch = chatFragment;
+                curTab = CHAT_FRAGMENT;
                 break;
             case R.id.nav_report_tag:
                 break;
@@ -252,6 +259,7 @@ public class GameActivity extends AppCompatActivity
                     myCodeFragment = MyCodeFragment.newInstance();
                 }
                 toSwitch = myCodeFragment;
+                curTab = MY_CODE_FRAGMENT;
                 break;
             case R.id.nav_settings:
                 break;
@@ -290,5 +298,11 @@ public class GameActivity extends AppCompatActivity
         startActivity(i);
         DB.getInstance(this).wipeDatabase();
         finish();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putInt(ARG_FRAGMENT_NAME, curTab);
+        super.onSaveInstanceState(outState);
     }
 }
