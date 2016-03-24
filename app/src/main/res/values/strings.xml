@@ -21,7 +21,6 @@
     <string name="report_tag">Report Tag</string>
     <string name="heatmap">Heatmap</string>
     <string name="my_code">My Code</string>
-    <string name="news">News</string>
     <string name="chat">Chat</string>
     <string name="settings">Settings</string>
 
@@ -70,6 +69,8 @@
     <string name="chatting_with_humans">Chatting with Humans</string>
     <string name="logout">Logout</string>
     <string name="no_games_found">No games found in this chapter ;(</string>
+    <string name="mod_updates">Mod Updates</string>
+    <string name="game_news">Game News</string>
 
 
 </resources>

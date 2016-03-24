@@ -33,20 +33,21 @@ public class GameActivity extends AppCompatActivity
     private static final String TAG = "GameActivity";
     public static final String ARG_FRAGMENT_NAME = "fragmentName";
 
+
+    private ModUpdatesFragment modUpdatesFragment;
+    public static final int MOD_UPDATES_FRAGMENT = 1;
+    private GameNewsFragment gameNewsFragment;
+    public static final int GAME_NEWS_FRAGMENT = 2;
     private ChatFragment chatFragment;
-    public static final int CHAT_FRAGMENT = 1;
-    private NewsFragment newsFragment;
-    public static final int NEWS_FRAGMENT = 2;
+    public static final int CHAT_FRAGMENT = 3;
     private MyCodeFragment myCodeFragment;
-    public static final int MY_CODE_FRAGMENT = 3;
+    public static final int MY_CODE_FRAGMENT = 4;
     private BroadcastReceiver mRegistrationBroadcastReceiver;
     private boolean isReceiverRegistered;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
 
         setContentView(R.layout.activity_game);
 
@@ -69,17 +70,20 @@ public class GameActivity extends AppCompatActivity
                 case CHAT_FRAGMENT:
                     switchToTab(R.id.nav_chat);
                     break;
-                case NEWS_FRAGMENT:
-                    switchToTab(R.id.nav_news);
+                case MOD_UPDATES_FRAGMENT:
+                    switchToTab(R.id.nav_mod_updates);
+                    break;
+                case GAME_NEWS_FRAGMENT:
+                    switchToTab(R.id.nav_game_news);
                     break;
                 case MY_CODE_FRAGMENT:
                     switchToTab(R.id.nav_my_code);
                     break;
                 default:
-                    switchToTab(R.id.nav_news);
+                    switchToTab(R.id.nav_mod_updates);
             }
         } else {
-            switchToTab(R.id.nav_news);
+            switchToTab(R.id.nav_mod_updates);
         }
 
 
@@ -219,11 +223,17 @@ public class GameActivity extends AppCompatActivity
     public void switchToTab(int id) {
         Fragment toSwitch = null;
         switch (id) {
-            case R.id.nav_news:
-                if (newsFragment == null) {
-                    newsFragment = NewsFragment.newInstance(null, null);
+            case R.id.nav_mod_updates:
+                if (modUpdatesFragment == null) {
+                    modUpdatesFragment = ModUpdatesFragment.newInstance();
                 }
-                toSwitch = newsFragment;
+                toSwitch = modUpdatesFragment;
+                break;
+            case R.id.nav_game_news:
+                if (gameNewsFragment == null) {
+                    gameNewsFragment = GameNewsFragment.newInstance();
+                }
+                toSwitch = gameNewsFragment;
                 break;
             case R.id.nav_chat:
                 if (chatFragment == null) {
