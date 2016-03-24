@@ -164,7 +164,9 @@ public class GameSelectionActivity extends AppCompatActivity {
                     prefs.apply();
 
                     Intent i = new Intent(GameSelectionActivity.this, GameActivity.class);
+                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(i);
+                    finish();
                 } else {
                     APIError apiError = ErrorUtils.parseError(response);
                     String err = apiError.error.toLowerCase();
@@ -172,7 +174,7 @@ public class GameSelectionActivity extends AppCompatActivity {
                         // This should never happen, but if it does, log the user out so they can obtain a new sessionID
                         Toast t = Toast.makeText(GameSelectionActivity.this, R.string.unexpected_response, Toast.LENGTH_LONG);
                         t.show();
-                        logout();
+                        goBackToChapterSelection();
                     } else {
                         AlertDialog.Builder b = new AlertDialog.Builder(GameSelectionActivity.this);
                         b.setTitle(getString(R.string.unexpected_response))
@@ -256,14 +258,19 @@ public class GameSelectionActivity extends AppCompatActivity {
         }
     }
 
-    private void logout() {
-        // Clear the sessionID
-        SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
-        prefs.putString(GamePrefs.PREFS_SESSION_ID, null);
-        prefs.apply();
+    @Override
+    public void onBackPressed() {
+        goBackToChapterSelection();
+    }
+
+    private void goBackToChapterSelection() {
+        // Clear *all* GamePrefs
+        SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
+        editor.putString(GamePrefs.PREFS_CHAPTER_URL, null);
+        editor.apply();
 
         // Show the login screen again
-        Intent i = new Intent(this, LoginActivity.class);
+        Intent i = new Intent(this, ChapterSelectionActivity.class);
         startActivity(i);
         finish();
     }

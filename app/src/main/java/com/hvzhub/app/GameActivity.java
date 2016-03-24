@@ -21,6 +21,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.hvzhub.app.DB.DB;
 import com.hvzhub.app.Prefs.ChatPrefs;
 import com.hvzhub.app.Prefs.GCMRegistationPrefs;
 import com.hvzhub.app.Prefs.GamePrefs;
@@ -258,9 +259,10 @@ public class GameActivity extends AppCompatActivity
 
     @Override
     public void onLogout() {
-        SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
-        prefs.putString(GamePrefs.PREFS_SESSION_ID, null);
-        prefs.apply();
+        // Clear *all* GamePrefs
+        SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
+        editor.clear();
+        editor.apply();
 
         // Notify the user
         Toast t = Toast.makeText(
@@ -273,6 +275,7 @@ public class GameActivity extends AppCompatActivity
         // Load the login screen
         Intent i = new Intent(this, LoginActivity.class);
         startActivity(i);
+        DB.getInstance(this).wipeDatabase();
         finish();
     }
 }

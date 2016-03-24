@@ -26,16 +26,11 @@ public class MainActivity extends AppCompatActivity {
             Intent i = new Intent(this, LoginActivity.class);
             startActivity(i);
             Log.i("MainActivity", "SessionID not found. Showing login screen");
-        } else if (chapterUrl == null) {
+        } else if (chapterUrl == null || gameId == -1) {
             finish();
             Intent intent = new Intent(this, ChapterSelectionActivity.class);
             startActivity(intent);
             Log.i("MainActivity", "ChapterUrl not found. Showing chapter selection screen");
-        } else if (gameId == -1) {
-            finish();
-            Intent intent = new Intent(this, GameSelectionActivity.class);
-            startActivity(intent);
-            Log.i("MainActivity", "gameId not found. Showing chapter selection screen");
         } else {
             finish();
             Intent intent = new Intent(this, GameActivity.class);
