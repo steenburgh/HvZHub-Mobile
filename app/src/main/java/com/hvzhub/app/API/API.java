@@ -26,7 +26,8 @@ public class API {
     private static Context mCtx;
     private HvZHubClient mHvZHubClient = null;
 
-    public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+    public static final String DATE_FORMATA = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+    public static final String DATE_FORMATB = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
     /* This is implemented as a 'singleton'
      * This means that API is an object that can only be instantiated once
@@ -52,14 +53,10 @@ public class API {
     }
 
     public static Date dateFromUtcString(String dateStr) throws ParseException {
-        DateFormat dateFormat = new SimpleDateFormat(API.DATE_FORMAT);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return dateFormat.parse(dateStr);
+        return DateConverter.getInstance().deserialize(dateStr);
     }
 
     public static String utcStringFromDate(Date date) {
-        DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return dateFormat.format(date);
+        return DateConverter.getInstance().serialize(date);
     }
 }
