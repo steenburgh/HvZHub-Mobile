@@ -68,6 +68,7 @@
     <string name="enter_a_message">Please enter a message</string>
     <string name="chatting_with_zombies">Chatting with Zombies</string>
     <string name="chatting_with_humans">Chatting with Humans</string>
+    <string name="logout">Logout</string>
 
 
 </resources>
