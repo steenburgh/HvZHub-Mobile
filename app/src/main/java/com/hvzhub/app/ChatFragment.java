@@ -254,7 +254,7 @@ public class ChatFragment extends Fragment {
                         }
 
                         List<Message> msgsFromServer = response.body().messages;
-                        if (msgsFromServer.isEmpty()) {
+                        if (msgsFromServer == null || msgsFromServer.isEmpty()) {
                             Log.d(TAG, "Reached beginning of chats. Not loading any more");
                             showListViewProgress(false);
                             atBeginningOfChats = true;
