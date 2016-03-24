@@ -28,12 +28,4 @@ public class GameNewsItem {
     public String player1Name;
 
     public List<Player> assistants;
-
-    public GameNewsItem(int type, Date timestamp, String player0Name, String player1Name, List<Player> assistants) {
-        this.type = type;
-        this.timestamp = timestamp;
-        this.player0Name = player0Name;
-        this.player1Name = player1Name;
-        this.assistants = assistants;
-    }
 }
