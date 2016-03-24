@@ -71,6 +71,13 @@
     <string name="no_games_found">No games found in this chapter ;(</string>
     <string name="mod_updates">Mod Updates</string>
     <string name="game_news">Game News</string>
+    <string name="game_end_format_string"><![CDATA[The <strong>%s</strong> game has ended]]></string>
+    <string name="game_start_format_string"><![CDATA[The <strong>%s</strong> game has started!]]></string>
+    <string name="joined_the_game">joined the game</string>
+    <string name="was_tagged_by">was tagged by</string>
+    <string name="an_oz">an oz</string>
+    <string name="was_revealed_as_an_oz">was revealed as an oz!</string>
+    <string name="error_loading_item">Error loading item</string>
 
 
 </resources>
