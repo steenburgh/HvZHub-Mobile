@@ -17,9 +17,11 @@ import com.hvzhub.app.API.HvZHubClient;
 import com.hvzhub.app.API.NetworkUtils;
 import com.hvzhub.app.API.model.Games.News.GameNewsItem;
 import com.hvzhub.app.API.model.Games.News.NewsContainer;
+import com.hvzhub.app.API.model.Games.News.Player;
 import com.hvzhub.app.API.model.Uuid;
 import com.hvzhub.app.Prefs.GamePrefs;
 
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -39,6 +41,144 @@ public class GameNewsFragment extends Fragment {
     List<GameNewsItem> newsList;
     SwipeRefreshLayout swipeContainer;
 
+    private void addTestNewsItems() {
+        List<Player> assistants1 = new LinkedList<>();
+        assistants1.add(new Player(
+                "Not Logan",
+                2
+        ));
+
+        List<Player> assistants2 = new LinkedList<>();
+        assistants2.addAll(assistants1);
+        assistants2.add(new Player(
+                "Patrick Stewart",
+                1
+        ));
+
+        List<Player> assistants5 = new LinkedList<>();
+        assistants5.addAll(assistants2);
+        assistants5.add(new Player(
+                "Rob Zombie",
+                1
+        ));
+        assistants5.add(new Player(
+                "Mai Nadia Meor Wazir",
+                1
+        ));
+        assistants5.add(new Player(
+                "Matias Duarte",
+                1
+        ));
+
+
+
+
+        newsList.add(new GameNewsItem(
+            GameNewsItem.ROUND_END,
+            new Date(),
+            "The TOTALLY COOLER Winter 2015",
+            null,
+            null
+        ));
+        newsList.add(new GameNewsItem(
+                GameNewsItem.ROUND_START,
+                new Date(),
+                "The TOTALLY COOLER Winter 2015",
+                null,
+                null
+        ));
+
+        /******* Regular tags *********/
+        newsList.add(new GameNewsItem(
+                GameNewsItem.TAG,
+                new Date(),
+                "Duncan Steenburgh",
+                "Some Guy",
+                null
+        ));
+        newsList.add(new GameNewsItem(
+                GameNewsItem.TAG,
+                new Date(),
+                "LongyMcLongName LastNameWith-DashesBecauseWhyNot",
+                "LongyMcLongName LastNameWith-DashesBecauseWhyNot",
+                null
+        ));
+
+
+        newsList.add(new GameNewsItem(
+                GameNewsItem.TAG_OZ,
+                new Date(),
+                "Duncan Steenburgh",
+                null,
+                null
+        ));
+
+        /******** Tags with assistante ************/
+        newsList.add(new GameNewsItem(
+                GameNewsItem.TAG_WITH_ASSISTANTS,
+                new Date(),
+                "Duncan Steenburgh",
+                "Some Guy",
+                assistants1
+        ));
+
+        newsList.add(new GameNewsItem(
+                GameNewsItem.TAG_WITH_ASSISTANTS,
+                new Date(),
+                "Duncan Steenburgh",
+                "Some Guy",
+                assistants2
+        ));
+
+        newsList.add(new GameNewsItem(
+                GameNewsItem.TAG_WITH_ASSISTANTS,
+                new Date(),
+                "LongyMcLongName LastNameWith-DashesBecauseWhyNot",
+                "LongyMcLongName LastNameWith-DashesBecauseWhyNot",
+                assistants5
+        ));
+
+        newsList.add(new GameNewsItem(
+                GameNewsItem.TAG_OZ_WITH_ASSISTANTS,
+                new Date(),
+                "Nobody McNobody",
+                "Tom Kuhn?",
+                assistants1
+        ));
+
+        newsList.add(new GameNewsItem(
+                GameNewsItem.TAG_OZ_WITH_ASSISTANTS,
+                new Date(),
+                "Collin Brown",
+                null,
+                assistants5
+        ));
+
+        /***** OZ Reveal ********/
+        newsList.add(new GameNewsItem(
+                GameNewsItem.OZ_REVEAL,
+                new Date(),
+                "LongyMcLongName LastNameWith-DashesBecauseWhyNot",
+                null,
+                null
+        ));
+
+        newsList.add(new GameNewsItem(
+                GameNewsItem.OZ_REVEAL,
+                new Date(),
+                "Oz Mc-Oz",
+                null,
+                null
+        ));
+
+        newsList.add(new GameNewsItem(
+                GameNewsItem.OZ_REVEAL,
+                new Date(),
+                "Johnny Ive",
+                null,
+                null
+        ));
+    }
 
     public GameNewsFragment() {
         // Required empty public constructor
@@ -95,6 +235,7 @@ public class GameNewsFragment extends Fragment {
         });
 
         newsList = new LinkedList<>();
+        addTestNewsItems();
         adapter = new GameNewsAdapter(getActivity(), newsList);
         loadingFooter = getActivity().getLayoutInflater().inflate(R.layout.loader_list_item, null);
         listView.addFooterView(loadingFooter);
