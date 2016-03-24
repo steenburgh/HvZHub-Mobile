@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,6 +37,7 @@ public class GameNewsFragment extends Fragment {
     GameNewsAdapter adapter;
     View loadingFooter;
     List<GameNewsItem> newsList;
+    SwipeRefreshLayout swipeContainer;
 
 
     public GameNewsFragment() {
@@ -65,6 +67,14 @@ public class GameNewsFragment extends Fragment {
         loading = false;
         atEnd = false;
 
+        swipeContainer = (SwipeRefreshLayout) view.findViewById(R.id.swipe_container);
+        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                refreshNews();
+            }
+        });
+
         listView = (ListView) view.findViewById(R.id.list_view);
         // Set up the listView to automatically load more items when the top of the view is reached
         listView.setOnScrollListener(new AbsListView.OnScrollListener() {
@@ -78,7 +88,7 @@ public class GameNewsFragment extends Fragment {
                 if (!atEnd && (lastItem >= totalItemCount) && totalItemCount != 0) {
                     if (!loading) {
                         loading = true; // This *must* be set *immediately* or the this block will be called multiple times in succession
-                        loadNews(); // Sets loading to true
+                        loadNews(false);
                     }
                 }
             }
@@ -91,10 +101,17 @@ public class GameNewsFragment extends Fragment {
         listView.setAdapter(adapter);
         listView.removeFooterView(loadingFooter);
 
-        loadNews();
+        swipeContainer.setRefreshing(true);
+        loadNews(true);
     }
 
-    private void loadNews() {
+    private void refreshNews() {
+        atEnd = false;
+        newsList.clear();
+        loadNews(true);
+    }
+
+    private void loadNews(final boolean refresh) {
         if (!NetworkUtils.networkIsAvailable(getActivity())) {
             AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
             b.setTitle(getString(R.string.network_not_available))
@@ -102,7 +119,7 @@ public class GameNewsFragment extends Fragment {
                     .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            loadNews();
+                            loadNews(refresh);
                         }
                     })
                     .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -112,8 +129,13 @@ public class GameNewsFragment extends Fragment {
                     })
                     .show();
         } else {
-            showListViewProgress(true);
             loading = true;
+            if (refresh) {
+                showListViewProgress(false); // Make sure the loader is hidden if we're refreshing
+            } else {
+                showListViewProgress(true); // Only show the loader if
+            }
+
             HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
             String uuid = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
             int gameId = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
@@ -127,6 +149,9 @@ public class GameNewsFragment extends Fragment {
                 @Override
                 public void onResponse(Call<NewsContainer> call, Response<NewsContainer> response) {
                     loading = false;
+                    if (refresh) {
+                        swipeContainer.setRefreshing(false);
+                    }
                     if (response.isSuccessful()) {
                         List<GameNewsItem> newsFromDB = response.body().news;
                         if (newsFromDB == null || newsFromDB.isEmpty()) {
@@ -144,7 +169,7 @@ public class GameNewsFragment extends Fragment {
                             .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    loadNews();
+                                    loadNews(refresh);
                                 }
                             })
                             .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -158,15 +183,19 @@ public class GameNewsFragment extends Fragment {
 
                 @Override
                 public void onFailure(Call<NewsContainer> call, Throwable t) {
-                    showListViewProgress(false);
                     loading = false;
+                    if (refresh) {
+                        swipeContainer.setRefreshing(false);
+                    } else {
+                        showListViewProgress(false);
+                    }
                     AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
                     b.setTitle(getString(R.string.generic_connection_error))
                         .setMessage(getString(R.string.generic_connection_error_hint))
                         .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                loadNews();
+                                loadNews(refresh);
                             }
                         })
                         .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
