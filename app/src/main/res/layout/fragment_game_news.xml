@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
+<ListView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/list_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:footerDividersEnabled="false"
+    android:clipToPadding="false"
+    android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin" >
-
-    <TextView
-        android:paddingTop="@dimen/activity_vertical_margin"
-        android:paddingBottom="@dimen/activity_vertical_margin"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="aasdfasdfa asdffd d dasdf asdf adsf aasdfasdfa asdffd d dasdf asdf adsf aasdfasdfa asdffd d dasdf asdf adsf aasdfasdfa asdffd d dasdf asdf adsf aasdfasdfa asdffd d dasdf asdf adsf aasdfasdfa asdffd d dasdf asdf adsf aasdfasdfa asdffd d dasdf asdf adsf aasdfasdfa asdffd d dasdf asdf adsf aasdfasdfa asdffd d dasdf asdf adsf aasdfasdfa asdffd d dasdf asdf adsf aasdfasdfa asdffd d dasdf asdf adsf aasdfasdfa asdffd d dasdf asdf adsf aasdfasdfa asdffd d dasdf asdf adsf aasdfasdfa asdffd d dasdf asdf adsf " />
-
-</android.support.v4.widget.NestedScrollView>
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin" />
