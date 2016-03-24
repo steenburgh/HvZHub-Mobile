@@ -165,6 +165,7 @@ public class ChapterSelectionActivity extends AppCompatActivity {
 
                     Intent i = new Intent(ChapterSelectionActivity.this, GameSelectionActivity.class);
                     startActivity(i);
+                    finish();
                 } else {
                     APIError apiError = ErrorUtils.parseError(response);
                     String err = apiError.error.toLowerCase();
@@ -248,15 +249,7 @@ public class ChapterSelectionActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                String chapterUrl = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
-                // If no chapter was set already
-                // log them out and take them back to the login screen
-                if (chapterUrl == null) {
-                    logout();
-                } else {
-                    // Else, just close this activity
-                    finish();
-                }
+                onBackPressed();
                 return true;
             default:
                 // If we got here, the user's action was not recognized.
@@ -265,11 +258,16 @@ public class ChapterSelectionActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        logout();
+    }
+
     private void logout() {
-        // Clear the sessionID
-        SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
-        prefs.putString(GamePrefs.PREFS_SESSION_ID, null);
-        prefs.apply();
+        // Clear *all* GamePrefs
+        SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
+        editor.clear();
+        editor.apply();
 
         // Show the login screen again
         Intent i = new Intent(this, LoginActivity.class);
