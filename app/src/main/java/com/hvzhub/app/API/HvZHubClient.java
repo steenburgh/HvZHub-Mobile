@@ -1,6 +1,7 @@
 package com.hvzhub.app.API;
 
 import com.hvzhub.app.API.model.APISuccess;
+import com.hvzhub.app.API.model.Chapters.ChapterInfo;
 import com.hvzhub.app.API.model.Chapters.ChapterListContainer;
 import com.hvzhub.app.API.model.Chat.MessageListContainer;
 import com.hvzhub.app.API.model.Chat.PostChatResponse;
@@ -27,6 +28,12 @@ public interface HvZHubClient {
     @POST("chapters")
     Call<ChapterListContainer> getChapters(@Body Uuid uuid);
 
+    @POST("chapters/{chapter_url}")
+    Call<ChapterInfo> getChapterInfo(
+            @Body Uuid uuid,
+            @Path("chapter_url") String chapterUrl
+    );
+
     @POST("chapters/{chapter_url}/join")
     Call<Status> joinChapter(
             @Path("chapter_url") String chapterUrl,
@@ -35,6 +42,8 @@ public interface HvZHubClient {
 
     @POST("games")
     Call<GameListContainer> getGames(@Body Uuid uuid);
+
+
 
     @POST("games/{id}/join")
     Call<Status> joinGame(

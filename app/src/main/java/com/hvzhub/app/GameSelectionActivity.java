@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
@@ -25,8 +26,8 @@ import com.hvzhub.app.API.ErrorUtils;
 import com.hvzhub.app.API.HvZHubClient;
 import com.hvzhub.app.API.NetworkUtils;
 import com.hvzhub.app.API.model.APIError;
+import com.hvzhub.app.API.model.Chapters.ChapterInfo;
 import com.hvzhub.app.API.model.Games.Game;
-import com.hvzhub.app.API.model.Games.GameListContainer;
 import com.hvzhub.app.API.model.Status;
 import com.hvzhub.app.API.model.Uuid;
 import com.hvzhub.app.Prefs.GamePrefs;
@@ -96,12 +97,23 @@ public class GameSelectionActivity extends AppCompatActivity {
             HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
 
             String uuid = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
-            Call<GameListContainer> call = client.getGames(new Uuid(uuid));
-            call.enqueue(new Callback<GameListContainer>() {
+            String chapterUrl = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
+            Call<ChapterInfo> call = client.getChapterInfo(
+                    new Uuid(uuid),
+                    chapterUrl
+            );
+            call.enqueue(new Callback<ChapterInfo>() {
                 @Override
-                public void onResponse(Call<GameListContainer> call, Response<GameListContainer> response) {
+                public void onResponse(Call<ChapterInfo> call, Response<ChapterInfo> response) {
                     showProgress(false);
                     if (response.isSuccessful()) {
+                        if (response.body().games == null || response.body().games.isEmpty()) {
+                            // No games found for the chapter
+                            Toast.makeText(GameSelectionActivity.this, R.string.no_games_found, Snackbar.LENGTH_SHORT).show();
+                            onBackPressed();
+                            finish();
+                            return;
+                        }
                         gameList.clear();
                         gameList.addAll(response.body().games);
                         Collections.sort(gameList); // Ensure the list is sorted. See Game.compareTo() for more info
@@ -125,7 +137,7 @@ public class GameSelectionActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onFailure(Call<GameListContainer> call, Throwable t) {
+                public void onFailure(Call<ChapterInfo> call, Throwable t) {
                     showProgress(false);
 
                     AlertDialog.Builder b = new AlertDialog.Builder(GameSelectionActivity.this);
