@@ -38,6 +38,7 @@ public class GameActivity extends AppCompatActivity
     public static final int NEWS_FRAGMENT = 2;
     private MyCodeFragment myCodeFragment;
     public static final int MY_CODE_FRAGMENT = 3;
+    private ReportTagFragment reportTagFragment;
     private BroadcastReceiver mRegistrationBroadcastReceiver;
     private boolean isReceiverRegistered;
 
@@ -231,6 +232,10 @@ public class GameActivity extends AppCompatActivity
                 toSwitch = chatFragment;
                 break;
             case R.id.nav_report_tag:
+                if (reportTagFragment == null) {
+                    reportTagFragment = ReportTagFragment.newInstance();
+                }
+                toSwitch = reportTagFragment;
                 break;
             case R.id.nav_heatmap:
                 Intent i = new Intent(this, HeatMapActivity.class);
