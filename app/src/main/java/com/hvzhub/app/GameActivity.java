@@ -39,6 +39,8 @@ public class GameActivity extends AppCompatActivity
     private MyCodeFragment myCodeFragment;
     public static final int MY_CODE_FRAGMENT = 3;
     private ReportTagFragment reportTagFragment;
+    private static final int REPORT_TAG_FRAGMENT = 4;
+
     private BroadcastReceiver mRegistrationBroadcastReceiver;
     private boolean isReceiverRegistered;
 
@@ -63,7 +65,9 @@ public class GameActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         // Open the initial fragment
+        int defaultTab = R.id.nav_news;
         if (getIntent() != null && getIntent().getExtras() != null) {
+            // If an argument was given, switch to the associated tag
             int fragmentToOpen = getIntent().getExtras().getInt(ARG_FRAGMENT_NAME);
             switch(fragmentToOpen) {
                 case CHAT_FRAGMENT:
@@ -75,11 +79,15 @@ public class GameActivity extends AppCompatActivity
                 case MY_CODE_FRAGMENT:
                     switchToTab(R.id.nav_my_code);
                     break;
+                case REPORT_TAG_FRAGMENT:
+                    switchToTab(R.id.nav_report_tag);
+                    break;
                 default:
-                    switchToTab(R.id.nav_news);
+                    // Invalid argument given
+                    switchToTab(defaultTab);
             }
         } else {
-            switchToTab(R.id.nav_news);
+            switchToTab(defaultTab);
         }
 
 
