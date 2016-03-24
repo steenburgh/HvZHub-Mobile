@@ -32,7 +32,7 @@ public class ServiceGenerator {
             httpClient.addInterceptor(logging);
 
             Gson gson = new GsonBuilder()
-                    .registerTypeAdapter(Date.class, new DateConverter())
+                    .registerTypeAdapter(Date.class, DateConverter.getInstance())
                     .create();
 
             builder = new Retrofit.Builder()

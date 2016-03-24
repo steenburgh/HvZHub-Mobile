@@ -16,33 +16,52 @@ import java.util.Date;
 import java.util.TimeZone;
 
 public class DateConverter implements JsonDeserializer<Date>, JsonSerializer<Date> {
-    private final String DATE_FORMAT;
+    private final String DATE_FORMAT_PREFERRED = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+    private final String DATE_FORMAT_ALT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
-    public DateConverter() {
-        DATE_FORMAT = API.DATE_FORMAT;
-    }
+    private static DateConverter mInstance;
 
-    public DateConverter(String dateFormat) {
-        DATE_FORMAT = dateFormat;
+    public DateConverter() {}
+
+    public static DateConverter getInstance() {
+        if (mInstance == null) {
+            mInstance = new DateConverter();
+        }
+        return mInstance;
     }
 
     @Override
     public Date deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-        DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-
         try {
-            return dateFormat.parse(json.getAsString());
+            return deserialize(json.getAsString());
         } catch (ParseException e) {
             throw new JsonParseException(e);
         }
     }
 
-    @Override
-    public JsonElement serialize(Date src, Type typeOfSrc, JsonSerializationContext context) {
-        DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
+    public Date deserialize(String dateStr) throws ParseException {
+        DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PREFERRED);
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        return new JsonPrimitive(dateFormat.format(src));
+        try {
+            return dateFormat.parse(dateStr);
+        } catch (ParseException e) {
+            // If the first attempt failed, try with the other format
+            dateFormat = new SimpleDateFormat(DATE_FORMAT_ALT);
+            dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            return dateFormat.parse(dateStr);
+        }
+    }
+
+    @Override
+    public JsonElement serialize(Date src, Type typeOfSrc, JsonSerializationContext context) {
+        return new JsonPrimitive(serialize(src));
+    }
+
+    public String serialize(Date src) {
+        DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PREFERRED);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        return dateFormat.format(src);
     }
 }

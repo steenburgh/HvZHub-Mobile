@@ -8,6 +8,7 @@ import com.hvzhub.app.API.model.Chat.PostChatResponse;
 import com.hvzhub.app.API.model.Chat.PostChatRequest;
 import com.hvzhub.app.API.model.Code;
 import com.hvzhub.app.API.model.Games.GameListContainer;
+import com.hvzhub.app.API.model.Games.News.NewsContainer;
 import com.hvzhub.app.API.model.Login.LoginRequest;
 import com.hvzhub.app.API.model.Login.Session;
 import com.hvzhub.app.API.model.Status;
@@ -72,7 +73,7 @@ public interface HvZHubClient {
 
     /**
      *
-     * @param id
+     * @param gameId
      * @param isHuman Whether or not the user is a human. Must be either "T" or "F"
      * @param initialNum How many messages back to start. Zero indexed.
      * @param numMsgs The total number of messages to return, starting from the initial message and working back
@@ -81,9 +82,17 @@ public interface HvZHubClient {
     @POST("games/{id}/get_chat")
     Call<MessageListContainer> getChats(
             @Body Uuid uuid,
-            @Path("id") int id,
+            @Path("id") int gameId,
             @Query("h") char isHuman,
             @Query("i") int initialNum,
             @Query("l") int numMsgs
+    );
+
+    @POST("games/{id}/news")
+    Call<NewsContainer> getNews(
+            @Body Uuid uuid,
+            @Path("id") int gameId,
+            @Query("i") int initialNum,
+            @Query("l") int numItems
     );
 }
