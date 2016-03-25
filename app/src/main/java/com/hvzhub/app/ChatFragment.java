@@ -286,7 +286,7 @@ public class ChatFragment extends Fragment {
                                 listView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
                                     @Override
                                     public boolean onPreDraw() {
-                                        if (listView.getFirstVisiblePosition() == positionToSave) {
+                                        if (listView.getFirstVisiblePosition() == (positionToSave -1)) {
                                             listView.getViewTreeObserver().removeOnPreDrawListener(this);
 
                                             // Don't hide call showListViewProgress to hide
