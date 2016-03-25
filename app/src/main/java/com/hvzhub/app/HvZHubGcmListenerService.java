@@ -1,5 +1,6 @@
 package com.hvzhub.app;
 
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -8,6 +9,8 @@ import android.content.SharedPreferences;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceFragment;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.Html;
@@ -22,6 +25,7 @@ import com.hvzhub.app.Prefs.GamePrefs;
 
 import java.text.ParseException;
 import java.util.Date;
+import java.util.Set;
 
 public class HvZHubGcmListenerService extends GcmListenerService {
     private static final String TAG = "HvZHubGcmListener";
@@ -107,7 +111,9 @@ public class HvZHubGcmListenerService extends GcmListenerService {
         Log.d(TAG, "Sending broadcast: message received ");
         LocalBroadcastManager.getInstance(this).sendBroadcast(messageReceived);
 
-        boolean notificationsEnabled = getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).getBoolean(ChatPrefs.NOTIFICATIONS_ENABLED, false);
+        boolean notificationsEnabled = PreferenceManager.getDefaultSharedPreferences(this)
+                .getBoolean(SettingsActivity.NOTIFICATIONS_ENABLED, false);
+
         if (!chatIsOpen && notificationsEnabled) {
             sendNotification(name, message);
         }
@@ -135,16 +141,33 @@ public class HvZHubGcmListenerService extends GcmListenerService {
 
 
 
-        // Create the notification
-        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        /************ Create the notification *************/
+        Uri defaultUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        String soundUriString = PreferenceManager.getDefaultSharedPreferences(this)
+                .getString(SettingsActivity.NOTIFICATIONS_RINGTONE, null);
+        Uri soundUri = (soundUriString == null) ? defaultUri : Uri.parse(soundUriString);
+
+        boolean vibrate = PreferenceManager.getDefaultSharedPreferences(this)
+                .getBoolean(SettingsActivity.NOTIFICATIONS_VIBRATE, false);
+
+
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setSmallIcon(android.R.drawable.ic_menu_upload)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setAutoCancel(true)
-                .setSound(defaultSoundUri)
                 .setContentIntent(pendingIntent);
+
+        if (vibrate) {
+            notificationBuilder.setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_LIGHTS);
+        } else {
+            notificationBuilder.setDefaults(Notification.DEFAULT_LIGHTS);
+        }
+
+        notificationBuilder.setSound(soundUri);
+
+
 
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);

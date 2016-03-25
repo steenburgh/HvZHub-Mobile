@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.support.design.widget.NavigationView;
 import android.support.v4.content.LocalBroadcastManager;
@@ -105,10 +106,6 @@ public class GameActivity extends AppCompatActivity
                 } else {
                     Log.i(TAG, "An error occurred while either fetching the InstanceID token, sending the fetched token to the server or subscribing to the PubSub topic.");
                 }
-
-                getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).edit()
-                        .putBoolean(ChatPrefs.NOTIFICATIONS_ENABLED, true)
-                        .apply();
             }
         };
 
@@ -225,6 +222,7 @@ public class GameActivity extends AppCompatActivity
     }
 
     public void switchToTab(int id) {
+        Intent i;
         Fragment toSwitch = null;
         switch (id) {
             case R.id.nav_mod_updates:
@@ -251,7 +249,7 @@ public class GameActivity extends AppCompatActivity
             case R.id.nav_report_tag:
                 break;
             case R.id.nav_heatmap:
-                Intent i = new Intent(this, HeatMapActivity.class);
+                i = new Intent(this, HeatMapActivity.class);
                 startActivity(i);
                 break;
             case R.id.nav_my_code:
@@ -262,6 +260,10 @@ public class GameActivity extends AppCompatActivity
                 curTab = MY_CODE_FRAGMENT;
                 break;
             case R.id.nav_settings:
+                i = new Intent(GameActivity.this, SettingsActivity.class);
+                i.putExtra(SettingsActivity.EXTRA_SHOW_FRAGMENT, SettingsActivity.NotificationPreferenceFragment.class.getName());
+                i.putExtra(SettingsActivity.EXTRA_NO_HEADERS, true);
+                startActivity(i);
                 break;
             case R.id.nav_logout:
                 onLogout();

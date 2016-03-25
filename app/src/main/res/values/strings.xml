@@ -80,6 +80,13 @@
     <string name="error_loading_item">Error loading item</string>
     <string name="with_help_from">with help from</string>
     <string name="and">and</string>
+    <string name="title_activity_settings">Settings</string>
 
+    <!-- Example settings for Notifications -->
+    <string name="pref_header_notifications">Notifications</string>
+    <string name="pref_title_ringtone">Ringtone</string>
+    <string name="pref_ringtone_silent">Silent</string>
+    <string name="pref_title_vibrate">Vibrate</string>
+    <string name="pref_title_chat__notifications">Chat notifications</string>
 
 </resources>
