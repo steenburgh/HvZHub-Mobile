@@ -30,6 +30,7 @@ import retrofit2.Response;
 
 public class GameNewsFragment extends Fragment {
     private static final int ITEMS_TO_FETCH_AT_ONCE = 20;
+    private Call<NewsContainer> loadNewsCall;
     boolean loading;
     boolean atEnd;
 
@@ -106,13 +107,15 @@ public class GameNewsFragment extends Fragment {
     }
 
     private void refreshNews() {
-        atEnd = false;
-        newsList.clear();
         loadNews(true);
     }
 
     private void loadNews(final boolean refresh) {
         if (!NetworkUtils.networkIsAvailable(getActivity())) {
+            loading = false;
+            if (refresh) {
+                swipeContainer.setRefreshing(false);
+            }
             AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
             b.setTitle(getString(R.string.network_not_available))
                     .setMessage(getString(R.string.network_not_available_hint))
@@ -133,22 +136,24 @@ public class GameNewsFragment extends Fragment {
             if (refresh) {
                 showListViewProgress(false); // Make sure the loader is hidden if we're refreshing
             } else {
-                showListViewProgress(true); // Only show the loader if
+                showListViewProgress(true);
             }
 
             HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
             String uuid = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
             int gameId = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
-            Call<NewsContainer> call = client.getNews(
+            if (loadNewsCall != null) {
+                loadNewsCall.cancel();
+            }
+            loadNewsCall = client.getNews(
                 new Uuid(uuid),
                 gameId,
-                newsList.size(),
+                refresh ? 0 : newsList.size(),
                 ITEMS_TO_FETCH_AT_ONCE
             );
-            call.enqueue(new Callback<NewsContainer>() {
+            loadNewsCall.enqueue(new Callback<NewsContainer>() {
                 @Override
                 public void onResponse(Call<NewsContainer> call, Response<NewsContainer> response) {
-                    loading = false;
                     if (refresh) {
                         swipeContainer.setRefreshing(false);
                     }
@@ -156,13 +161,28 @@ public class GameNewsFragment extends Fragment {
                         List<GameNewsItem> newsFromDB = response.body().news;
                         if (newsFromDB == null || newsFromDB.isEmpty()) {
                             atEnd = true;
-                            showListViewProgress(false);
+                            if (refresh) {
+                                swipeContainer.setRefreshing(false);
+                            } else {
+                                showListViewProgress(false);
+                            }
+                            loading = false;
                         } else {
+                            if (refresh) {
+                                newsList.clear();
+                                atEnd = false;
+                            }
                             newsList.addAll(response.body().news);
                             adapter.notifyDataSetChanged();
+                            loading = false;
                         }
                     } else {
-                        showListViewProgress(false);
+                        loading = false;
+                        if (refresh) {
+                            swipeContainer.setRefreshing(false);
+                        } else {
+                            showListViewProgress(false);
+                        }
                         AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
                         b.setTitle(getString(R.string.unexpected_response))
                             .setMessage(getString(R.string.unexpected_response_hint))
