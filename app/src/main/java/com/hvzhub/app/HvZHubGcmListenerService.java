@@ -6,14 +6,17 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
@@ -25,10 +28,12 @@ import com.hvzhub.app.Prefs.GamePrefs;
 
 import java.text.ParseException;
 import java.util.Date;
-import java.util.Set;
+import java.util.List;
 
 public class HvZHubGcmListenerService extends GcmListenerService {
     private static final String TAG = "HvZHubGcmListener";
+    private static final String GROUP_ZOMBIE_CHAT = "chatZombie";
+    private static final String GROUP_HUMAN_CHAT = "chatHuman";
 
     /**
      * Called when message is received.
@@ -45,14 +50,28 @@ public class HvZHubGcmListenerService extends GcmListenerService {
         Log.d(TAG, "Raw Data: " + rawData);
 
         if (from.startsWith("/topics/")) {
-            handleChatMessage(data);
+            String topic = from.split("/")[2];
+            handleChatMessage(data, topic);
         } else {
             // normal downstream message.
         }
     }
     // [END receive_message]
 
-    private boolean handleChatMessage(Bundle data) {
+    private boolean handleChatMessage(Bundle data, String topic) {
+        boolean isHuman = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+        String[] topicSplit = topic.split("_");
+        String topicTeamStr = topicSplit[topicSplit.length - 1];
+        boolean topicTeamIsHuman = topicTeamStr.equals("human");
+
+        // Check for the correct team
+        if (topicTeamIsHuman != isHuman) {
+            Log.w(TAG, "Received notification from the wrong team. Perhaps subscriptions aren't up to date");
+            Log.w(TAG, String.format("Topic: %s", topicTeamStr) );
+            Log.w(TAG, String.format("Current team: %s", isHuman ? "human" : "zombie") );
+            return false;
+        }
+
         String uidString = data.getString("uid");
         int userId;
         if (uidString != null) {
@@ -72,7 +91,7 @@ public class HvZHubGcmListenerService extends GcmListenerService {
             message = Html.fromHtml(message).toString();
         }
 
-        String msgIdString = data.getString("uid");
+        String msgIdString = data.getString("id");
         int msgId;
         if (msgIdString != null) {
             msgId = Integer.parseInt(msgIdString);
@@ -91,7 +110,6 @@ public class HvZHubGcmListenerService extends GcmListenerService {
             return false;
         }
 
-        boolean isHuman = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
         DB.getInstance(this).addMessageToChat(new Message(
                         userId,
                         name,
@@ -99,7 +117,7 @@ public class HvZHubGcmListenerService extends GcmListenerService {
                         date,
                         msgId
                 ),
-                isHuman ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT
+                topicTeamIsHuman ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT
         );
 
 
@@ -115,7 +133,7 @@ public class HvZHubGcmListenerService extends GcmListenerService {
                 .getBoolean(SettingsActivity.NOTIFICATIONS_ENABLED, false);
 
         if (!chatIsOpen && notificationsEnabled) {
-            sendNotification(name, message);
+            sendNotification(name, message, topicTeamIsHuman);
         }
 
         return true;
@@ -127,7 +145,9 @@ public class HvZHubGcmListenerService extends GcmListenerService {
      *
      * @param message GCM message received.
      */
-    private void sendNotification(String title, String message) {
+    private void sendNotification(String title, String message, boolean isHumanChat) {
+        List<com.hvzhub.app.DB.Message> messageList = DB.getInstance(this).getMessages(isHumanChat ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
+
         Intent intent = new Intent(this, GameActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
@@ -142,36 +162,80 @@ public class HvZHubGcmListenerService extends GcmListenerService {
 
 
         /************ Create the notification *************/
+        // Setup ringtone
         Uri defaultUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         String soundUriString = PreferenceManager.getDefaultSharedPreferences(this)
                 .getString(SettingsActivity.NOTIFICATIONS_RINGTONE, null);
         Uri soundUri = (soundUriString == null) ? defaultUri : Uri.parse(soundUriString);
 
+        // Setup Vibrate
         boolean vibrate = PreferenceManager.getDefaultSharedPreferences(this)
                 .getBoolean(SettingsActivity.NOTIFICATIONS_VIBRATE, false);
+        int defaults;
+        if (vibrate) {
+            defaults = Notification.DEFAULT_VIBRATE | Notification.DEFAULT_LIGHTS;
+        } else {
+            defaults = Notification.DEFAULT_LIGHTS;
+        }
 
+        // Setup large icon
+        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
 
+        // Build the notification
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setSmallIcon(android.R.drawable.ic_menu_upload)
+                .setSmallIcon(R.drawable.ic_launcher_monocolor_nocircles)
+                .setLargeIcon(largeIcon)
+                .setColor(getColor(R.color.colorPrimaryDark))
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(message)) // Make this an expandable notification
+                .setGroup(isHumanChat ? GROUP_HUMAN_CHAT : GROUP_ZOMBIE_CHAT)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent);
 
-        if (vibrate) {
-            notificationBuilder.setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_LIGHTS);
-        } else {
-            notificationBuilder.setDefaults(Notification.DEFAULT_LIGHTS);
-        }
-
-        notificationBuilder.setSound(soundUri);
+        notificationBuilder.setSound(soundUri); // Ringtone
+        notificationBuilder.setDefaults(defaults); // Vibrate + Notification light
 
 
 
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+        notificationManager.notify(messageList.size(), notificationBuilder.build());
+
+
+
+        if (messageList.size() > 1) {
+            NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle()
+                    .setBigContentTitle(String.format("%d new messages", messageList.size()))
+                    .setSummaryText(isHumanChat ? getString(R.string.human_chat) : getString(R.string.zombie_chat));
+
+            for (int i = messageList.size() - 1; i >= 0; i--) {
+                com.hvzhub.app.DB.Message msg  = messageList.get(i);
+                style.addLine(String.format("%s   %s", msg.getName(), msg.getMessage()));
+            }
+
+
+            com.hvzhub.app.DB.Message firstMsg = messageList.get(messageList.size() - 1);
+            NotificationCompat.Builder notificationBuilder2 = new NotificationCompat.Builder(this)
+                    .setContentIntent(pendingIntent)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .setSmallIcon(R.drawable.ic_launcher_monocolor_nocircles)
+                    .setLargeIcon(largeIcon)
+                    .setColor(getColor(R.color.colorPrimaryDark))
+                    .setContentTitle(String.format("%d new messages", messageList.size()))
+                    .setContentText(String.format("%s    %s", firstMsg.getName(), firstMsg.getMessage()))
+                    .setStyle(style)
+                    .setGroup(isHumanChat ? GROUP_HUMAN_CHAT : GROUP_ZOMBIE_CHAT)
+                    .setGroupSummary(true)
+                    .setAutoCancel(true)
+                    .setContentIntent(pendingIntent)
+                    .setSound(soundUri)
+                    .setDefaults(defaults);
+
+            notificationManager.notify(0, notificationBuilder2.build());
+        }
+
     }
 }
