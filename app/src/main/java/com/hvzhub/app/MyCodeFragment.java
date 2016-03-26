@@ -68,6 +68,7 @@ public class MyCodeFragment extends Fragment {
         updateMyCode();
     }
 
+
     private void updateMyCode() {
         showProgress(true);
         showErrorView(false);
