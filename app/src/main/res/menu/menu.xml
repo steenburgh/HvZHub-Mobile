@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <group android:checkableBehavior="single">
+    <group android:id="@+id/tabs"
+        android:checkableBehavior="single">
         <item
             android:id="@+id/nav_mod_updates"
             android:icon="@drawable/ic_news"
@@ -28,8 +29,16 @@
             android:title="@string/logout" />
     </group>
 
-    <item
-        android:id="@+id/nav_settings"
-        android:icon="@drawable/ic_settings"
-        android:title="@string/settings" />
+    <group android:id="@+id/settings"
+    android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_settings"
+            android:title="@string/settings" />
+        <item
+            android:id="@+id/nav_feedback"
+            android:icon="@drawable/ic_feedback"
+            android:title="@string/send_feedback" />
+    </group>
+
 </menu>

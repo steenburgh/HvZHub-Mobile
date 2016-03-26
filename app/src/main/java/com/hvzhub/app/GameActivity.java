@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
@@ -265,15 +266,22 @@ public class GameActivity extends AppCompatActivity
                 toSwitch = myCodeFragment;
                 curTab = MY_CODE_FRAGMENT;
                 break;
+            case R.id.nav_logout:
+                onLogout();
+                break;
             case R.id.nav_settings:
                 i = new Intent(GameActivity.this, SettingsActivity.class);
                 i.putExtra(SettingsActivity.EXTRA_SHOW_FRAGMENT, SettingsActivity.NotificationPreferenceFragment.class.getName());
                 i.putExtra(SettingsActivity.EXTRA_NO_HEADERS, true);
                 startActivity(i);
                 break;
-            case R.id.nav_logout:
-                onLogout();
+            case R.id.nav_feedback:
+                String devEmail = "hvzhub@gmail.com";
+                i = new Intent(Intent.ACTION_SENDTO, Uri.fromParts("mailto", devEmail, null));
+                i.putExtra(Intent.EXTRA_SUBJECT, "HvZHub App Feedback");
+                startActivity(Intent.createChooser(i, "Send Email Using: "));
                 break;
+
         }
         if (toSwitch != null) {
             getFragmentManager().beginTransaction()
