@@ -258,10 +258,6 @@ public class GameActivity extends AppCompatActivity
                 toSwitch = reportTagFragment;
                 curTab = REPORT_TAG_FRAGMENT;
                 break;
-            case R.id.nav_heatmap:
-                i = new Intent(this, HeatMapActivity.class);
-                startActivity(i);
-                break;
             case R.id.nav_my_code:
                 if (myCodeFragment == null) {
                     myCodeFragment = MyCodeFragment.newInstance();

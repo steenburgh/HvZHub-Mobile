@@ -19,7 +19,6 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="report_tag">Report Tag</string>
-    <string name="heatmap">Heatmap</string>
     <string name="my_code">My Code</string>
     <string name="chat">Chat</string>
     <string name="settings">Settings</string>
@@ -41,9 +40,6 @@
     <!--News-->
     <string name="newsDefault">This is the NewsView\n\n\nThere will be news here.\n\n\n
     If all goes to plan\n\n\n\n\n\n\n\n\n\nMore news</string>
-
-    <!--Heatmap-->
-    <string name="title_activity_heat_map">HeatMap</string>
 
     <!--Report Tag-->
     <string name="title_activity_report_tag">Report Tag</string>

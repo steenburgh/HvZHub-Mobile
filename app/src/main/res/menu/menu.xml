@@ -19,10 +19,6 @@
             android:icon="@drawable/ic_add"
             android:title="@string/report_tag" />
         <item
-            android:id="@+id/nav_heatmap"
-            android:icon="@drawable/ic_map"
-            android:title="@string/heatmap" />
-        <item
             android:id="@+id/nav_my_code"
             android:icon="@drawable/ic_tag_code"
             android:title="@string/my_code" />
