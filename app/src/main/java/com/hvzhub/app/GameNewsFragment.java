@@ -102,8 +102,7 @@ public class GameNewsFragment extends Fragment {
         listView.setAdapter(adapter);
         listView.removeFooterView(loadingFooter);
 
-        swipeContainer.setRefreshing(true);
-        loadNews(true);
+        loadNews(false);
     }
 
     private void refreshNews() {
