@@ -96,7 +96,7 @@
         <!-- [END instanceId_listener] -->
 
         <service
-            android:name=".RegistrationIntentService"
+            android:name=".GCMRegIntentService"
             android:exported="false">
         </service>
     </application>
