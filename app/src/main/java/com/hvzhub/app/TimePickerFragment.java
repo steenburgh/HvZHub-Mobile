@@ -56,11 +56,21 @@ public class TimePickerFragment extends DialogFragment implements TimePickerDial
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof TimePickerFragment.OnTimeSetListener) {
-            mListener = (TimePickerFragment.OnTimeSetListener) context;
+
+        if (getTargetFragment() != null) {
+            if (getTargetFragment() instanceof OnTimeSetListener) {
+                mListener = (OnTimeSetListener) getTargetFragment();
+            }
+            else {
+                throw new RuntimeException(getTargetFragment().toString()
+                        + " must implement TimePickerFragment.OnTimeSetListener");
+            }
+        }
+        else if (context instanceof OnTimeSetListener) {
+            mListener = (OnTimeSetListener) context;
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement TimePickerFragment.OnTimeSetListener");
+                    + " must implement TimePickerFragment.OnTimeSetListener. If this is being called from a fragment, make sure to use setTargetFragment().");
         }
     }
 

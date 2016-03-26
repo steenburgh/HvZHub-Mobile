@@ -132,11 +132,13 @@ public class ReportTagFragment extends Fragment implements DatePicker.OnDateChan
 
     private void showDatePickerDialog() {
         DatePickerFragment dp = DatePickerFragment.newInstance();
+        dp.setTargetFragment(this, 0);
         dp.show(getFragmentManager(), "datePicker");
     }
 
     private void showTimePickerDialog() {
         TimePickerFragment tp = TimePickerFragment.newInstance();
+        tp.setTargetFragment(this, 0);
         tp.show(getFragmentManager(), "datePicker");
     }
 

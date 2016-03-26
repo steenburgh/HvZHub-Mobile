@@ -66,17 +66,27 @@ public class DatePickerFragment extends DialogFragment implements DatePickerDial
             throw new IllegalArgumentException("savedInstanceState must contain arguments. Make sure " +
                     "the DatePickerFragment is being created with DatePickerFragment.newInstance()");
         }
+
     }
 
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof DatePickerFragment.OnDateSetListener) {
-            mListener = (DatePickerFragment.OnDateSetListener) context;
+        if (getTargetFragment() != null) {
+            if (getTargetFragment() instanceof OnDateSetListener) {
+                mListener = (OnDateSetListener) getTargetFragment();
+            }
+            else {
+                throw new RuntimeException(getTargetFragment().toString()
+                        + " must implement DatePickerFragment.OnDateSetListener");
+            }
+        }
+        else if (context instanceof OnDateSetListener) {
+            mListener = (OnDateSetListener) context;
         } else {
             throw new RuntimeException(context.toString()
-                    + " must implement DatePickerFragment.OnDateSetListener");
+                    + " must implement DatePickerFragment.OnDateSetListener. If this is being called from a fragment, make sure to use setTargetFragment().");
         }
     }
 
