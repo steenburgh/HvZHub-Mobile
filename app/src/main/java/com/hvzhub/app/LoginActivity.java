@@ -83,17 +83,6 @@ public class LoginActivity extends AppCompatActivity {
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.progress);
-
-        // TODO: Remove this
-        Button cheatButton = (Button) findViewById(R.id.cheat_button);
-        cheatButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent i = new Intent(LoginActivity.this, GameActivity.class);
-                startActivity(i);
-            }
-        });
-
     }
 
     /**

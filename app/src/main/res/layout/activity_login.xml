@@ -69,12 +69,6 @@
                 android:layout_height="wrap_content"
                 android:text="@string/action_sign_in" />
 
-            <Button
-                android:id="@+id/cheat_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Cheat" />
-
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
