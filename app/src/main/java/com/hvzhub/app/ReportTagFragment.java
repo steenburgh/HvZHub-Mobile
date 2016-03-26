@@ -39,7 +39,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ReportTagFragment extends Fragment implements DatePicker.OnDateChangedListener, TimePicker.OnTimeChangedListener{
+public class ReportTagFragment extends Fragment implements DatePickerFragment.OnDateSetListener, TimePickerFragment.OnTimeSetListener {
     EditText submitCode;
     ProgressBar progressBar;
     LinearLayout myCodeContainer;
@@ -192,7 +192,7 @@ public class ReportTagFragment extends Fragment implements DatePicker.OnDateChan
     }
 
     @Override
-    public void onDateChanged(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
         Calendar c = Calendar.getInstance();
         // Update the associated calendar
         c.set(year, monthOfYear, dayOfMonth);
@@ -204,7 +204,7 @@ public class ReportTagFragment extends Fragment implements DatePicker.OnDateChan
     }
 
     @Override
-    public void onTimeChanged(TimePicker view, int hourOfDay, int minute) {
+    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
         Calendar c = Calendar.getInstance();
         // Update the associated calendar
         c.set(Calendar.HOUR_OF_DAY, hourOfDay);
