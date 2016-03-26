@@ -43,7 +43,11 @@ public class GameActivity extends AppCompatActivity
     public static final int CHAT_FRAGMENT = 3;
     private MyCodeFragment myCodeFragment;
     public static final int MY_CODE_FRAGMENT = 4;
+    private ReportTagFragment reportTagFragment;
+    private static final int REPORT_TAG_FRAGMENT = 5;
+
     private BroadcastReceiver mRegistrationBroadcastReceiver;
+    private SharedPreferences.OnSharedPreferenceChangeListener gamePrefsListener;
     private boolean isReceiverRegistered;
 
     public int curTab;
@@ -51,7 +55,20 @@ public class GameActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        gamePrefsListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                if (key.equals(GamePrefs.PREFS_IS_HUMAN)) {
+                    updateNotificationSubscriptions();
 
+                    // Force a reload of all relevant fragments
+                    chatFragment = null;
+                }
+            }
+        };
+        getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).registerOnSharedPreferenceChangeListener(
+                gamePrefsListener
+        );
         setContentView(R.layout.activity_game);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -88,8 +105,11 @@ public class GameActivity extends AppCompatActivity
             case MY_CODE_FRAGMENT:
                 switchToTab(R.id.nav_my_code);
                 break;
+            case REPORT_TAG_FRAGMENT:
+                switchToTab(R.id.nav_report_tag);
+                break;
             default:
-                switchToTab(R.id.nav_mod_updates);
+                switchToTab(defaultTab);
                 break;
         }
 
@@ -118,45 +138,31 @@ public class GameActivity extends AppCompatActivity
     }
 
     public void updateNotificationSubscriptions() {
-        Intent intent = new Intent(this, RegistrationIntentService.class);
+        Intent intent = new Intent(this, GCMRegIntentService.class);
+
+        // Configure the service to be in update mode
+        intent.putExtra(GCMRegIntentService.CHAT_UPDATE_SUBSCRIPTIONS, true);
+
+        // Add arguments
         SharedPreferences prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE);
         int gameId = prefs.getInt(GamePrefs.PREFS_GAME_ID, -1);
-        if (gameId == -1) {
-            onLogout();
-            return;
-        }
         boolean isHuman = prefs.getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
-        boolean isAdmin = prefs.getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+        boolean isAdmin = prefs.getBoolean(GamePrefs.PREFS_IS_ADMIN, false);
+        intent.putExtra(GCMRegIntentService.ARGS_GAME_ID, gameId);
+        intent.putExtra(GCMRegIntentService.ARG_IS_HUMAN, isHuman);
+        intent.putExtra(GCMRegIntentService.ARG_IS_ADMIN, isAdmin);
 
-        if (isAdmin) {
-            String[] topics = {
-                    String.format("games_%d_chat_human", gameId),
-                    String.format("games_%d_chat_zombie", gameId)
-            };
-            intent.putExtra(RegistrationIntentService.ARG_TO_SUBRCRIBE, topics);
-        } else {
-            String[] toSubscribe = {
-                    String.format(
-                            "games_%d_chat_%s",
-                            gameId,
-                            isHuman ? "human" : "zombie"
-                    ),
-            };
-            intent.putExtra(RegistrationIntentService.ARG_TO_SUBRCRIBE, toSubscribe);
+        startService(intent);
+    }
 
-            // Make sure to unsubscribe from the other side's chat
-            String[] toUnsubscribe = {
-                    String.format(
-                            "games_%d_chat_%s",
-                            gameId,
-                            isHuman ? "zombie" : "human"
-                    ),
-            };
-            intent.putExtra(RegistrationIntentService.ARG_TO_UNSUBRCRIBE, toUnsubscribe);
-        }
+    public void unsubscribeAll() {
+        Intent intent = new Intent(this, GCMRegIntentService.class);
+        intent.putExtra(GCMRegIntentService.CHAT_UNSUBSCRIBE_ALL, true);
 
+        SharedPreferences prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE);
+        int gameId = prefs.getInt(GamePrefs.PREFS_GAME_ID, -1);
+        intent.putExtra(GCMRegIntentService.ARGS_GAME_ID, gameId);
 
-        // Start IntentService to register this application with GCM.
         startService(intent);
     }
 
@@ -247,6 +253,11 @@ public class GameActivity extends AppCompatActivity
                 curTab = CHAT_FRAGMENT;
                 break;
             case R.id.nav_report_tag:
+                if (reportTagFragment == null) {
+                    reportTagFragment = ReportTagFragment.newInstance();
+                }
+                toSwitch = reportTagFragment;
+                curTab = REPORT_TAG_FRAGMENT;
                 break;
             case R.id.nav_heatmap:
                 i = new Intent(this, HeatMapActivity.class);
@@ -282,6 +293,9 @@ public class GameActivity extends AppCompatActivity
 
     @Override
     public void onLogout() {
+        // Clear notification subscriptions
+        unsubscribeAll();
+
         // Clear *all* GamePrefs
         SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
         editor.clear();
