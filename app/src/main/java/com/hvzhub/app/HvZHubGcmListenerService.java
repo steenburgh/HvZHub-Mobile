@@ -13,6 +13,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.Html;
 import android.text.Spannable;
@@ -186,7 +188,7 @@ public class HvZHubGcmListenerService extends GcmListenerService {
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setSmallIcon(R.drawable.ic_launcher_monocolor_nocircles)
                 .setLargeIcon(largeIcon)
-                .setColor(getColor(R.color.colorPrimaryDark))
+                .setColor(ContextCompat.getColor(this, R.color.colorPrimaryDark))
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message)) // Make this an expandable notification
                 .setGroup(isHumanChat ? GROUP_HUMAN_CHAT : GROUP_ZOMBIE_CHAT)
                 .setContentTitle(title)
@@ -199,8 +201,7 @@ public class HvZHubGcmListenerService extends GcmListenerService {
 
 
 
-        NotificationManager notificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
 
         notificationManager.notify(messageList.size(), notificationBuilder.build());
 
@@ -223,7 +224,7 @@ public class HvZHubGcmListenerService extends GcmListenerService {
                     .setPriority(NotificationCompat.PRIORITY_HIGH)
                     .setSmallIcon(R.drawable.ic_launcher_monocolor_nocircles)
                     .setLargeIcon(largeIcon)
-                    .setColor(getColor(R.color.colorPrimaryDark))
+                    .setColor(ContextCompat.getColor(this, R.color.colorPrimaryDark))
                     .setContentTitle(String.format("%d new messages", messageList.size()))
                     .setContentText(String.format("%s    %s", firstMsg.getName(), firstMsg.getMessage()))
                     .setStyle(style)
