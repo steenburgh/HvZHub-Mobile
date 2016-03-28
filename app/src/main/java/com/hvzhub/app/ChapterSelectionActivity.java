@@ -106,21 +106,29 @@ public class ChapterSelectionActivity extends AppCompatActivity {
                         chapterList.addAll(response.body().chapters);
                         adapter.notifyDataSetChanged();
                     } else {
-                        AlertDialog.Builder b = new AlertDialog.Builder(ChapterSelectionActivity.this);
-                        b.setTitle(getString(R.string.unexpected_response))
-                                .setMessage(getString(R.string.unexpected_response_hint))
-                                .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        getChapterList();
-                                    }
-                                })
-                                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                    }
-                                })
-                                .show();
+                        APIError apiError = ErrorUtils.parseError(response);
+                        String err = apiError.error.toLowerCase();
+                        if (err.contains(getString(R.string.invalid_session_id))) {
+                            // Notify the parent activity that the user should be logged out
+                            // Don't bother stopping the loading animation
+                            logout();
+                        } else {
+                            AlertDialog.Builder b = new AlertDialog.Builder(ChapterSelectionActivity.this);
+                            b.setTitle(getString(R.string.unexpected_response))
+                                    .setMessage(getString(R.string.unexpected_response_hint))
+                                    .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            getChapterList();
+                                        }
+                                    })
+                                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                        }
+                                    })
+                                    .show();
+                        }
                     }
                 }
 

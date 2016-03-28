@@ -118,8 +118,16 @@ public class GameSelectionActivity extends AppCompatActivity {
                         gameList.addAll(response.body().games);
                         Collections.sort(gameList); // Ensure the list is sorted. See Game.compareTo() for more info
                     } else {
-                        AlertDialog.Builder b = new AlertDialog.Builder(GameSelectionActivity.this);
-                        b.setTitle(getString(R.string.unexpected_response))
+                        APIError apiError = ErrorUtils.parseError(response);
+                        String err = apiError.error.toLowerCase();
+                        if (err.equals(getString(R.string.invalid_session_id))) {
+                            // This should never happen, but if it does, log the user out so they can obtain a new sessionID
+                            Toast t = Toast.makeText(GameSelectionActivity.this, R.string.unexpected_response, Toast.LENGTH_LONG);
+                            t.show();
+                            goBackToChapterSelection();
+                        } else {
+                            AlertDialog.Builder b = new AlertDialog.Builder(GameSelectionActivity.this);
+                            b.setTitle(getString(R.string.unexpected_response))
                                 .setMessage(getString(R.string.unexpected_response_hint))
                                 .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
                                     @Override
@@ -133,6 +141,7 @@ public class GameSelectionActivity extends AppCompatActivity {
                                     }
                                 })
                                 .show();
+                        }
                     }
                 }
 
@@ -155,6 +164,7 @@ public class GameSelectionActivity extends AppCompatActivity {
                                 }
                             })
                             .show();
+
                 }
             });
 

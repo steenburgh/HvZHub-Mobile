@@ -13,8 +13,10 @@ import android.widget.AbsListView;
 import android.widget.ListView;
 
 import com.hvzhub.app.API.API;
+import com.hvzhub.app.API.ErrorUtils;
 import com.hvzhub.app.API.HvZHubClient;
 import com.hvzhub.app.API.NetworkUtils;
+import com.hvzhub.app.API.model.APIError;
 import com.hvzhub.app.API.model.Games.News.GameNewsItem;
 import com.hvzhub.app.API.model.Games.News.NewsContainer;
 import com.hvzhub.app.API.model.Uuid;
@@ -31,6 +33,7 @@ import retrofit2.Response;
 public class GameNewsFragment extends Fragment {
     private static final int ITEMS_TO_FETCH_AT_ONCE = 20;
     private Call<NewsContainer> loadNewsCall;
+    private OnLogoutListener mListener;
     boolean loading;
     boolean atEnd;
 
@@ -182,21 +185,30 @@ public class GameNewsFragment extends Fragment {
                         } else {
                             showListViewProgress(false);
                         }
-                        AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
-                        b.setTitle(getString(R.string.unexpected_response))
-                            .setMessage(getString(R.string.unexpected_response_hint))
-                            .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    loadNews(refresh);
-                                }
-                            })
-                            .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                }
-                            })
-                            .show();
+
+                        APIError apiError = ErrorUtils.parseError(response);
+                        String err = apiError.error.toLowerCase();
+                        if (err.contains(getString(R.string.invalid_session_id))) {
+                            // Notify the parent activity that the user should be logged out
+                            // Don't bother stopping the loading animation
+                            mListener.onLogout();
+                        } else {
+                            AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                            b.setTitle(getString(R.string.unexpected_response))
+                                    .setMessage(getString(R.string.unexpected_response_hint))
+                                    .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            loadNews(refresh);
+                                        }
+                                    })
+                                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                        }
+                                    })
+                                    .show();
+                        }
                     }
                 }
 
@@ -242,6 +254,23 @@ public class GameNewsFragment extends Fragment {
                 listView.removeFooterView(loadingFooter);
             }
         }
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof OnLogoutListener) {
+            mListener = (OnLogoutListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must be an instance of OnLogoutListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
     }
 
 }
