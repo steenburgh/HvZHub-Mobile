@@ -1,11 +1,13 @@
 package com.hvzhub.app;
 
 import android.app.AlertDialog;
-import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.app.Fragment;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -22,6 +24,8 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 import com.hvzhub.app.API.API;
 import com.hvzhub.app.API.ErrorUtils;
 import com.hvzhub.app.API.HvZHubClient;
@@ -32,6 +36,7 @@ import com.hvzhub.app.API.model.Code;
 import com.hvzhub.app.API.model.TagPlayerRequest;
 import com.hvzhub.app.API.model.Uuid;
 import com.hvzhub.app.Prefs.GamePrefs;
+import com.hvzhub.app.Prefs.TagLocationPref;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -51,7 +56,9 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
     TextView DateInput;
     TextView LocationInput;
     Calendar tagTime;
+    LatLng tagLocation;
     FragmentManager mapManager;
+    SharedPreferences.OnSharedPreferenceChangeListener listener;
 
 
     private OnLogoutListener mListener;
@@ -111,11 +118,9 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
             @Override
             public void onClick(View v) {
                 //start TagMap
-                MapFragment tagMap = TagLocation.newInstance();
-                mapManager.beginTransaction()
-                        .replace(R.id.fragment_container, tagMap)
-                        .addToBackStack(null)
-                        .commit();
+                Intent mapstart = new Intent(getActivity(), TagMapActivity.class);
+                startActivity(mapstart);
+                setLatLng();
             }
         });
 
@@ -123,7 +128,16 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
         progressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
         errorView = (LinearLayout) view.findViewById(R.id.error_view);
 
-        mapManager = getFragmentManager();
+        SharedPreferences prefs = getActivity().getSharedPreferences(TagLocationPref.NAME, 0);
+        listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+
+            public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+                if (key.equals(TagLocationPref.Latitude)){
+                    setLatLng();
+                }
+            }
+        };
+        prefs.registerOnSharedPreferenceChangeListener(listener);
     }
 
     private void tryToTag() {
@@ -137,6 +151,7 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
                 uuid,
                 tagCode,
                 tagDate
+
         );
         Call<APISuccess> call = client.reportTag(gameId, tpr);
         call.enqueue(new Callback<APISuccess>() {
@@ -145,7 +160,7 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
                 if (response.isSuccessful()) {
                     //make the response string
 
-                    if (response.body().success != null){
+                    if (response.body().success != null) {
                         AlertDialog.Builder b = new AlertDialog.Builder(getActivity().getApplicationContext());
                         b.setTitle("Tag Successful")
                                 .setMessage(response.body().success)
@@ -156,8 +171,7 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
                                     }
                                 })
                                 .show();
-                    }
-                    else{
+                    } else {
                         AlertDialog.Builder b = new AlertDialog.Builder(getActivity().getApplicationContext());
                         b.setTitle(getString(R.string.unexpected_response))
                                 .setMessage(getString(R.string.unexpected_response_hint))
@@ -169,7 +183,7 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
                                 })
                                 .show();
                     }
-                }else {
+                } else {
                     //messages for failed tag
                 }
             }
@@ -274,5 +288,19 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
         DateFormat timeFormat = SimpleDateFormat.getTimeInstance(DateFormat.SHORT);
         String strTime = timeFormat.format(tagTime.getTime());
         TimeInput.setText(strTime);
+    }
+
+    public void setLatLng(){
+        SharedPreferences prefs = getActivity().getSharedPreferences(TagLocationPref.NAME, 0);
+        String latVal = prefs.getString("lat", null);
+        if(latVal.length() >= 11){
+            latVal = latVal.substring(0, 10);
+        }
+        String longVal = prefs.getString("long", null);
+        if(longVal.length() >= 11) {
+            longVal = longVal.substring(0, 10);
+        }
+
+        LocationInput.setText("(" + latVal + "," + longVal + ")");
     }
 }

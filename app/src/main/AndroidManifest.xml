@@ -98,14 +98,15 @@
 
         <service
             android:name=".GCMRegIntentService"
-            android:exported="false"></service>
+            android:exported="false" />
 
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings" />
         <activity
             android:name=".TagLocationActivity"
-            android:label="@string/title_activity_tag_location"></activity>
+            android:label="@string/title_activity_tag_location" />
+        <activity android:name=".TagMapActivity"></activity>
     </application>
 
 </manifest>
