@@ -44,12 +44,12 @@
         <activity
             android:name=".ReportTagActivity"
             android:label="@string/title_activity_report_tag" />
-
-        <activity android:name=".ChapterSelectionActivity"
-            android:label="@string/select_a_chapter"/>
-
-        <activity android:name=".GameSelectionActivity"
-            android:label="@string/choose_a_game"/>
+        <activity
+            android:name=".ChapterSelectionActivity"
+            android:label="@string/select_a_chapter" />
+        <activity
+            android:name=".GameSelectionActivity"
+            android:label="@string/choose_a_game" />
 
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
@@ -98,12 +98,14 @@
 
         <service
             android:name=".GCMRegIntentService"
-            android:exported="false">
-        </service>
+            android:exported="false"></service>
 
         <activity
             android:name=".SettingsActivity"
-            android:label="@string/title_activity_settings"/>
+            android:label="@string/title_activity_settings" />
+        <activity
+            android:name=".TagLocationActivity"
+            android:label="@string/title_activity_tag_location"></activity>
     </application>
 
 </manifest>

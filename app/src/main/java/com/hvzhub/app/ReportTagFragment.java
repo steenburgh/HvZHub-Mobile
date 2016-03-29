@@ -2,6 +2,7 @@ package com.hvzhub.app;
 
 import android.app.AlertDialog;
 import android.app.Fragment;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -18,7 +19,9 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
+import com.google.android.gms.maps.MapFragment;
 import com.hvzhub.app.API.API;
 import com.hvzhub.app.API.ErrorUtils;
 import com.hvzhub.app.API.HvZHubClient;
@@ -46,6 +49,9 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
     LinearLayout errorView;
     TextView TimeInput;
     TextView DateInput;
+    TextView LocationInput;
+    Calendar tagTime;
+    FragmentManager mapManager;
 
 
     private OnLogoutListener mListener;
@@ -100,31 +106,87 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
             }
         });
 
+        LocationInput = (TextView) view.findViewById(R.id.location);
+        LocationInput.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //start TagMap
+                MapFragment tagMap = TagLocation.newInstance();
+                mapManager.beginTransaction()
+                        .replace(R.id.fragment_container, tagMap)
+                        .addToBackStack(null)
+                        .commit();
+            }
+        });
 
         myCodeContainer = (LinearLayout) view.findViewById(R.id.my_code_container);
         progressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
         errorView = (LinearLayout) view.findViewById(R.id.error_view);
+
+        mapManager = getFragmentManager();
     }
 
     private void tryToTag() {
         int gameId = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
         HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
         String uuid = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
+        String tagCode = submitCode.getText().toString();
+
+        Date tagDate = tagTime.getTime();
         TagPlayerRequest tpr = new TagPlayerRequest(
                 uuid,
-                "ASDFGR",
-                new Date()
+                tagCode,
+                tagDate
         );
         Call<APISuccess> call = client.reportTag(gameId, tpr);
         call.enqueue(new Callback<APISuccess>() {
             @Override
             public void onResponse(Call<APISuccess> call, Response<APISuccess> response) {
+                if (response.isSuccessful()) {
+                    //make the response string
 
+                    if (response.body().success != null){
+                        AlertDialog.Builder b = new AlertDialog.Builder(getActivity().getApplicationContext());
+                        b.setTitle("Tag Successful")
+                                .setMessage(response.body().success)
+                                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // Do nothing
+                                    }
+                                })
+                                .show();
+                    }
+                    else{
+                        AlertDialog.Builder b = new AlertDialog.Builder(getActivity().getApplicationContext());
+                        b.setTitle(getString(R.string.unexpected_response))
+                                .setMessage(getString(R.string.unexpected_response_hint))
+                                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // Do nothing
+                                    }
+                                })
+                                .show();
+                    }
+                }else {
+                    //messages for failed tag
+                }
             }
 
             @Override
             public void onFailure(Call<APISuccess> call, Throwable t) {
-
+                AlertDialog.Builder b = new AlertDialog.Builder(getActivity().getApplicationContext());
+                b.setTitle(getString(R.string.generic_connection_error))
+                        .setMessage(getString(R.string.generic_connection_error_hint))
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Do nothing
+                            }
+                        })
+                        .show();
+                Log.d("Error", t.getMessage());
             }
         });
 
@@ -139,7 +201,7 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
     private void showTimePickerDialog() {
         TimePickerFragment tp = TimePickerFragment.newInstance();
         tp.setTargetFragment(this, 0);
-        tp.show(getFragmentManager(), "datePicker");
+        tp.show(getFragmentManager(), "timePicker");
     }
 
     private void showContentView(final boolean show) {
@@ -193,26 +255,24 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
 
     @Override
     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-        Calendar c = Calendar.getInstance();
-        // Update the associated calendar
-        c.set(year, monthOfYear, dayOfMonth);
 
+        // Update the associated calendar
+        tagTime.set(year, monthOfYear, dayOfMonth);
         // Update the associated textview
         DateFormat dateFormat = SimpleDateFormat.getDateInstance();
-        String strDate = dateFormat.format(c.getTime());
+        String strDate = dateFormat.format(tagTime.getTime());
         DateInput.setText(strDate);
     }
 
     @Override
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-        Calendar c = Calendar.getInstance();
-        // Update the associated calendar
-        c.set(Calendar.HOUR_OF_DAY, hourOfDay);
-        c.set(Calendar.MINUTE, minute);
 
+        // Update the associated calendar
+        tagTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
+        tagTime.set(Calendar.MINUTE, minute);
         // Update the associated textview
         DateFormat timeFormat = SimpleDateFormat.getTimeInstance(DateFormat.SHORT);
-        String strTime = timeFormat.format(c.getTime());
+        String strTime = timeFormat.format(tagTime.getTime());
         TimeInput.setText(strTime);
     }
 }

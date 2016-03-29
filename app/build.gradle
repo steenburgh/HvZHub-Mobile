@@ -34,6 +34,10 @@ dependencies {
     compile 'de.greenrobot:greendao:2.1.0'
     compile 'de.greenrobot:greendao-generator:2.1.0'
     compile 'org.freemarker:freemarker:2.3.23'
+    compile 'com.google.maps.android:android-maps-utils:0.4.3'
+    compile 'com.google.android.gms:play-services-maps:8.4.0'
+    compile 'com.google.android.gms:play-services-gcm:8.4.0'
+
 }
 
 apply plugin: 'com.google.gms.google-services'
