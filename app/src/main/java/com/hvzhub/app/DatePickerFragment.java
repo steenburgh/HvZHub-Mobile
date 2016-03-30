@@ -1,5 +1,6 @@
 package com.hvzhub.app;
 
+        import android.app.Activity;
         import android.app.DatePickerDialog;
         import android.app.Dialog;
         import android.app.DialogFragment;
@@ -69,6 +70,24 @@ public class DatePickerFragment extends DialogFragment implements DatePickerDial
 
     }
 
+    public void onAttach(Activity activity){
+        super.onAttach(activity);if (getTargetFragment() != null) {
+            if (getTargetFragment() instanceof OnDateSetListener) {
+                mListener = (OnDateSetListener) getTargetFragment();
+            }
+            else {
+                throw new RuntimeException(getTargetFragment().toString()
+                        + " must implement TimePickerFragment.OnTimeSetListener");
+            }
+        }
+        else if (activity instanceof OnDateSetListener) {
+            mListener = (OnDateSetListener) activity;
+        } else {
+            throw new RuntimeException(activity.toString()
+                    + " must implement TimePickerFragment.OnTimeSetListener. If this is being called from a fragment, make sure to use setTargetFragment().");
+        }
+
+    }
 
     @Override
     public void onAttach(Context context) {

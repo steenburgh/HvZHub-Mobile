@@ -1,5 +1,6 @@
 package com.hvzhub.app;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.TimePickerDialog;
@@ -52,6 +53,25 @@ public class TimePickerFragment extends DialogFragment implements TimePickerDial
         }
     }
 
+    @Override
+    public void onAttach(Activity activity){
+        super.onAttach(activity);if (getTargetFragment() != null) {
+            if (getTargetFragment() instanceof OnTimeSetListener) {
+                mListener = (OnTimeSetListener) getTargetFragment();
+            }
+            else {
+                throw new RuntimeException(getTargetFragment().toString()
+                        + " must implement TimePickerFragment.OnTimeSetListener");
+            }
+        }
+        else if (activity instanceof OnTimeSetListener) {
+            mListener = (OnTimeSetListener) activity;
+        } else {
+            throw new RuntimeException(activity.toString()
+                    + " must implement TimePickerFragment.OnTimeSetListener. If this is being called from a fragment, make sure to use setTargetFragment().");
+        }
+
+    }
 
     @Override
     public void onAttach(Context context) {
