@@ -1,6 +1,5 @@
 package com.hvzhub.app;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.support.v4.app.DialogFragment;
 import android.app.TimePickerDialog;

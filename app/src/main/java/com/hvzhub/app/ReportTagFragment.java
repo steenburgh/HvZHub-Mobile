@@ -146,12 +146,17 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
         HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
         String uuid = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
         String tagCode = submitCode.getText().toString();
-
         Date tagDate = tagTime.getTime();
+
+        double Lat = Double.parseDouble(getActivity().getSharedPreferences(TagLocationPref.NAME, 0).getString("lat", null));
+        double Long = Double.parseDouble(getActivity().getSharedPreferences(TagLocationPref.NAME, 0).getString("long", null));
+
         TagPlayerRequest tpr = new TagPlayerRequest(
                 uuid,
                 tagCode,
-                tagDate
+                tagDate,
+                Lat,
+                Long
 
         );
         Call<APISuccess> call = client.reportTag(gameId, tpr);
@@ -162,9 +167,9 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
                     //make the response string
 
                     if (response.body().success != null) {
-                        AlertDialog.Builder b = new AlertDialog.Builder(getActivity().getApplicationContext());
+                        AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
                         b.setTitle("Tag Successful")
-                                .setMessage(response.body().success)
+                                .setMessage(response.body().success.toString())
                                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
@@ -173,7 +178,7 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
                                 })
                                 .show();
                     } else {
-                        AlertDialog.Builder b = new AlertDialog.Builder(getActivity().getApplicationContext());
+                        AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
                         b.setTitle(getString(R.string.unexpected_response))
                                 .setMessage(getString(R.string.unexpected_response_hint))
                                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
@@ -185,13 +190,36 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
                                 .show();
                     }
                 } else {
-                    //messages for failed tag
+                    APIError apiError = ErrorUtils.parseError(response);
+                    String err = apiError.error.toLowerCase();
+                    String errorMessage;
+                    if (err.contains("join")) {
+                        errorMessage = "You must join this game to be able to tag a player";
+                    } else if (err.contains("submit")) {
+                        errorMessage = "You must submit a tag code";
+                    } else if (err.contains("player")) {
+                        errorMessage = "That code doesn't belong to a player";
+                    } else if (err.contains("timestamp")) {
+                        errorMessage = "You must submit a tag timestamp";
+                    } else {
+                        errorMessage = "Unexpected response from HvZHub.com";
+                    }
+                    AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                    b.setTitle("Tag Failed")
+                            .setMessage(errorMessage)
+                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // Do nothing
+                                }
+                            })
+                            .show();
                 }
             }
 
             @Override
             public void onFailure(Call<APISuccess> call, Throwable t) {
-                AlertDialog.Builder b = new AlertDialog.Builder(getActivity().getApplicationContext());
+                AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
                 b.setTitle(getString(R.string.generic_connection_error))
                         .setMessage(getString(R.string.generic_connection_error_hint))
                         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
