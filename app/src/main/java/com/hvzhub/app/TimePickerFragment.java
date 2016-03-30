@@ -1,7 +1,7 @@
 package com.hvzhub.app;
 
 import android.app.Dialog;
-import android.app.DialogFragment;
+import android.support.v4.app.DialogFragment;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.os.Bundle;
@@ -51,7 +51,6 @@ public class TimePickerFragment extends DialogFragment implements TimePickerDial
                     "the TimePickerFragment is being created with TimePickerFragment.newInstance()");
         }
     }
-
 
     @Override
     public void onAttach(Context context) {

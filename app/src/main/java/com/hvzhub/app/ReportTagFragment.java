@@ -1,10 +1,14 @@
 package com.hvzhub.app;
 
 import android.app.AlertDialog;
-import android.app.Fragment;
+import android.graphics.Color;
+import android.support.v4.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -18,7 +22,11 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 import com.hvzhub.app.API.API;
 import com.hvzhub.app.API.ErrorUtils;
 import com.hvzhub.app.API.HvZHubClient;
@@ -29,6 +37,7 @@ import com.hvzhub.app.API.model.Code;
 import com.hvzhub.app.API.model.TagPlayerRequest;
 import com.hvzhub.app.API.model.Uuid;
 import com.hvzhub.app.Prefs.GamePrefs;
+import com.hvzhub.app.Prefs.TagLocationPref;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -46,11 +55,17 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
     LinearLayout errorView;
     TextView TimeInput;
     TextView DateInput;
+    TextView LocationInput;
+    Calendar tagTime;
+    LatLng tagLocation;
+    FragmentManager mapManager;
+    SharedPreferences.OnSharedPreferenceChangeListener listener;
 
 
     private OnLogoutListener mListener;
 
     public ReportTagFragment() {
+        tagTime = Calendar.getInstance();
         // Required empty public constructor
     }
 
@@ -100,46 +115,141 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
             }
         });
 
+        LocationInput = (TextView) view.findViewById(R.id.location);
+        LocationInput.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //start TagMap
+                Intent mapstart = new Intent(getActivity(), TagMapActivity.class);
+                startActivity(mapstart);
+                setLatLng();
+            }
+        });
 
         myCodeContainer = (LinearLayout) view.findViewById(R.id.my_code_container);
         progressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
         errorView = (LinearLayout) view.findViewById(R.id.error_view);
+
+        SharedPreferences prefs = getActivity().getSharedPreferences(TagLocationPref.NAME, 0);
+        listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+
+            public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {
+                if (key.equals(TagLocationPref.Latitude)){
+                    setLatLng();
+                }
+            }
+        };
+        prefs.registerOnSharedPreferenceChangeListener(listener);
     }
 
     private void tryToTag() {
         int gameId = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
         HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
         String uuid = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
+        String tagCode = submitCode.getText().toString();
+        Date tagDate = tagTime.getTime();
+
+        double Lat = Double.parseDouble(getActivity().getSharedPreferences(TagLocationPref.NAME, 0).getString("lat", null));
+        double Long = Double.parseDouble(getActivity().getSharedPreferences(TagLocationPref.NAME, 0).getString("long", null));
+
         TagPlayerRequest tpr = new TagPlayerRequest(
                 uuid,
-                "ASDFGR",
-                new Date()
+                tagCode,
+                tagDate,
+                Lat,
+                Long
+
         );
         Call<APISuccess> call = client.reportTag(gameId, tpr);
         call.enqueue(new Callback<APISuccess>() {
             @Override
             public void onResponse(Call<APISuccess> call, Response<APISuccess> response) {
+                if (response.isSuccessful()) {
+                    //make the response string
 
+                    if (response.body().success != null) {
+                        AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                        b.setTitle("Tag Successful")
+                                .setMessage(response.body().success.toString())
+                                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // Do nothing
+                                    }
+                                })
+                                .show();
+                    } else {
+                        AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                        b.setTitle(getString(R.string.unexpected_response))
+                                .setMessage(getString(R.string.unexpected_response_hint))
+                                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // Do nothing
+                                    }
+                                })
+                                .show();
+                    }
+                } else {
+                    APIError apiError = ErrorUtils.parseError(response);
+                    String err = apiError.error.toLowerCase();
+                    String errorMessage;
+                    if (err.contains("join")) {
+                        errorMessage = "You must join this game to be able to tag a player";
+                    } else if (err.contains("submit")) {
+                        errorMessage = "You must submit a tag code";
+                    } else if (err.contains("player")) {
+                        errorMessage = "That code doesn't belong to a player";
+                    } else if (err.contains("timestamp")) {
+                        errorMessage = "You must submit a tag timestamp";
+                    } else {
+                        errorMessage = "Unexpected response from HvZHub.com";
+                    }
+                    AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                    b.setTitle("Tag Failed")
+                            .setMessage(errorMessage)
+                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // Do nothing
+                                }
+                            })
+                            .show();
+                }
             }
 
             @Override
             public void onFailure(Call<APISuccess> call, Throwable t) {
-
+                AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                b.setTitle(getString(R.string.generic_connection_error))
+                        .setMessage(getString(R.string.generic_connection_error_hint))
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Do nothing
+                            }
+                        })
+                        .show();
+                Log.d("Error", t.getMessage());
             }
         });
-
+        //set prfs
+        SharedPreferences.Editor prefs = getActivity().getSharedPreferences(TagLocationPref.NAME, 0).edit();
+        prefs.putString(TagLocationPref.Latitude, String.valueOf(0));
+        prefs.putString(TagLocationPref.Longitude, String.valueOf(0));
+        prefs.apply();
     }
 
     private void showDatePickerDialog() {
         DatePickerFragment dp = DatePickerFragment.newInstance();
         dp.setTargetFragment(this, 0);
-        dp.show(getFragmentManager(), "datePicker");
+        dp.show(getActivity().getSupportFragmentManager(), "datePicker");
     }
 
     private void showTimePickerDialog() {
         TimePickerFragment tp = TimePickerFragment.newInstance();
         tp.setTargetFragment(this, 0);
-        tp.show(getFragmentManager(), "datePicker");
+        tp.show(getActivity().getSupportFragmentManager(), "timePicker");
     }
 
     private void showContentView(final boolean show) {
@@ -193,26 +303,38 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
 
     @Override
     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-        Calendar c = Calendar.getInstance();
-        // Update the associated calendar
-        c.set(year, monthOfYear, dayOfMonth);
 
+        // Update the associated calendar
+        tagTime.set(year, monthOfYear, dayOfMonth);
         // Update the associated textview
         DateFormat dateFormat = SimpleDateFormat.getDateInstance();
-        String strDate = dateFormat.format(c.getTime());
+        String strDate = dateFormat.format(tagTime.getTime());
         DateInput.setText(strDate);
     }
 
     @Override
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-        Calendar c = Calendar.getInstance();
-        // Update the associated calendar
-        c.set(Calendar.HOUR_OF_DAY, hourOfDay);
-        c.set(Calendar.MINUTE, minute);
 
+        // Update the associated calendar
+        tagTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
+        tagTime.set(Calendar.MINUTE, minute);
         // Update the associated textview
         DateFormat timeFormat = SimpleDateFormat.getTimeInstance(DateFormat.SHORT);
-        String strTime = timeFormat.format(c.getTime());
+        String strTime = timeFormat.format(tagTime.getTime());
         TimeInput.setText(strTime);
+    }
+
+    public void setLatLng(){
+        SharedPreferences prefs = getActivity().getSharedPreferences(TagLocationPref.NAME, 0);
+        String latVal = prefs.getString("lat", null);
+        if(latVal.length() >= 11){
+            latVal = latVal.substring(0, 10);
+        }
+        String longVal = prefs.getString("long", null);
+        if(longVal.length() >= 11) {
+            longVal = longVal.substring(0, 10);
+        }
+
+        LocationInput.setText("(" + latVal + "," + longVal + ")");
     }
 }
