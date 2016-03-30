@@ -64,6 +64,7 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
     private OnLogoutListener mListener;
 
     public ReportTagFragment() {
+        tagTime = Calendar.getInstance();
         // Required empty public constructor
     }
 
