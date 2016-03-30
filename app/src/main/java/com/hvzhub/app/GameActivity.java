@@ -1,6 +1,6 @@
 package com.hvzhub.app;
 
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -284,7 +284,7 @@ public class GameActivity extends AppCompatActivity
 
         }
         if (toSwitch != null) {
-            getFragmentManager().beginTransaction()
+            getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, toSwitch)
                     .addToBackStack(null)
                     .commit();

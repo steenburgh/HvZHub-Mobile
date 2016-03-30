@@ -1,13 +1,13 @@
 package com.hvzhub.app;
 
 import android.app.AlertDialog;
-import android.app.FragmentManager;
+import android.support.v4.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -214,13 +214,13 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
     private void showDatePickerDialog() {
         DatePickerFragment dp = DatePickerFragment.newInstance();
         dp.setTargetFragment(this, 0);
-        dp.show(getFragmentManager(), "datePicker");
+        dp.show(getActivity().getSupportFragmentManager(), "datePicker");
     }
 
     private void showTimePickerDialog() {
         TimePickerFragment tp = TimePickerFragment.newInstance();
         tp.setTargetFragment(this, 0);
-        tp.show(getFragmentManager(), "timePicker");
+        tp.show(getActivity().getSupportFragmentManager(), "timePicker");
     }
 
     private void showContentView(final boolean show) {
