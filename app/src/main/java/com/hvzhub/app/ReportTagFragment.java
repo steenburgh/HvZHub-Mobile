@@ -1,6 +1,7 @@
 package com.hvzhub.app;
 
 import android.app.AlertDialog;
+import android.graphics.Color;
 import android.support.v4.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
