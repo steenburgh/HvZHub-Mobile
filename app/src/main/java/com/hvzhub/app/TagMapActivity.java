@@ -65,7 +65,7 @@ public class TagMapActivity extends FragmentActivity implements OnMapReadyCallba
         tagMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
             @Override
             public void onMarkerDragStart(Marker marker) {
-                
+
             }
 
             @Override

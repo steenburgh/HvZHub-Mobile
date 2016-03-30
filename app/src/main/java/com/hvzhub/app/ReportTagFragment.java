@@ -203,7 +203,11 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
                 Log.d("Error", t.getMessage());
             }
         });
-
+        //set prfs
+        SharedPreferences.Editor prefs = getActivity().getSharedPreferences(TagLocationPref.NAME, 0).edit();
+        prefs.putString(TagLocationPref.Latitude, String.valueOf(0));
+        prefs.putString(TagLocationPref.Longitude, String.valueOf(0));
+        prefs.apply();
     }
 
     private void showDatePickerDialog() {
