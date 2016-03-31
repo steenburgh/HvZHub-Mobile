@@ -265,6 +265,10 @@ public class GameActivity extends AppCompatActivity
                 toSwitch = myCodeFragment;
                 curTab = MY_CODE_FRAGMENT;
                 break;
+            case R.id.nav_heatmap:
+                i = new Intent(GameActivity.this, HeatmapActivity.class);
+                startActivity(i);
+                break;
             case R.id.nav_logout:
                 onLogout();
                 break;
@@ -280,6 +284,7 @@ public class GameActivity extends AppCompatActivity
                 i.putExtra(Intent.EXTRA_SUBJECT, "HvZHub App Feedback");
                 startActivity(Intent.createChooser(i, "Send Email Using: "));
                 break;
+
 
         }
         if (toSwitch != null) {

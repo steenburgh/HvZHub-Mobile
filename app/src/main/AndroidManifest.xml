@@ -106,7 +106,8 @@
         <activity
             android:name=".TagLocationActivity"
             android:label="@string/title_activity_tag_location" />
-        <activity android:name=".TagMapActivity"></activity>
+        <activity android:name=".TagMapActivity" />
+        <activity android:name=".HeatmapActivity"></activity>
     </application>
 
 </manifest>
