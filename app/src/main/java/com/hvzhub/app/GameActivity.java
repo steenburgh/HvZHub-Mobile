@@ -1,5 +1,6 @@
 package com.hvzhub.app;
 
+import android.preference.PreferenceActivity;
 import android.support.v4.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -18,6 +19,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -26,6 +29,8 @@ import com.hvzhub.app.Config.FeedbackConfig;
 import com.hvzhub.app.DB.DB;
 import com.hvzhub.app.Prefs.GCMRegistationPrefs;
 import com.hvzhub.app.Prefs.GamePrefs;
+
+import org.w3c.dom.Text;
 
 public class GameActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnLogoutListener {
@@ -51,6 +56,8 @@ public class GameActivity extends AppCompatActivity
     private boolean isReceiverRegistered;
 
     public int curTab;
+    public TextView zedNum;
+    public TextView humanNum;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +82,15 @@ public class GameActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+        NavigationView navView= (NavigationView) drawer.findViewById(R.id.nav_view);
+        View header = navView.getHeaderView(0);
+        zedNum = (TextView) header.findViewById(R.id.zedcount);
+        humanNum = (TextView) header.findViewById(R.id.humancount);
+
+        humanNum.setText("Humans: 50");
+        zedNum.setText("Zombies: 6");
+
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);

@@ -153,6 +153,7 @@ public class ChatFragment extends Fragment {
         };
 
         messageBox = (EditText) view.findViewById(R.id.compose_msg);
+
         final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
         messageBox.setHint(isHuman ? R.string.chatting_with_humans : R.string.chatting_with_zombies);
 
