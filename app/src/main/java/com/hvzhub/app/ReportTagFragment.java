@@ -318,6 +318,14 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
         // Update the associated calendar
         tagTime.set(Calendar.HOUR_OF_DAY, hourOfDay);
         tagTime.set(Calendar.MINUTE, minute);
+        if (hourOfDay == 4 && minute == 20 || hourOfDay == 16 && minute == 20){
+            Toast MLG = Toast.makeText(getActivity(), "420 BLAZIT 360 NOSCOPE", Toast.LENGTH_LONG);
+            MLG.show();
+        }
+        if (hourOfDay == 9 && minute == 11 || hourOfDay == 21 && minute == 11){
+            Toast Bush = Toast.makeText(getActivity(), "JetFuel can't melt Dank Memes", Toast.LENGTH_LONG);
+            Bush.show();
+        }
         // Update the associated textview
         DateFormat timeFormat = SimpleDateFormat.getTimeInstance(DateFormat.SHORT);
         String strTime = timeFormat.format(tagTime.getTime());
