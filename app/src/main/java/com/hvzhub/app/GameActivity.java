@@ -8,7 +8,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.support.design.widget.NavigationView;
 import android.support.v4.content.LocalBroadcastManager;
@@ -23,8 +22,8 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.hvzhub.app.Config.FeedbackConfig;
 import com.hvzhub.app.DB.DB;
-import com.hvzhub.app.Prefs.ChatPrefs;
 import com.hvzhub.app.Prefs.GCMRegistationPrefs;
 import com.hvzhub.app.Prefs.GamePrefs;
 
@@ -276,7 +275,7 @@ public class GameActivity extends AppCompatActivity
                 startActivity(i);
                 break;
             case R.id.nav_feedback:
-                String devEmail = "hvzhub@gmail.com";
+                String devEmail = FeedbackConfig.DEV_EMAIL;
                 i = new Intent(Intent.ACTION_SENDTO, Uri.fromParts("mailto", devEmail, null));
                 i.putExtra(Intent.EXTRA_SUBJECT, "HvZHub App Feedback");
                 startActivity(Intent.createChooser(i, "Send Email Using: "));
