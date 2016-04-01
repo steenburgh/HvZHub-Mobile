@@ -30,8 +30,10 @@ import com.hvzhub.app.API.ErrorUtils;
 import com.hvzhub.app.API.HvZHubClient;
 import com.hvzhub.app.API.NetworkUtils;
 import com.hvzhub.app.API.model.APIError;
+import com.hvzhub.app.API.model.CurrentUser;
 import com.hvzhub.app.API.model.Login.LoginRequest;
 import com.hvzhub.app.API.model.Login.Session;
+import com.hvzhub.app.API.model.Uuid;
 import com.hvzhub.app.Prefs.GamePrefs;
 
 import retrofit2.Call;
@@ -42,6 +44,7 @@ import retrofit2.Response;
  * A login screen that offers login via email/password.
  */
 public class LoginActivity extends AppCompatActivity {
+    public static final String TAG = "LoginActivity";
     // UI references.
     private EditText mEmailView;
     private EditText mPasswordView;
@@ -160,28 +163,20 @@ public class LoginActivity extends AppCompatActivity {
             call.enqueue(new Callback<Session>() {
                 @Override
                 public void onResponse(Call<Session> call, Response<Session> response) {
-                    showProgress(false);
+
                     if (response.isSuccessful()) {
-                        // Login successful. Start the rest of the app
-                        finish();
-
-                        String chapterUrl = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
-                        if (chapterUrl == null) {
-                            Intent intent = new Intent(LoginActivity.this, ChapterSelectionActivity.class);
-                            startActivity(intent);
-                        } else {
-                            Intent intent = new Intent(LoginActivity.this, GameActivity.class);
-                            startActivity(intent);
-                        }
-
                         // Persist the uuid in sharedPrefs
                         SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
                         Session s = response.body();
                         prefs.putString(GamePrefs.PREFS_SESSION_ID, s.uuid);
                         prefs.apply();
 
-                        Log.i("Response", s.uuid + " : " + s.createdOn);
+                        Log.i(TAG, "Login successful");
+                        Log.i(TAG, s.uuid + " : " + s.createdOn);
+
+                        getUserId();
                     } else {
+                        showProgress(false);
                         APIError apiError = ErrorUtils.parseError(response);
                         String err = apiError.error.toLowerCase();
                         if (err.contains("email")) {
@@ -191,7 +186,6 @@ public class LoginActivity extends AppCompatActivity {
                             mPasswordView.setError(getString(R.string.error_incorrect_password));
                             mPasswordView.requestFocus();
                         } else {
-
                             AlertDialog.Builder b = new AlertDialog.Builder(LoginActivity.this);
                             b.setTitle(getString(R.string.unexpected_response))
                                     .setMessage(getString(R.string.unexpected_response_hint))
@@ -231,6 +225,63 @@ public class LoginActivity extends AppCompatActivity {
         return email.contains("@");
     }
 
+    private void getUserId() {
+        HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
+        String uuid = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE)
+                .getString(GamePrefs.PREFS_SESSION_ID, null);
+        Call<CurrentUser> call = client.getCurrentUser(new Uuid(uuid));
+        call.enqueue(new Callback<CurrentUser>() {
+            @Override
+            public void onResponse(Call<CurrentUser> call, Response<CurrentUser> response) {
+                if (response.isSuccessful()) {
+                    finish();
+
+                    int userId = response.body().id;
+                    SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
+                    prefs.putInt(GamePrefs.PREFS_USER_ID, userId);
+                    prefs.apply();
+                    Log.d(TAG, String.format("Got user id: %d", userId));
+
+                    String chapterUrl = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
+                    if (chapterUrl == null) {
+                        Intent intent = new Intent(LoginActivity.this, ChapterSelectionActivity.class);
+                        startActivity(intent);
+                    } else {
+                        Intent intent = new Intent(LoginActivity.this, GameActivity.class);
+                        startActivity(intent);
+                    }
+                } else {
+                    AlertDialog.Builder b = new AlertDialog.Builder(LoginActivity.this);
+                    b.setTitle(getString(R.string.unexpected_response))
+                            .setMessage(getString(R.string.unexpected_response_hint))
+                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // Do nothing
+                                }
+                            })
+                            .show();
+                    Log.e(TAG, "Error getting userId");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<CurrentUser> call, Throwable t) {
+                showProgress(false);
+                AlertDialog.Builder b = new AlertDialog.Builder(LoginActivity.this);
+                b.setTitle(getString(R.string.generic_connection_error))
+                        .setMessage(getString(R.string.generic_connection_error_hint))
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Do nothing
+                            }
+                        })
+                        .show();
+                Log.d("Error", t.getMessage());
+            }
+        });
+    }
     /**
      * Shows the progress UI and hides the login form.
      */

@@ -7,6 +7,7 @@ import com.hvzhub.app.API.model.Chat.MessageListContainer;
 import com.hvzhub.app.API.model.Chat.PostChatResponse;
 import com.hvzhub.app.API.model.Chat.PostChatRequest;
 import com.hvzhub.app.API.model.Code;
+import com.hvzhub.app.API.model.CurrentUser;
 import com.hvzhub.app.API.model.Games.GameListContainer;
 import com.hvzhub.app.API.model.Games.News.NewsContainer;
 import com.hvzhub.app.API.model.Games.RecordContainer;
@@ -25,6 +26,9 @@ import retrofit2.http.Query;
 public interface HvZHubClient {
     @POST("login")
     Call<Session> login(@Body LoginRequest loginRequest);
+
+    @POST("currentuser")
+    Call<CurrentUser> getCurrentUser(@Body Uuid uuid);
 
     // Chapter/Game selection
     @POST("chapters")
