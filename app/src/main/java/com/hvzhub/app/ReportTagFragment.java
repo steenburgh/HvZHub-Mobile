@@ -202,7 +202,9 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
                         errorMessage = "That code doesn't belong to a player";
                     } else if (err.contains("timestamp")) {
                         errorMessage = "You must submit a tag timestamp";
-                    } else {
+                    } else if (err.contains("fuck")) {
+                        errorMessage = "You must be a zombie to make a tag!";
+                    }else {
                         errorMessage = "Unexpected response from HvZHub.com";
                     }
                     AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
