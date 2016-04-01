@@ -1,6 +1,8 @@
 package com.hvzhub.app;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -25,9 +27,11 @@ import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.maps.android.heatmaps.Gradient;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.hvzhub.app.API.API;
+import com.hvzhub.app.API.ErrorUtils;
 import com.hvzhub.app.API.HvZHubClient;
+import com.hvzhub.app.API.model.APIError;
 import com.hvzhub.app.API.model.APISuccess;
-import com.hvzhub.app.API.model.Games.Heatmap;
+import com.hvzhub.app.API.model.Games.HeatmapTagContainer;
 import com.hvzhub.app.API.model.Uuid;
 import com.hvzhub.app.Prefs.GamePrefs;
 import com.hvzhub.app.Prefs.TagLocationPref;
@@ -61,6 +65,8 @@ public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallb
     GoogleMap heatMap;
     HeatmapTileProvider mProvider;
     TileOverlay mOverlay;
+    ArrayList<LatLng> tagList = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,13 +78,14 @@ public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallb
 
         Button quit = (Button) findViewById(R.id.quit);
         quit.setOnClickListener(new View.OnClickListener() {
-                                         @Override
-                                         public void onClick(View v) {
-                                             finish();
-                                         }
-                                     }
+                                    @Override
+                                    public void onClick(View v) {
+                                        finish();
+                                    }
+                                }
 
         );
+        loadData();
     }
 
     @Override
@@ -90,41 +97,68 @@ public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallb
 
         heatMap.moveCamera(CameraUpdateFactory.zoomTo(15));
         heatMap.moveCamera(CameraUpdateFactory.newLatLng(bascom));
+
         addHeatMap();
 
     }
 
-    private void addHeatMap() {
-        ArrayList<Double> lats = new ArrayList<>();
-        ArrayList<Double> longs = new ArrayList<>();
-        lats.add(43.125299);
-        longs.add(-89.40337299999999);
-        lats.add(43.095299);
-        longs.add(-89.40357299999999);
-        lats.add(43.075299);
-        longs.add(-89.40207299999999);
-
-        ArrayList<LatLng> list = new ArrayList<LatLng>();
-        for (int i = 0; i < lats.size(); i++){
-            list.add(new LatLng(lats.get(i), longs.get(i)));
-        }
+    private void loadData() {
 
         int gameId = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
         String uuid = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
 
         HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
-        Call<Heatmap> call = client.getHeatmap(new Uuid(uuid), gameId);
-        call.enqueue(new Callback<Heatmap>() {
+        Call<HeatmapTagContainer> call = client.getHeatmap(new Uuid(uuid), gameId);
+        call.enqueue(new Callback<HeatmapTagContainer>() {
             @Override
-            public void onResponse(Call<Heatmap> call, Response<Heatmap> response) {
+            public void onResponse(Call<HeatmapTagContainer> call, Response<HeatmapTagContainer> response) {
                 //TODO
+                if (response.isSuccessful()) {
+                    for (int i = 0; i < response.body().tags.size(); i++) {
+                        tagList.add(new LatLng(response.body().tags.get(i).lat, response.body().tags.get(i).lon));
+                    }
+
+                    mProvider.setData(tagList);
+                    mOverlay.clearTileCache();
+
+                } else {
+
+                    APIError apiError = ErrorUtils.parseError(response);
+                    String err = apiError.error.toLowerCase();
+                    if (err.contains(getString(R.string.invalid_session_id))) {
+                        // Notify the parent activity that the user should be logged out
+                        // Don't bother stopping the loading animation
+                        Toast.makeText(getApplicationContext(), "Invalid Session ID. Logging Out...", Toast.LENGTH_SHORT);
+                        logout();
+                    } else {
+                        AlertDialog.Builder b = new AlertDialog.Builder(HeatmapActivity.this);
+                        b.setTitle(getString(R.string.unexpected_response))
+                                .setMessage(getString(R.string.unexpected_response_hint))
+                                .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+
+                                    }
+                                })
+                                .show();
+                    }
+                }
             }
 
             @Override
-            public void onFailure(Call<Heatmap> call, Throwable t) {
+            public void onFailure(Call<HeatmapTagContainer> call, Throwable t) {
+                Toast.makeText(getApplicationContext(), "Error Loading Game Tags. Alert HVZ Hub dev team.", Toast.LENGTH_SHORT);
                 //TODO
             }
         });
+
+
+    }
+
+    private void addHeatMap() {
+
+        ArrayList<LatLng> list = new ArrayList<>();
+        list.add(new LatLng(43.075299,  -89.40337299999999));
 
         int[] colors = {
                 Color.rgb(102, 225, 0), // green
@@ -136,7 +170,6 @@ public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallb
         };
 
         Gradient gradient = new Gradient(colors, startPoints);
-
         // Create a heat map tile provider, passing it the latlngs of the police stations.
         mProvider = new HeatmapTileProvider.Builder()
                 .data(list)
@@ -145,81 +178,20 @@ public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallb
         // Add a tile overlay to the map, using the heat map tile provider.
         mOverlay = heatMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
         mOverlay.clearTileCache();
+
     }
 
-    private ArrayList<LatLng> readItems(int gameId, String chapterUrl) throws JSONException {
 
-        //for testing purposes. change path to reflect game id and chapter url
-        String path = "hvzhub.com/heatmap.json";
 
-        //need to query website for json of tags
-        ArrayList<LatLng> list = new ArrayList<LatLng>();
-        try{
-            JSONObject json = getJSONFromUrl(path);
+    private void logout() {
+        // Clear *all* GamePrefs
+        SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
+        editor.clear();
+        editor.apply();
 
-        // get the array of users
-            JSONArray dataJsonArr = json.getJSONArray("Tags");
-
-        // loop through all users
-            for (int i = 0; i < dataJsonArr.length(); i++) {
-
-                JSONObject c = dataJsonArr.getJSONObject(i);
-
-            // Storing each json item in variable
-                Double lat = c.getDouble("lat");
-                Double lon = c.getDouble("lon");
-
-                list.add(new LatLng(lat, lon));
-            }
-
-        } catch (JSONException e) {
-        e.printStackTrace();
-        }
-        return list;
-    }
-
-    public JSONObject getJSONFromUrl(String url) {
-
-        JSONObject jObj = null;
-        String json = "";
-
-        StringBuilder jsonFile = new StringBuilder();
-
-        try {
-            URL urlReq = new URL(url);
-
-            // make HTTP request
-            try {
-                HttpURLConnection urlConnection = (HttpURLConnection) urlReq.openConnection();
-                try {
-                    InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        jsonFile.append(line);
-                    }
-                    json = jsonFile.toString();
-
-                } finally {
-                    urlConnection.disconnect();
-                }
-
-                // try parse the string to a JSON object
-                try {
-                    jObj = new JSONObject(json);
-                } catch (JSONException e) {
-
-                }
-            }catch (IOException e){
-
-            }
-        } catch (MalformedURLException e) {
-
-        }
-
-        // return JSON Object
-        return jObj;
+        // Show the login screen again
+        Intent i = new Intent(this, LoginActivity.class);
+        startActivity(i);
+        finish();
     }
 }
