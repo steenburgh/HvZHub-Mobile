@@ -24,6 +24,11 @@ import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.maps.android.heatmaps.Gradient;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
+import com.hvzhub.app.API.API;
+import com.hvzhub.app.API.HvZHubClient;
+import com.hvzhub.app.API.model.APISuccess;
+import com.hvzhub.app.API.model.Games.Heatmap;
+import com.hvzhub.app.API.model.Uuid;
 import com.hvzhub.app.Prefs.GamePrefs;
 import com.hvzhub.app.Prefs.TagLocationPref;
 
@@ -46,6 +51,10 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -101,13 +110,21 @@ public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallb
         }
 
         int gameId = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
-        String chapterUrl = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
+        String uuid = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
 
-        //try {
-        //    list = readItems(gameId, chapterUrl);
-        //} catch (JSONException e) {
-        //   Toast.makeText(this, "Problem reading list of locations.", Toast.LENGTH_LONG).show();
-        //}
+        HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
+        Call<Heatmap> call = client.getHeatmap(new Uuid(uuid), gameId);
+        call.enqueue(new Callback<Heatmap>() {
+            @Override
+            public void onResponse(Call<Heatmap> call, Response<Heatmap> response) {
+                //TODO
+            }
+
+            @Override
+            public void onFailure(Call<Heatmap> call, Throwable t) {
+                //TODO
+            }
+        });
 
         int[] colors = {
                 Color.rgb(102, 225, 0), // green
