@@ -69,8 +69,8 @@ public class GCMRegIntentService extends IntentService {
                 throw new IllegalArgumentException("Invalid arguments for GCMRegIntentService running in CHAT_UPDATE_SUBSCRIPTIONS mode.\n Make sure to specify: ARGS_GAME_ID, ARG_IS_HUMAN and ARG_IS_ADMIN");
             }
             int gameId = extras.getInt(ARGS_GAME_ID, -1);
-            boolean isHuman = extras.getBoolean(ARG_IS_ADMIN, false);
-            boolean isAdmin = extras.getBoolean(ARG_IS_HUMAN, false);
+            boolean isAdmin = extras.getBoolean(ARG_IS_ADMIN, false);
+            boolean isHuman = extras.getBoolean(ARG_IS_HUMAN, false);
 
             Log.d(TAG, String.format("Updating chat subscriptions for gameId: %s", gameId));
 
