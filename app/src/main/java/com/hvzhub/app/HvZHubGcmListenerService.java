@@ -1,9 +1,11 @@
 package com.hvzhub.app;
 
+import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -23,7 +25,11 @@ import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
 import com.hvzhub.app.API.API;
+import com.hvzhub.app.API.HvZHubClient;
 import com.hvzhub.app.API.model.Chat.Message;
+import com.hvzhub.app.API.model.Games.Record;
+import com.hvzhub.app.API.model.Games.RecordContainer;
+import com.hvzhub.app.API.model.Uuid;
 import com.hvzhub.app.DB.DB;
 import com.hvzhub.app.Prefs.ChatPrefs;
 import com.hvzhub.app.Prefs.GamePrefs;
@@ -32,7 +38,11 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 
-public class HvZHubGcmListenerService extends GcmListenerService {
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+public class HvZHubGcmListenerService extends GcmListenerService implements OnRefreshIsHumanListener {
     private static final String TAG = "HvZHubGcmListener";
     private static final String GROUP_ZOMBIE_CHAT = "chatZombie";
     private static final String GROUP_HUMAN_CHAT = "chatHuman";
@@ -46,14 +56,20 @@ public class HvZHubGcmListenerService extends GcmListenerService {
      */
     // [START receive_message]
     @Override
-    public void onMessageReceived(String from, Bundle data) {
+    public void onMessageReceived(String from, final Bundle data) {
         String rawData = data.toString();
         Log.d(TAG, "From: " + from);
         Log.d(TAG, "Raw Data: " + rawData);
 
         if (from.startsWith("/topics/")) {
-            String topic = from.split("/")[2];
-            handleChatMessage(data, topic);
+            final String topic = from.split("/")[2];
+            OnRefreshIsHuman(new OnIsHumanRefreshedListener() {
+                @Override
+                public void OnIsHumanRefreshed() {
+                    handleChatMessage(data, topic);
+                }
+            });
+
         } else {
             // normal downstream message.
         }
@@ -68,9 +84,10 @@ public class HvZHubGcmListenerService extends GcmListenerService {
 
         // Check for the correct team
         if (topicTeamIsHuman != isHuman) {
-            Log.w(TAG, "Received notification from the wrong team. Perhaps subscriptions aren't up to date");
-            Log.w(TAG, String.format("Topic: %s", topicTeamStr) );
-            Log.w(TAG, String.format("Current team: %s", isHuman ? "human" : "zombie") );
+            Log.d(TAG, "Received notification from the wrong team. Updating subscriptions.");
+            Log.d(TAG, String.format("Topic: %s", topicTeamStr) );
+            Log.d(TAG, String.format("Current team: %s", isHuman ? "human" : "zombie") );
+            updateNotificationSubscriptions();
             return false;
         }
 
@@ -139,6 +156,57 @@ public class HvZHubGcmListenerService extends GcmListenerService {
         }
 
         return true;
+    }
+
+    @Override
+    public void OnRefreshIsHuman(final OnRefreshIsHumanListener.OnIsHumanRefreshedListener listener) {
+        HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
+        SharedPreferences prefs = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE);
+        String uuid = prefs.getString(GamePrefs.PREFS_SESSION_ID, null);
+        int gameId = prefs.getInt(GamePrefs.PREFS_GAME_ID, -1);
+        Call<RecordContainer> call = client.getMyRecord(new Uuid(uuid), gameId);
+        call.enqueue(new Callback<RecordContainer>() {
+            @Override
+            public void onResponse(Call<RecordContainer> call, Response<RecordContainer> response) {
+                if (response.isSuccessful()) {
+                    Record r = response.body().record;
+                    SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).edit();
+                    editor.putBoolean(GamePrefs.PREFS_IS_HUMAN, r.status == Record.HUMAN);
+                    editor.apply();
+                    Log.d(TAG, String.format("Status updated: status = %d", r.status));
+
+                    listener.OnIsHumanRefreshed();
+                } else {
+                    Log.e(TAG, "Refresh is human failed.");
+                    Log.e(TAG, response.errorBody().toString());
+                    listener.OnIsHumanRefreshed();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<RecordContainer> call, Throwable t) {
+                Log.e(TAG, "Refresh is human failed.", t);
+                listener.OnIsHumanRefreshed(); // Call this anyways. we don't want to lose notifications
+            }
+        });
+    }
+
+    public void updateNotificationSubscriptions() {
+        Intent intent = new Intent(this, GCMRegIntentService.class);
+
+        // Configure the service to be in update mode
+        intent.putExtra(GCMRegIntentService.CHAT_UPDATE_SUBSCRIPTIONS, true);
+
+        // Add arguments
+        SharedPreferences prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE);
+        int gameId = prefs.getInt(GamePrefs.PREFS_GAME_ID, -1);
+        boolean isHuman = prefs.getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+        boolean isAdmin = prefs.getBoolean(GamePrefs.PREFS_IS_ADMIN, false);
+        intent.putExtra(GCMRegIntentService.ARGS_GAME_ID, gameId);
+        intent.putExtra(GCMRegIntentService.ARG_IS_HUMAN, isHuman);
+        intent.putExtra(GCMRegIntentService.ARG_IS_ADMIN, isAdmin);
+
+        startService(intent);
     }
 
 

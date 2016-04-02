@@ -102,7 +102,7 @@ public interface HvZHubClient {
     );
 
     @POST("games/{id}/my_record")
-    Call<RecordContainer> getGameRecord(
+    Call<RecordContainer> getMyRecord(
             @Body Uuid uuid,
             @Path("id") int gameId
     );

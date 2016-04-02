@@ -11,7 +11,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.database.DataSetObserver;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -28,11 +27,10 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.hvzhub.app.API.API;
 import com.hvzhub.app.API.ErrorUtils;
@@ -62,7 +60,8 @@ public class ChatFragment extends Fragment {
 
     private BroadcastReceiver msgBroadcastReceiver;
     private boolean msgReceiverIsRegistered;
-    private OnLogoutListener mListener;
+    private OnLogoutListener mLogoutListener;
+    private OnRefreshIsHumanListener mRefreshIsHumanListener;
     private ViewGroup mContainer;
     private boolean loading;
     private boolean atBeginningOfChats;
@@ -236,7 +235,7 @@ public class ChatFragment extends Fragment {
             HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
             String uuid = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
             int gameId = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
-            boolean isHuman = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+            final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
 
             Call<MessageListContainer> call = client.getChats(
                     new Uuid(uuid),
@@ -287,7 +286,7 @@ public class ChatFragment extends Fragment {
                                 listView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
                                     @Override
                                     public boolean onPreDraw() {
-                                        if (listView.getFirstVisiblePosition() == (positionToSave -1)) {
+                                        if (listView.getFirstVisiblePosition() == (positionToSave - 1)) {
                                             listView.getViewTreeObserver().removeOnPreDrawListener(this);
 
                                             // Don't hide call showListViewProgress to hide
@@ -314,8 +313,11 @@ public class ChatFragment extends Fragment {
                         if (err.contains(getString(R.string.invalid_session_id))) {
                             // Notify the parent activity that the user should be logged out
                             // Don't bother stopping the loading animation
-                            mListener.onLogout();
+                            mLogoutListener.onLogout();
                         } else {
+                            if (checkForWrongTeamError(err)) {
+                                return; // If there was an error, the activity will be reloaded. skip everything else
+                            }
                             AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
                             b.setTitle(getString(R.string.unexpected_response))
                                     .setMessage(getString(R.string.unexpected_response_hint))
@@ -388,10 +390,10 @@ public class ChatFragment extends Fragment {
             return;
         }
 
-        showSendProgress(true);
         String uuid = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
         int gameId = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
-        int userId = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_USER_ID, -1);;
+        int userId = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_USER_ID, -1);
+        ;
         boolean isHuman = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
 
         HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
@@ -416,8 +418,11 @@ public class ChatFragment extends Fragment {
                     if (err.contains(getString(R.string.invalid_session_id))) {
                         // Notify the parent activity that the user should be logged out
                         // Don't bother stopping the loading animation
-                        mListener.onLogout();
+                        mLogoutListener.onLogout();
                     } else {
+                        if (checkForWrongTeamError(err)) {
+                            return; // If there was an error, the activity will be reloaded. skip everything else
+                        }
                         Snackbar snackbar = Snackbar.make(listView, R.string.unexpected_response, Snackbar.LENGTH_LONG);
                         View view = snackbar.getView();
                         TextView tv = (TextView) view.findViewById(android.support.design.R.id.snackbar_text);
@@ -435,6 +440,7 @@ public class ChatFragment extends Fragment {
                 }
             }
 
+
             @Override
             public void onFailure(Call<PostChatResponse> call, Throwable t) {
                 showSendProgress(false);
@@ -446,6 +452,21 @@ public class ChatFragment extends Fragment {
                 snackbar.show();
             }
         });
+    }
+
+    private boolean checkForWrongTeamError(String err) {
+        if (err.contains(getString(R.string.invalid_team))) {
+            Toast t = Toast.makeText(getActivity(), getString(R.string.you_were_just_turned_reloading_chat), Toast.LENGTH_LONG);
+            t.show();
+            mRefreshIsHumanListener.OnRefreshIsHuman(new OnRefreshIsHumanListener.OnIsHumanRefreshedListener() {
+                @Override
+                public void OnIsHumanRefreshed() {
+                    // DO nothing
+                }
+            });
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -553,16 +574,23 @@ public class ChatFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         if (context instanceof OnLogoutListener) {
-            mListener = (OnLogoutListener) context;
+            mLogoutListener = (OnLogoutListener) context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must be an instance of OnLogoutListener");
+        }
+
+        if (context instanceof OnRefreshIsHumanListener) {
+            mRefreshIsHumanListener = (OnRefreshIsHumanListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must be an instance of OnRefreshIsHumanListener");
         }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
+        mLogoutListener = null;
     }
 }

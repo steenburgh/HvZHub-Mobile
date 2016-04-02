@@ -28,6 +28,8 @@ import com.hvzhub.app.API.NetworkUtils;
 import com.hvzhub.app.API.model.APIError;
 import com.hvzhub.app.API.model.Chapters.ChapterInfo;
 import com.hvzhub.app.API.model.Games.Game;
+import com.hvzhub.app.API.model.Games.Record;
+import com.hvzhub.app.API.model.Games.RecordContainer;
 import com.hvzhub.app.API.model.Status;
 import com.hvzhub.app.API.model.Uuid;
 import com.hvzhub.app.Prefs.GamePrefs;
@@ -41,6 +43,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class GameSelectionActivity extends AppCompatActivity {
+    public static final String TAG = "GameSelectionActivity";
 
     ListView listView;
     ArrayAdapter<Game> adapter;
@@ -128,19 +131,19 @@ public class GameSelectionActivity extends AppCompatActivity {
                         } else {
                             AlertDialog.Builder b = new AlertDialog.Builder(GameSelectionActivity.this);
                             b.setTitle(getString(R.string.unexpected_response))
-                                .setMessage(getString(R.string.unexpected_response_hint))
-                                .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        getGameList();
-                                    }
-                                })
-                                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                    }
-                                })
-                                .show();
+                                    .setMessage(getString(R.string.unexpected_response_hint))
+                                    .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            getGameList();
+                                        }
+                                    })
+                                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                        }
+                                    })
+                                    .show();
                         }
                     }
                 }
@@ -179,17 +182,13 @@ public class GameSelectionActivity extends AppCompatActivity {
         call.enqueue(new Callback<Status>() {
             @Override
             public void onResponse(Call<Status> call, Response<Status> response) {
-                showProgress(false);
                 if (response.isSuccessful()) {
                     SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
                     prefs.putInt(GamePrefs.PREFS_GAME_ID, game.id);
                     prefs.apply();
-
-                    Intent i = new Intent(GameSelectionActivity.this, GameActivity.class);
-                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(i);
-                    finish();
+                    updateIsHuman();
                 } else {
+                    showProgress(false);
                     APIError apiError = ErrorUtils.parseError(response);
                     String err = apiError.error.toLowerCase();
                     if (err.equals(getString(R.string.invalid_session_id))) {
@@ -215,6 +214,59 @@ public class GameSelectionActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<Status> call, Throwable t) {
+                showProgress(false);
+                AlertDialog.Builder b = new AlertDialog.Builder(GameSelectionActivity.this);
+                b.setTitle(getString(R.string.generic_connection_error))
+                        .setMessage(getString(R.string.generic_connection_error_hint))
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Do nothing
+                            }
+                        })
+                        .show();
+                Log.d("Error", t.getMessage());
+            }
+        });
+    }
+
+    public void updateIsHuman() {
+        HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
+        SharedPreferences prefs = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE);
+        String uuid = prefs.getString(GamePrefs.PREFS_SESSION_ID, null);
+        int gameId = prefs.getInt(GamePrefs.PREFS_GAME_ID, -1);
+        Call<RecordContainer> call = client.getMyRecord(new Uuid(uuid), gameId);
+        call.enqueue(new Callback<RecordContainer>() {
+            @Override
+            public void onResponse(Call<RecordContainer> call, Response<RecordContainer> response) {
+                showProgress(false);
+                if (response.isSuccessful()) {
+                    Record r = response.body().record;
+                    SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).edit();
+                    editor.putBoolean(GamePrefs.PREFS_IS_HUMAN, r.status == Record.HUMAN);
+                    editor.apply();
+                    Log.d(TAG, String.format("Status updated: status = %d", r.status));
+
+                    Intent i = new Intent(GameSelectionActivity.this, GameActivity.class);
+                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(i);
+                    finish();
+                } else {
+                    AlertDialog.Builder b = new AlertDialog.Builder(GameSelectionActivity.this);
+                    b.setTitle(getString(R.string.unexpected_response))
+                        .setMessage(getString(R.string.unexpected_response_hint))
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Do nothing
+                            }
+                        })
+                        .show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<RecordContainer> call, Throwable t) {
                 showProgress(false);
                 AlertDialog.Builder b = new AlertDialog.Builder(GameSelectionActivity.this);
                 b.setTitle(getString(R.string.generic_connection_error))
