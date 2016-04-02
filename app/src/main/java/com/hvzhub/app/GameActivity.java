@@ -1,5 +1,7 @@
 package com.hvzhub.app;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.support.v4.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -18,17 +20,30 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.hvzhub.app.API.API;
+import com.hvzhub.app.API.HvZHubClient;
+import com.hvzhub.app.API.model.Games.Record;
+import com.hvzhub.app.API.model.Games.RecordContainer;
+import com.hvzhub.app.API.model.Uuid;
 import com.hvzhub.app.Config.FeedbackConfig;
 import com.hvzhub.app.DB.DB;
 import com.hvzhub.app.Prefs.GCMRegistationPrefs;
 import com.hvzhub.app.Prefs.GamePrefs;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class GameActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnLogoutListener {
+        implements NavigationView.OnNavigationItemSelectedListener,
+        OnLogoutListener,
+        OnRefreshIsHumanListener {
 
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private static final String TAG = "GameActivity";
@@ -51,30 +66,28 @@ public class GameActivity extends AppCompatActivity
     private boolean isReceiverRegistered;
 
     public int curTab;
+    public TextView zedNum;
+    public TextView humanNum;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        gamePrefsListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-            @Override
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                if (key.equals(GamePrefs.PREFS_IS_HUMAN)) {
-                    updateNotificationSubscriptions();
 
-                    // Force a reload of all relevant fragments
-                    chatFragment = null;
-                }
-            }
-        };
-        getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).registerOnSharedPreferenceChangeListener(
-                gamePrefsListener
-        );
         setContentView(R.layout.activity_game);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+        NavigationView navView= (NavigationView) drawer.findViewById(R.id.nav_view);
+        View header = navView.getHeaderView(0);
+        zedNum = (TextView) header.findViewById(R.id.zedcount);
+        humanNum = (TextView) header.findViewById(R.id.humancount);
+
+        humanNum.setText("Humans: 50");
+        zedNum.setText("Zombies: 6");
+
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
@@ -169,14 +182,41 @@ public class GameActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         registerReceiver();
+
+        if (gamePrefsListener == null) {
+            gamePrefsListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+                @Override
+                public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                    if (key.equals(GamePrefs.PREFS_IS_HUMAN)) {
+                        // TODO: Actually notify the user that this has happened
+                        updateNotificationSubscriptions();
+
+                        // Force a reload of all affected fragments
+                        if (chatFragment != null) {
+                            getSupportFragmentManager().beginTransaction().remove(chatFragment).commit();
+                            chatFragment = null;
+                            if (curTab == CHAT_FRAGMENT) {
+                                switchToTab(R.id.nav_chat);
+                            }
+                        }
+                    }
+                }
+            };
+        }
+
+        getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE)
+                .registerOnSharedPreferenceChangeListener(gamePrefsListener);
     }
 
     @Override
     protected void onPause() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
         isReceiverRegistered = false;
+        getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE)
+                .unregisterOnSharedPreferenceChangeListener(gamePrefsListener);
         super.onPause();
     }
+
 
     private void registerReceiver() {
         if (!isReceiverRegistered) {
@@ -316,6 +356,57 @@ public class GameActivity extends AppCompatActivity
         startActivity(i);
         DB.getInstance(this).wipeDatabase();
         finish();
+    }
+
+    /**
+     * Check if the player is a human or zombie, and update GamePrefs.PREFS_IS_HUMAN
+     */
+    @Override
+    public void OnRefreshIsHuman(final OnIsHumanRefreshedListener listener) {
+        HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
+        SharedPreferences prefs = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE);
+        String uuid = prefs.getString(GamePrefs.PREFS_SESSION_ID, null);
+        int gameId = prefs.getInt(GamePrefs.PREFS_GAME_ID, -1);
+        Call<RecordContainer> call = client.getMyRecord(new Uuid(uuid), gameId);
+        call.enqueue(new Callback<RecordContainer>() {
+            @Override
+            public void onResponse(Call<RecordContainer> call, Response<RecordContainer> response) {
+                if (response.isSuccessful()) {
+                    Record r = response.body().record;
+                    SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).edit();
+                    editor.putBoolean(GamePrefs.PREFS_IS_HUMAN, r.status == Record.HUMAN);
+                    editor.apply();
+                    Log.d(TAG, String.format("Status updated: status = %d", r.status));
+
+                    listener.OnIsHumanRefreshed();
+                } else {
+                    AlertDialog.Builder b = new AlertDialog.Builder(GameActivity.this);
+                    b.setTitle(getString(R.string.unexpected_response))
+                        .setMessage(getString(R.string.unexpected_response_hint))
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Do nothing
+                            }
+                        })
+                        .show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<RecordContainer> call, Throwable t) {
+                AlertDialog.Builder b = new AlertDialog.Builder(GameActivity.this);
+                b.setTitle(getString(R.string.generic_connection_error))
+                    .setMessage(getString(R.string.generic_connection_error_hint))
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // Do nothing
+                        }
+                    })
+                    .show();
+            }
+        });
     }
 
     @Override
