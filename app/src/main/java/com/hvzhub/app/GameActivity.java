@@ -272,13 +272,13 @@ public class GameActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
-        switchToTab(item.getItemId());
-        return true;
+        return switchToTab(item.getItemId());
     }
 
-    public void switchToTab(int id) {
+    public boolean switchToTab(int id) {
         Intent i;
         Fragment toSwitch = null;
+        boolean activityWasOpened = true;
         switch (id) {
             case R.id.nav_mod_updates:
                 if (modUpdatesFragment == null) {
@@ -340,6 +340,9 @@ public class GameActivity extends AppCompatActivity
 
             DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
             drawer.closeDrawer(GravityCompat.START);
+            return true;
+        } else {
+            return false; // If a fragment wasn't opened, don't highlight the navigation item.
         }
     }
 
