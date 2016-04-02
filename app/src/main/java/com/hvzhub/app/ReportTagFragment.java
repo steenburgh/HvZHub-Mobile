@@ -149,8 +149,8 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
         String tagCode = submitCode.getText().toString();
         Date tagDate = tagTime.getTime();
 
-        double Lat = Double.parseDouble(getActivity().getSharedPreferences(TagLocationPref.NAME, 0).getString("lat", null));
-        double Long = Double.parseDouble(getActivity().getSharedPreferences(TagLocationPref.NAME, 0).getString("long", null));
+        double Lat = Double.parseDouble(getActivity().getSharedPreferences(TagLocationPref.NAME, 0).getString(TagLocationPref.Latitude, "0"));
+        double Long = Double.parseDouble(getActivity().getSharedPreferences(TagLocationPref.NAME, 0).getString(TagLocationPref.Longitude, "0"));
 
         TagPlayerRequest tpr = new TagPlayerRequest(
                 uuid,
@@ -158,7 +158,6 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
                 tagDate,
                 Lat,
                 Long
-
         );
         Call<APISuccess> call = client.reportTag(gameId, tpr);
         call.enqueue(new Callback<APISuccess>() {
@@ -336,11 +335,11 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
 
     public void setLatLng(){
         SharedPreferences prefs = getActivity().getSharedPreferences(TagLocationPref.NAME, 0);
-        String latVal = prefs.getString("lat", null);
+        String latVal = prefs.getString(TagLocationPref.Latitude, "0"); // If Latitude isn't set, return "0"
         if(latVal.length() >= 11){
             latVal = latVal.substring(0, 10);
         }
-        String longVal = prefs.getString("long", null);
+        String longVal = prefs.getString(TagLocationPref.Longitude, "0"); // If Latitude isn't set, return "0"
         if(longVal.length() >= 11) {
             longVal = longVal.substring(0, 10);
         }
