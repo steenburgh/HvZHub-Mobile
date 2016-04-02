@@ -197,15 +197,15 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
                     if (err.contains("join")) {
                         errorMessage = "You must join this game to be able to tag a player";
                     } else if (err.contains("submit")) {
-                        errorMessage = "You must submit a tag code";
+                        errorMessage = getString(R.string.you_must_submit_a_tag_code);
                     } else if (err.contains("player")) {
-                        errorMessage = "That code doesn't belong to a player";
+                        errorMessage = getString(R.string.that_code_doesnt_belong_to_a_player);
                     } else if (err.contains("timestamp")) {
-                        errorMessage = "You must submit a tag timestamp";
+                        errorMessage = getString(R.string.you_must_enter_a_timestamp);
                     } else if (err.contains("fuck")) {
-                        errorMessage = "You must be a zombie to make a tag!";
+                        errorMessage = getString(R.string.you_must_be_a_zombie_to_make_a_tag);
                     }else {
-                        errorMessage = "Unexpected response from HvZHub.com";
+                        errorMessage = getString(R.string.unexpected_response);
                     }
                     AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
                     b.setTitle("Tag Failed")
