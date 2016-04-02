@@ -78,14 +78,21 @@ public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallb
 
         Button quit = (Button) findViewById(R.id.quit);
         quit.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        finish();
-                                    }
-                                }
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
 
-        );
-        loadData();
+        Button addPts = (Button) findViewById(R.id.add_pts);
+        addPts.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                loadData();
+            }
+        });
+
+
     }
 
     @Override
@@ -97,8 +104,6 @@ public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallb
 
         heatMap.moveCamera(CameraUpdateFactory.zoomTo(15));
         heatMap.moveCamera(CameraUpdateFactory.newLatLng(bascom));
-
-        addHeatMap();
 
     }
 
@@ -118,8 +123,7 @@ public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallb
                         tagList.add(new LatLng(response.body().tags.get(i).lat, response.body().tags.get(i).lon));
                     }
 
-                    mProvider.setData(tagList);
-                    mOverlay.clearTileCache();
+                    addHeatMap(tagList);
 
                 } else {
 
@@ -155,10 +159,10 @@ public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallb
 
     }
 
-    private void addHeatMap() {
+    private void addHeatMap(List<LatLng> list) {
 
-        ArrayList<LatLng> list = new ArrayList<>();
-        list.add(new LatLng(43.075299,  -89.40337299999999));
+//        ArrayList<LatLng> list = new ArrayList<>();
+//        list.add(new LatLng(43.075299, -89.40337299999999));
 
         int[] colors = {
                 Color.rgb(102, 225, 0), // green
@@ -180,7 +184,6 @@ public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallb
         mOverlay.clearTileCache();
 
     }
-
 
 
     private void logout() {
