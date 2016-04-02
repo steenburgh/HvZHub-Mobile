@@ -83,16 +83,6 @@ public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallb
                 finish();
             }
         });
-
-        Button addPts = (Button) findViewById(R.id.add_pts);
-        addPts.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                loadData();
-            }
-        });
-
-
     }
 
     @Override
@@ -104,7 +94,7 @@ public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallb
 
         heatMap.moveCamera(CameraUpdateFactory.zoomTo(15));
         heatMap.moveCamera(CameraUpdateFactory.newLatLng(bascom));
-
+        loadData();
     }
 
     private void loadData() {

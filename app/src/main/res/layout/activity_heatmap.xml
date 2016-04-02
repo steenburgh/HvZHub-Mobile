@@ -28,17 +28,6 @@
             android:layout_gravity="center_horizontal|bottom"
             android:layout_marginTop="0dp"
             android:layout_marginBottom="20dp" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Add points"
-            android:layout_below="@id/quit"
-            android:id="@+id/add_pts"
-            android:layout_centerHorizontal="true"
-            android:layout_gravity="center_horizontal|bottom"
-            android:layout_marginTop="0dp"
-            android:layout_marginBottom="20dp" />
     </RelativeLayout>
 
 </FrameLayout>
