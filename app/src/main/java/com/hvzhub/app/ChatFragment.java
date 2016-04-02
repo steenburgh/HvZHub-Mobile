@@ -101,6 +101,14 @@ public class ChatFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        mRefreshIsHumanListener.OnRefreshIsHuman(new OnRefreshIsHumanListener.OnIsHumanRefreshedListener() {
+            @Override
+            public void OnIsHumanRefreshed() {
+                // Do nothing
+            }
+        });
+
         loading = false;
         atBeginningOfChats = false;
 
@@ -457,8 +465,6 @@ public class ChatFragment extends Fragment {
 
     private boolean checkForWrongTeamError(String err) {
         if (err.contains(getString(R.string.invalid_team))) {
-            Toast t = Toast.makeText(getActivity(), getString(R.string.you_were_just_turned_reloading_chat), Toast.LENGTH_LONG);
-            t.show();
             mRefreshIsHumanListener.OnRefreshIsHuman(new OnRefreshIsHumanListener.OnIsHumanRefreshedListener() {
                 @Override
                 public void OnIsHumanRefreshed() {

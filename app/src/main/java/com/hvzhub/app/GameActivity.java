@@ -73,6 +73,14 @@ public class GameActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
+        OnRefreshIsHuman(new OnIsHumanRefreshedListener() {
+            @Override
+            public void OnIsHumanRefreshed() {
+                // Do nothing
+            }
+        });
+
         setContentView(R.layout.activity_game);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -196,6 +204,8 @@ public class GameActivity extends AppCompatActivity
                             getSupportFragmentManager().beginTransaction().remove(chatFragment).commit();
                             chatFragment = null;
                             if (curTab == CHAT_FRAGMENT) {
+                                Toast t = Toast.makeText(GameActivity.this, getString(R.string.you_were_just_turned_reloading_chat), Toast.LENGTH_LONG);
+                                t.show();
                                 switchToTab(R.id.nav_chat);
                             }
                         }
@@ -377,19 +387,18 @@ public class GameActivity extends AppCompatActivity
                     editor.putBoolean(GamePrefs.PREFS_IS_HUMAN, r.status == Record.HUMAN);
                     editor.apply();
                     Log.d(TAG, String.format("Status updated: status = %d", r.status));
-
                     listener.OnIsHumanRefreshed();
                 } else {
                     AlertDialog.Builder b = new AlertDialog.Builder(GameActivity.this);
                     b.setTitle(getString(R.string.unexpected_response))
-                        .setMessage(getString(R.string.unexpected_response_hint))
-                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                // Do nothing
-                            }
-                        })
-                        .show();
+                            .setMessage(getString(R.string.unexpected_response_hint))
+                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    // Do nothing
+                                }
+                            })
+                            .show();
                 }
             }
 
@@ -397,14 +406,14 @@ public class GameActivity extends AppCompatActivity
             public void onFailure(Call<RecordContainer> call, Throwable t) {
                 AlertDialog.Builder b = new AlertDialog.Builder(GameActivity.this);
                 b.setTitle(getString(R.string.generic_connection_error))
-                    .setMessage(getString(R.string.generic_connection_error_hint))
-                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            // Do nothing
-                        }
-                    })
-                    .show();
+                        .setMessage(getString(R.string.generic_connection_error_hint))
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Do nothing
+                            }
+                        })
+                        .show();
             }
         });
     }
