@@ -15,13 +15,15 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
+import freemarker.template.utility.StringUtil;
+
 public class DateConverter implements JsonDeserializer<Date>, JsonSerializer<Date> {
     private final String DATE_FORMAT_PREFERRED = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
-    private final String DATE_FORMAT_ALT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
     private static DateConverter mInstance;
 
-    public DateConverter() {}
+    public DateConverter() {
+    }
 
     public static DateConverter getInstance() {
         if (mInstance == null) {
@@ -40,16 +42,39 @@ public class DateConverter implements JsonDeserializer<Date>, JsonSerializer<Dat
     }
 
     public Date deserialize(String dateStr) throws ParseException {
+        // Unfortunately, there isn't a good ISO 8601 parser in java right
+        // now so we have to do a some of the parsing on our own
+        dateStr = cleanDateStr(dateStr);
+
         DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PREFERRED);
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return dateFormat.parse(dateStr);
+    }
 
-        try {
-            return dateFormat.parse(dateStr);
-        } catch (ParseException e) {
-            // If the first attempt failed, try with the other format
-            dateFormat = new SimpleDateFormat(DATE_FORMAT_ALT);
-            dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-            return dateFormat.parse(dateStr);
+    /**
+     * Cleans up a dateString such that it looks like:
+     * "2016-04-02T23:05:42.340Z"
+     */
+    private String cleanDateStr(String dateStr) {
+        String[] dateStrSplit = dateStr.split("\\.");
+        if (dateStrSplit.length == 1) {
+            // Handle the case where a string looks like:
+            // "2016-04-02T23:05:42Z"
+            return dateStr.replace("Z", "") + ".000Z";
+        }
+        else if (dateStrSplit[1].length() > 4) {
+            // Handle the case where a string looks like:
+            // "2016-04-02T23:05:42.340714Z"
+            StringBuilder sb = new StringBuilder(dateStr.length() - 3);
+            sb.append(dateStrSplit[0]);
+            sb.append('.');
+            sb.append(dateStrSplit[1].substring(0, 3));
+            sb.append('Z');
+            return sb.toString();
+        }
+        else {
+            // String is already in the format we want
+            return dateStr;
         }
     }
 
