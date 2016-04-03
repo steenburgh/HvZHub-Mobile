@@ -18,7 +18,7 @@
             android:layout_height="wrap_content"
             tools:text="Duncan Steenburgh"
             android:textAppearance="?android:textAppearanceSmall"
-            android:textColor="@color/colorPrimaryDark"/>
+            android:textColor="@color/colorAccent"/>
 
         <android.support.v4.widget.Space
             android:layout_width="@dimen/widget_horizontal_margin"

@@ -76,7 +76,7 @@ public class GameNewsAdapter extends BaseAdapter {
     }
 
     private CharSequence newsItemToHtmlString(GameNewsItem newsItem) {
-        int nameColorInt = ContextCompat.getColor(context, R.color.colorPrimaryDark);
+        int nameColorInt = ContextCompat.getColor(context, R.color.colorAccent);
         String nameColorString = String.format("#%06X", (0xFFFFFF & nameColorInt));
         String messageRaw;
         switch(newsItem.type) {
