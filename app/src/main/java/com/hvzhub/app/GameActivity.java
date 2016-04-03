@@ -93,8 +93,8 @@ public class GameActivity extends AppCompatActivity
         zedNum = (TextView) header.findViewById(R.id.zedcount);
         humanNum = (TextView) header.findViewById(R.id.humancount);
 
-        humanNum.setText("Humans: 50");
-        zedNum.setText("Zombies: 6");
+        humanNum.setText("50 Humans");
+        zedNum.setText("6 Zombiesd this");
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
