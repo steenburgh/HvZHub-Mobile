@@ -40,7 +40,7 @@
 
         <EditText
             android:id="@+id/compose_msg"
-            android:inputType="textAutoCorrect|textMultiLine"
+            android:inputType="textCapSentences|textAutoCorrect|textMultiLine"
             android:scrollHorizontally="false"
             android:hint="@string/type_a_message"
             android:layout_width="0dp"
