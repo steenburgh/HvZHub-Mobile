@@ -1,7 +1,6 @@
 package com.hvzhub.app;
 
 import android.app.AlertDialog;
-import android.graphics.Color;
 import android.support.v4.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -15,7 +14,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CalendarView;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -24,18 +22,13 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.hvzhub.app.API.API;
 import com.hvzhub.app.API.ErrorUtils;
 import com.hvzhub.app.API.HvZHubClient;
-import com.hvzhub.app.API.NetworkUtils;
 import com.hvzhub.app.API.model.APIError;
 import com.hvzhub.app.API.model.APISuccess;
-import com.hvzhub.app.API.model.Code;
 import com.hvzhub.app.API.model.TagPlayerRequest;
-import com.hvzhub.app.API.model.Uuid;
 import com.hvzhub.app.Prefs.GamePrefs;
 import com.hvzhub.app.Prefs.TagLocationPref;
 
@@ -143,9 +136,9 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
     }
 
     private void tryToTag() {
-        int gameId = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
+        int gameId = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
         HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
-        String uuid = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
+        String uuid = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
         String tagCode = submitCode.getText().toString();
         Date tagDate = tagTime.getTime();
 

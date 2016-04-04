@@ -1,11 +1,8 @@
 package com.hvzhub.app;
 
-import android.app.AlertDialog;
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -19,8 +16,6 @@ import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.Html;
-import android.text.Spannable;
-import android.text.SpannableString;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
@@ -77,7 +72,7 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
     // [END receive_message]
 
     private boolean handleChatMessage(Bundle data, String topic) {
-        boolean isHuman = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+        boolean isHuman = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
         String[] topicSplit = topic.split("_");
         String topicTeamStr = topicSplit[topicSplit.length - 1];
         boolean topicTeamIsHuman = topicTeamStr.equals("human");
@@ -161,7 +156,7 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
     @Override
     public void OnRefreshIsHuman(final OnRefreshIsHumanListener.OnIsHumanRefreshedListener listener) {
         HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
-        SharedPreferences prefs = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE);
         String uuid = prefs.getString(GamePrefs.PREFS_SESSION_ID, null);
         int gameId = prefs.getInt(GamePrefs.PREFS_GAME_ID, -1);
         Call<RecordContainer> call = client.getMyRecord(new Uuid(uuid), gameId);
@@ -170,7 +165,7 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
             public void onResponse(Call<RecordContainer> call, Response<RecordContainer> response) {
                 if (response.isSuccessful()) {
                     Record r = response.body().record;
-                    SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).edit();
+                    SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).edit();
                     editor.putBoolean(GamePrefs.PREFS_IS_HUMAN, r.status == Record.HUMAN);
                     editor.apply();
                     Log.d(TAG, String.format("Status updated: status = %d", r.status));
@@ -198,7 +193,7 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
         intent.putExtra(GCMRegIntentService.CHAT_UPDATE_SUBSCRIPTIONS, true);
 
         // Add arguments
-        SharedPreferences prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE);
         int gameId = prefs.getInt(GamePrefs.PREFS_GAME_ID, -1);
         boolean isHuman = prefs.getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
         boolean isAdmin = prefs.getBoolean(GamePrefs.PREFS_IS_ADMIN, false);

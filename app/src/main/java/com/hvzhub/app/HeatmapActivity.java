@@ -7,9 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -18,10 +16,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.maps.android.heatmaps.Gradient;
@@ -30,31 +25,12 @@ import com.hvzhub.app.API.API;
 import com.hvzhub.app.API.ErrorUtils;
 import com.hvzhub.app.API.HvZHubClient;
 import com.hvzhub.app.API.model.APIError;
-import com.hvzhub.app.API.model.APISuccess;
 import com.hvzhub.app.API.model.Games.HeatmapTagContainer;
 import com.hvzhub.app.API.model.Uuid;
 import com.hvzhub.app.Prefs.GamePrefs;
-import com.hvzhub.app.Prefs.TagLocationPref;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -99,8 +75,8 @@ public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallb
 
     private void loadData() {
 
-        int gameId = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
-        String uuid = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
+        int gameId = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
+        String uuid = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
 
         HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
         Call<HeatmapTagContainer> call = client.getHeatmap(new Uuid(uuid), gameId);
@@ -178,7 +154,7 @@ public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallb
 
     private void logout() {
         // Clear *all* GamePrefs
-        SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit();
         editor.clear();
         editor.apply();
 

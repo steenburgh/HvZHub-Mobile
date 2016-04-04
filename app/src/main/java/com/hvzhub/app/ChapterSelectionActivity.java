@@ -95,7 +95,7 @@ public class ChapterSelectionActivity extends AppCompatActivity {
             showProgress(true);
             HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
 
-            String uuid = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
+            String uuid = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
             Call<ChapterListContainer> call = client.getChapters(new Uuid(uuid));
             call.enqueue(new Callback<ChapterListContainer>() {
                 @Override
@@ -160,14 +160,14 @@ public class ChapterSelectionActivity extends AppCompatActivity {
     private void joinChapter(final Chapter chapter) {
         showProgress(true);
         HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
-        String uuid = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
+        String uuid = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
         Call<Status> call = client.joinChapter(chapter.getUrl(), new Uuid(uuid));
         call.enqueue(new Callback<Status>() {
             @Override
             public void onResponse(Call<Status> call, Response<Status> response) {
                 showProgress(false);
                 if (response.isSuccessful()) {
-                    SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
+                    SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit();
                     prefs.putString(GamePrefs.PREFS_CHAPTER_URL, chapter.getUrl());
                     prefs.apply();
 
@@ -273,7 +273,7 @@ public class ChapterSelectionActivity extends AppCompatActivity {
 
     private void logout() {
         // Clear *all* GamePrefs
-        SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit();
         editor.clear();
         editor.apply();
 

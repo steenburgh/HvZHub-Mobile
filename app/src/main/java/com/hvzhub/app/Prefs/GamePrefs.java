@@ -2,10 +2,10 @@ package com.hvzhub.app.Prefs;
 
 /**
  * Preferences related to a current game in progress
- * These preferences should be cleared when the user is logged out.
+ * These preferences are cleared when the user is logged out.
  */
 public class GamePrefs {
-    public static final String PREFS_GAME = "gamePrefs";
+    public static final String NAME = "gamePrefs";
 
     public static final String PREFS_SESSION_ID = "sessionID";
     public static final String PREFS_CHAPTER_URL = "chapterUrl";

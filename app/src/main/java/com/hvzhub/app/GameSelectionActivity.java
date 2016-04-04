@@ -99,8 +99,8 @@ public class GameSelectionActivity extends AppCompatActivity {
             showProgress(true);
             HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
 
-            String uuid = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
-            String chapterUrl = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
+            String uuid = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
+            String chapterUrl = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
             Call<ChapterInfo> call = client.getChapterInfo(
                     new Uuid(uuid),
                     chapterUrl
@@ -177,13 +177,13 @@ public class GameSelectionActivity extends AppCompatActivity {
     private void joinGame(final Game game) {
         showProgress(true);
         HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
-        String uuid = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
+        String uuid = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
         Call<Status> call = client.joinGame(game.id, new Uuid(uuid));
         call.enqueue(new Callback<Status>() {
             @Override
             public void onResponse(Call<Status> call, Response<Status> response) {
                 if (response.isSuccessful()) {
-                    SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
+                    SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit();
                     prefs.putInt(GamePrefs.PREFS_GAME_ID, game.id);
                     prefs.apply();
                     updateIsHuman();
@@ -232,7 +232,7 @@ public class GameSelectionActivity extends AppCompatActivity {
 
     public void updateIsHuman() {
         HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
-        SharedPreferences prefs = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE);
         String uuid = prefs.getString(GamePrefs.PREFS_SESSION_ID, null);
         int gameId = prefs.getInt(GamePrefs.PREFS_GAME_ID, -1);
         Call<RecordContainer> call = client.getMyRecord(new Uuid(uuid), gameId);
@@ -242,7 +242,7 @@ public class GameSelectionActivity extends AppCompatActivity {
                 showProgress(false);
                 if (response.isSuccessful()) {
                     Record r = response.body().record;
-                    SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).edit();
+                    SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).edit();
                     editor.putBoolean(GamePrefs.PREFS_IS_HUMAN, r.status == Record.HUMAN);
                     editor.apply();
                     Log.d(TAG, String.format("Status updated: status = %d", r.status));
@@ -339,7 +339,7 @@ public class GameSelectionActivity extends AppCompatActivity {
 
     private void goBackToChapterSelection() {
         // Clear *all* GamePrefs
-        SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit();
         editor.putString(GamePrefs.PREFS_CHAPTER_URL, null);
         editor.apply();
 

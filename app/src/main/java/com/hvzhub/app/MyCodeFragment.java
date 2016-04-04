@@ -98,12 +98,12 @@ public class MyCodeFragment extends Fragment {
                     .show();
             return;
         }
-        int gameId = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
+        int gameId = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
         if (gameId == -1) {
             myCode.setText(R.string.empty_code);
         } else {
             HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
-            String uuid = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
+            String uuid = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
             Call<Code> call = client.getMyCode(gameId, new Uuid(uuid));
             call.enqueue(new Callback<Code>() {
                 @Override

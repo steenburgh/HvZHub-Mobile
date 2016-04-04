@@ -93,8 +93,8 @@ public class GameActivity extends AppCompatActivity
         zedNum = (TextView) header.findViewById(R.id.zedcount);
         humanNum = (TextView) header.findViewById(R.id.humancount);
 
-        humanNum.setText("50 Humans");
-        zedNum.setText("6 Zombiesd this");
+        humanNum.setText("1000 Humans");
+        zedNum.setText("100 Zombies");
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -111,7 +111,7 @@ public class GameActivity extends AppCompatActivity
         } else if (getIntent() != null && getIntent().getExtras() != null) {
             fragmentToOpen = getIntent().getExtras().getInt(ARG_FRAGMENT_NAME);
         } else {
-            fragmentToOpen = MOD_UPDATES_FRAGMENT; // default tab
+            fragmentToOpen = GAME_NEWS_FRAGMENT; // default tab
         }
         switch (fragmentToOpen) {
             case CHAT_FRAGMENT:
@@ -164,7 +164,7 @@ public class GameActivity extends AppCompatActivity
         intent.putExtra(GCMRegIntentService.CHAT_UPDATE_SUBSCRIPTIONS, true);
 
         // Add arguments
-        SharedPreferences prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE);
         int gameId = prefs.getInt(GamePrefs.PREFS_GAME_ID, -1);
         boolean isHuman = prefs.getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
         boolean isAdmin = prefs.getBoolean(GamePrefs.PREFS_IS_ADMIN, false);
@@ -179,7 +179,7 @@ public class GameActivity extends AppCompatActivity
         Intent intent = new Intent(this, GCMRegIntentService.class);
         intent.putExtra(GCMRegIntentService.CHAT_UNSUBSCRIBE_ALL, true);
 
-        SharedPreferences prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE);
         int gameId = prefs.getInt(GamePrefs.PREFS_GAME_ID, -1);
         intent.putExtra(GCMRegIntentService.ARGS_GAME_ID, gameId);
 
@@ -214,7 +214,7 @@ public class GameActivity extends AppCompatActivity
             };
         }
 
-        getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE)
+        getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE)
                 .registerOnSharedPreferenceChangeListener(gamePrefsListener);
     }
 
@@ -222,7 +222,7 @@ public class GameActivity extends AppCompatActivity
     protected void onPause() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
         isReceiverRegistered = false;
-        getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE)
+        getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE)
                 .unregisterOnSharedPreferenceChangeListener(gamePrefsListener);
         super.onPause();
     }
@@ -357,7 +357,7 @@ public class GameActivity extends AppCompatActivity
         unsubscribeAll();
 
         // Clear *all* GamePrefs
-        SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit();
         editor.clear();
         editor.apply();
 
@@ -382,7 +382,7 @@ public class GameActivity extends AppCompatActivity
     @Override
     public void OnRefreshIsHuman(final OnIsHumanRefreshedListener listener) {
         HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
-        SharedPreferences prefs = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE);
         String uuid = prefs.getString(GamePrefs.PREFS_SESSION_ID, null);
         int gameId = prefs.getInt(GamePrefs.PREFS_GAME_ID, -1);
         Call<RecordContainer> call = client.getMyRecord(new Uuid(uuid), gameId);
@@ -391,7 +391,7 @@ public class GameActivity extends AppCompatActivity
             public void onResponse(Call<RecordContainer> call, Response<RecordContainer> response) {
                 if (response.isSuccessful()) {
                     Record r = response.body().record;
-                    SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).edit();
+                    SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).edit();
                     editor.putBoolean(GamePrefs.PREFS_IS_HUMAN, r.status == Record.HUMAN);
                     editor.apply();
                     Log.d(TAG, String.format("Status updated: status = %d", r.status));

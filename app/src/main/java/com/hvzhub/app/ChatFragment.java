@@ -30,7 +30,6 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.hvzhub.app.API.API;
 import com.hvzhub.app.API.ErrorUtils;
@@ -161,7 +160,7 @@ public class ChatFragment extends Fragment {
 
         messageBox = (EditText) view.findViewById(R.id.compose_msg);
 
-        final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+        final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
         messageBox.setHint(isHuman ? R.string.chatting_with_humans : R.string.chatting_with_zombies);
 
         send = (ImageButton) view.findViewById(R.id.send);
@@ -180,16 +179,16 @@ public class ChatFragment extends Fragment {
      * Retrieve these messages and add them to the message list
      */
     private void addMessagesFromDb() {
-        boolean justTurned = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_JUST_TURNED, false);
+        boolean justTurned = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_JUST_TURNED, false);
         if (justTurned) {
             DB.getInstance(getActivity().getApplicationContext()).wipeDatabase();
             refreshMessages();
-            getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit()
+            getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit()
                     .putBoolean(GamePrefs.PREFS_JUST_TURNED, false)
                     .apply();
             Log.d(TAG, "Player was just turned. Reloading chat list");
         } else {
-            final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+            final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
             List<com.hvzhub.app.DB.Message> msgsFromDb = DB.getInstance(getActivity().getApplicationContext()).getMessages(isHuman ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
             for (com.hvzhub.app.DB.Message dbMsg : msgsFromDb) {
                 Message msgObj = new Message(dbMsg);
@@ -241,9 +240,9 @@ public class ChatFragment extends Fragment {
             showListViewProgress(true);
             loading = true;
             HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
-            String uuid = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
-            int gameId = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
-            final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+            String uuid = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
+            int gameId = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
+            final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
 
             Call<MessageListContainer> call = client.getChats(
                     new Uuid(uuid),
@@ -398,10 +397,10 @@ public class ChatFragment extends Fragment {
             return;
         }
 
-        String uuid = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
-        int gameId = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
-        int userId = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_USER_ID, -1);
-        boolean isHuman = getActivity().getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+        String uuid = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
+        int gameId = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
+        int userId = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_USER_ID, -1);
+        boolean isHuman = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
 
         HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
         Call<PostChatResponse> call = client.postChat(

@@ -166,7 +166,7 @@ public class LoginActivity extends AppCompatActivity {
 
                     if (response.isSuccessful()) {
                         // Persist the uuid in sharedPrefs
-                        SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
+                        SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit();
                         Session s = response.body();
                         prefs.putString(GamePrefs.PREFS_SESSION_ID, s.uuid);
                         prefs.apply();
@@ -227,7 +227,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private void getUserId() {
         HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
-        String uuid = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE)
+        String uuid = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE)
                 .getString(GamePrefs.PREFS_SESSION_ID, null);
         Call<CurrentUser> call = client.getCurrentUser(new Uuid(uuid));
         call.enqueue(new Callback<CurrentUser>() {
@@ -237,12 +237,12 @@ public class LoginActivity extends AppCompatActivity {
                     finish();
 
                     int userId = response.body().id;
-                    SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.PREFS_GAME, Context.MODE_PRIVATE).edit();
+                    SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit();
                     prefs.putInt(GamePrefs.PREFS_USER_ID, userId);
                     prefs.apply();
                     Log.d(TAG, String.format("Got user id: %d", userId));
 
-                    String chapterUrl = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
+                    String chapterUrl = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
                     if (chapterUrl == null) {
                         Intent intent = new Intent(LoginActivity.this, ChapterSelectionActivity.class);
                         startActivity(intent);

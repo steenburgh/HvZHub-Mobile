@@ -18,9 +18,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // Decide which activity to start
-        String sessionID = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
-        String chapterUrl = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
-        int gameId = getSharedPreferences(GamePrefs.PREFS_GAME, MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
+        String sessionID = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
+        String chapterUrl = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
+        int gameId = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
         if (sessionID == null) {
             finish();
             Intent i = new Intent(this, LoginActivity.class);
