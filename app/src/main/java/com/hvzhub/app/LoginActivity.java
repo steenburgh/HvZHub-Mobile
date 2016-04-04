@@ -35,6 +35,7 @@ import com.hvzhub.app.API.model.Login.LoginRequest;
 import com.hvzhub.app.API.model.Login.Session;
 import com.hvzhub.app.API.model.Uuid;
 import com.hvzhub.app.Prefs.GamePrefs;
+import com.hvzhub.app.Prefs.LoginPrefs;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -75,6 +76,13 @@ public class LoginActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        String lastEmail = getSharedPreferences(LoginPrefs.NAME, MODE_PRIVATE).getString(LoginPrefs.SAVED_EMAIL, null);
+        if (lastEmail != null) {
+            Log.v(TAG, "User has already logged in once before. AutoFilling email field-.");
+            mEmailView.setText(lastEmail);
+            mPasswordView.requestFocus();
+        }
 
         Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
@@ -157,6 +165,12 @@ public class LoginActivity extends AppCompatActivity {
                     .show();
         } else {
             showProgress(true);
+
+            // Save the user's email for the next time they get logged out
+            SharedPreferences.Editor editor = getSharedPreferences(LoginPrefs.NAME, MODE_PRIVATE).edit();
+            editor.putString(LoginPrefs.SAVED_EMAIL, email);
+            editor.apply();
+
             HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
             LoginRequest lr = new LoginRequest(email, password, true);
             Call<Session> call = client.login(lr);
