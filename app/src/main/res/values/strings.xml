@@ -98,5 +98,7 @@
     <string name="that_code_doesnt_belong_to_a_player">That code doesn\'t belong to a player</string>
     <string name="you_must_enter_a_timestamp">You must submit a tag timestamp</string>
     <string name="you_must_be_a_zombie_to_make_a_tag">You must be a zombie to make a tag!</string>
+    <string name="no_tags_have_a_location_yet">No tags have a location yet :(</string>
+    <string name="dismiss">Dismiss</string>
 
 </resources>
