@@ -9,6 +9,7 @@ import com.hvzhub.app.API.model.Chat.PostChatRequest;
 import com.hvzhub.app.API.model.Code;
 import com.hvzhub.app.API.model.CurrentUser;
 import com.hvzhub.app.API.model.Games.GameListContainer;
+import com.hvzhub.app.API.model.Games.HeatmapTagContainer;
 import com.hvzhub.app.API.model.Games.News.NewsContainer;
 import com.hvzhub.app.API.model.Games.RecordContainer;
 import com.hvzhub.app.API.model.Login.LoginRequest;
@@ -47,7 +48,9 @@ public interface HvZHubClient {
     );
 
     @POST("games")
-    Call<GameListContainer> getGames(@Body Uuid uuid);
+    Call<GameListContainer> getGames(
+            @Body Uuid uuid
+    );
 
 
 
@@ -101,6 +104,12 @@ public interface HvZHubClient {
             @Query("l") int numItems
     );
 
+    @POST("games/{id}/heatmap")
+    Call<HeatmapTagContainer> getHeatmap(
+            @Body Uuid uuid,
+            @Path("id") int gameId
+    );
+    
     @POST("games/{id}/my_record")
     Call<RecordContainer> getMyRecord(
             @Body Uuid uuid,
