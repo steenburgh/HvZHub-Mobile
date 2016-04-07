@@ -1,6 +1,7 @@
 package com.hvzhub.app;
 
 import android.app.AlertDialog;
+import android.support.v4.app.FragmentManager;
 import android.content.DialogInterface;
 import android.support.v4.app.Fragment;
 import android.content.BroadcastReceiver;
@@ -132,6 +133,25 @@ public class GameActivity extends AppCompatActivity
             default:
                 throw new RuntimeException("Invalid tab found");
         }
+
+        // Keep curTab up to date
+        getSupportFragmentManager().addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
+            @Override
+            public void onBackStackChanged() {
+                Fragment f = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+                if (f instanceof ChatFragment) {
+                    curTab = CHAT_FRAGMENT;
+                } else if (f instanceof ModUpdatesFragment) {
+                    curTab = MOD_UPDATES_FRAGMENT;
+                } else if (f instanceof GameNewsFragment) {
+                    curTab = GAME_NEWS_FRAGMENT;
+                } else if (f instanceof MyCodeFragment) {
+                    curTab = MY_CODE_FRAGMENT;
+                } else if (f instanceof ReportTagFragment) {
+                    curTab = REPORT_TAG_FRAGMENT;
+                }
+            }
+        });
 
 
         mRegistrationBroadcastReceiver = new BroadcastReceiver() {
