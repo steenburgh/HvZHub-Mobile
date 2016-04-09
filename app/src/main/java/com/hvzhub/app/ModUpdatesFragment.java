@@ -28,7 +28,7 @@ public class ModUpdatesFragment extends Fragment {
                              Bundle savedInstanceState) {
         getActivity().setTitle(getActivity().getString(R.string.mod_updates));
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_mod_updates, container, false);
+        return inflater.inflate(R.layout.news_layout, container, false);
     }
 
 }

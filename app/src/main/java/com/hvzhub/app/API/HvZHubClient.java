@@ -10,6 +10,7 @@ import com.hvzhub.app.API.model.Code;
 import com.hvzhub.app.API.model.CurrentUser;
 import com.hvzhub.app.API.model.Games.GameListContainer;
 import com.hvzhub.app.API.model.Games.HeatmapTagContainer;
+import com.hvzhub.app.API.model.Games.News.GameNewsItem;
 import com.hvzhub.app.API.model.Games.News.NewsContainer;
 import com.hvzhub.app.API.model.Games.RecordContainer;
 import com.hvzhub.app.API.model.Login.LoginRequest;
@@ -97,7 +98,7 @@ public interface HvZHubClient {
     );
 
     @POST("games/{id}/news")
-    Call<NewsContainer> getNews(
+    Call<NewsContainer<GameNewsItem>> getNews(
             @Body Uuid uuid,
             @Path("id") int gameId,
             @Query("i") int initialNum,
