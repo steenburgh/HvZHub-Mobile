@@ -1,7 +1,6 @@
 package com.hvzhub.app;
 
 import android.app.AlertDialog;
-import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -11,15 +10,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
-import android.widget.Adapter;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 
-import com.hvzhub.app.API.API;
 import com.hvzhub.app.API.ErrorUtils;
-import com.hvzhub.app.API.HvZHubClient;
 import com.hvzhub.app.API.NetworkUtils;
 import com.hvzhub.app.API.model.APIError;
 import com.hvzhub.app.API.model.Games.News.NewsContainer;
@@ -33,9 +27,14 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public abstract class NewsFragment<T> extends Fragment {
+/**
+ * @param <T1> The type of news items being displayed
+ * @param <T2> The container returned by the API call used to get the news items.
+ */
+public abstract class NewsFragment<T1, T2 extends NewsContainer<T1>> extends Fragment {
     protected static final int ITEMS_TO_FETCH_AT_ONCE = 20;
-    protected Call<NewsContainer<T>> loadNewsCall;
+    protected final boolean infiniteScrollMode;
+    protected Call<T2> loadNewsCall;
     protected OnLogoutListener mListener;
     protected boolean loading;
     protected boolean atEnd;
@@ -43,12 +42,12 @@ public abstract class NewsFragment<T> extends Fragment {
     protected ListView listView;
     protected BaseAdapter adapter;
     protected View loadingFooter;
-    protected List<T> newsList;
+    protected List<T1> newsList;
     protected SwipeRefreshLayout swipeContainer;
 
 
-    public NewsFragment() {
-        // Required empty public constructor
+    public NewsFragment(boolean infiniteScrollMode) {
+        this.infiniteScrollMode = infiniteScrollMode;
     }
 
     @Override
@@ -59,7 +58,7 @@ public abstract class NewsFragment<T> extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        getActivity().setTitle(getActivity().getString(R.string.game_news));
+        getActivity().setTitle(getActivity().getString(R.string.news));
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.news_layout, container, false);
     }
@@ -80,6 +79,21 @@ public abstract class NewsFragment<T> extends Fragment {
 
         listView = (ListView) view.findViewById(R.id.list_view);
         // Set up the listView to automatically load more items when the top of the view is reached
+        if (infiniteScrollMode) {
+            setupInfiniteScroll(listView);
+        }
+
+        newsList = new LinkedList<>();
+        adapter = createAdapter(newsList);
+        loadingFooter = getActivity().getLayoutInflater().inflate(R.layout.loader_list_item, null);
+        listView.addFooterView(loadingFooter);
+        listView.setAdapter(adapter);
+        listView.removeFooterView(loadingFooter);
+
+        loadNews(false);
+    }
+
+    private void setupInfiniteScroll(ListView listView) {
         listView.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView view, int scrollState) {
@@ -96,15 +110,6 @@ public abstract class NewsFragment<T> extends Fragment {
                 }
             }
         });
-
-        newsList = new LinkedList<>();
-        adapter = createAdapter(newsList);
-        loadingFooter = getActivity().getLayoutInflater().inflate(R.layout.loader_list_item, null);
-        listView.addFooterView(loadingFooter);
-        listView.setAdapter(adapter);
-        listView.removeFooterView(loadingFooter);
-
-        loadNews(false);
     }
 
     /**
@@ -112,9 +117,10 @@ public abstract class NewsFragment<T> extends Fragment {
      *
      * @return The created adapter, bound to the list.
      */
-    protected abstract BaseAdapter createAdapter(List<T> list);
+    protected abstract BaseAdapter createAdapter(List<T1> list);
 
     private void refreshNews() {
+        
         loadNews(true);
     }
 
@@ -125,14 +131,19 @@ public abstract class NewsFragment<T> extends Fragment {
      * @param uuid             The uuid to use for the call
      * @param gameId           The gameId to use for the call
      * @param initialNum       The initial position in the the list to start
-     * @param numItemsToFetch  The total number of items the call will return
+     * @param fetchEntireList  Whether or not to fetch the entire list at once. If NewsFragment was
+     *                         created with infiniteScrollMode = false, fetchEntireList will always
+     *                         be true.
+     * @param numItemsToFetch  The total number of items the call will return. If fetchEntireList
+     *                         is true, numItemsToFetch will be -1
      *
      * @return The created call
      */
-    protected abstract Call<NewsContainer<T>> createLoadNewsCall(
+    protected abstract Call<T2> createLoadNewsCall(
             Uuid uuid,
             int gameId,
             int initialNum,
+            boolean fetchEntireList,
             int numItemsToFetch
     );
 
@@ -180,16 +191,17 @@ public abstract class NewsFragment<T> extends Fragment {
                     new Uuid(uuid),
                     gameId,
                     refresh ? 0 : newsList.size(),
-                    ITEMS_TO_FETCH_AT_ONCE
+                    !infiniteScrollMode,
+                    infiniteScrollMode ? ITEMS_TO_FETCH_AT_ONCE : -1
             );
-            loadNewsCall.enqueue(new Callback<NewsContainer<T>>() {
+            loadNewsCall.enqueue(new Callback<T2>() {
                 @Override
-                public void onResponse(Call<NewsContainer<T>> call, Response<NewsContainer<T>> response) {
+                public void onResponse(Call<T2> call, Response<T2> response) {
                     if (refresh) {
                         swipeContainer.setRefreshing(false);
                     }
                     if (response.isSuccessful()) {
-                        List<T> newsFromDB = response.body().news;
+                        List<T1> newsFromDB = response.body().getNews();
                         if (newsFromDB == null || newsFromDB.isEmpty()) {
                             atEnd = true;
                             if (refresh) {
@@ -203,9 +215,12 @@ public abstract class NewsFragment<T> extends Fragment {
                                 newsList.clear();
                                 atEnd = false;
                             }
-                            newsList.addAll(response.body().news);
+                            newsList.addAll(response.body().getNews());
                             adapter.notifyDataSetChanged();
                             loading = false;
+                            if (!infiniteScrollMode) {
+                                showListViewProgress(false);
+                            }
                         }
                     } else {
                         loading = false;
@@ -242,7 +257,7 @@ public abstract class NewsFragment<T> extends Fragment {
                 }
 
                 @Override
-                public void onFailure(Call<NewsContainer<T>> call, Throwable t) {
+                public void onFailure(Call<T2> call, Throwable t) {
                     loading = false;
                     if (refresh) {
                         swipeContainer.setRefreshing(false);
