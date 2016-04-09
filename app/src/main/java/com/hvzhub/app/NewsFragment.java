@@ -78,17 +78,15 @@ public abstract class NewsFragment<T1, T2 extends NewsContainer<T1>> extends Fra
         });
 
         listView = (ListView) view.findViewById(R.id.list_view);
-        // Set up the listView to automatically load more items when the top of the view is reached
+
         if (infiniteScrollMode) {
+            // Set up the listView to automatically load more items when the top of the view is reached
             setupInfiniteScroll(listView);
         }
 
         newsList = new LinkedList<>();
         adapter = createAdapter(newsList);
-        loadingFooter = getActivity().getLayoutInflater().inflate(R.layout.loader_list_item, null);
-        listView.addFooterView(loadingFooter);
-        listView.setAdapter(adapter);
-        listView.removeFooterView(loadingFooter);
+        bindAdapter(adapter);
 
         loadNews(false);
     }
@@ -112,6 +110,15 @@ public abstract class NewsFragment<T1, T2 extends NewsContainer<T1>> extends Fra
         });
     }
 
+    protected void bindAdapter(BaseAdapter adapter) {
+        if (loadingFooter == null) {
+            loadingFooter = getActivity().getLayoutInflater().inflate(R.layout.loader_list_item, null);
+        }
+        listView.addFooterView(loadingFooter);
+        listView.setAdapter(adapter);
+        listView.removeFooterView(loadingFooter);
+    }
+
     /**
      * Create the adapter using the specified list
      *
@@ -120,7 +127,6 @@ public abstract class NewsFragment<T1, T2 extends NewsContainer<T1>> extends Fra
     protected abstract BaseAdapter createAdapter(List<T1> list);
 
     private void refreshNews() {
-        
         loadNews(true);
     }
 
@@ -213,6 +219,8 @@ public abstract class NewsFragment<T1, T2 extends NewsContainer<T1>> extends Fra
                         } else {
                             if (refresh) {
                                 newsList.clear();
+                                adapter = createAdapter(newsList);
+                                bindAdapter(adapter);
                                 atEnd = false;
                             }
                             newsList.addAll(response.body().getNews());
