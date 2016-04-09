@@ -1,7 +1,11 @@
 package com.hvzhub.app.API;
 
+import com.hvzhub.app.API.model.APIError;
+import com.hvzhub.app.OnLogoutListener;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
@@ -17,6 +21,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
+
+import retrofit2.Response;
 
 /**
  * A wrapper for the JSON API
@@ -58,5 +64,67 @@ public class API {
 
     public static String utcStringFromDate(Date date) {
         return DateConverter.getInstance().serialize(date);
+    }
+
+    /**
+     * Check if the response contains a message indicating that the current session id is invalid
+     * and log them out if needed.
+     *
+     * @param context
+     * @param response
+     * @param logoutListener
+     * @return  True if the response indicates that the sessionId is valid.
+     *          False if the sessionId is invalid and the user has been logged out.
+     */
+    public static boolean checkForInvalidSessionIdMsg(Context context, Response response, final OnLogoutListener logoutListener) {
+        APIError apiError = ErrorUtils.parseError(response);
+        String err = apiError.error.toLowerCase();
+        if (err.contains(context.getString(R.string.invalid_session_id))) {
+            // Notify the parent activity that the user should be logged out
+            // Don't bother stopping the loading animation
+            logoutListener.onLogout();
+            return false;
+        }
+        return true;
+    }
+
+    public static void displayUnexpectedResponseError(Context ctx, final OnRetryListener listener) {
+        AlertDialog.Builder b = new AlertDialog.Builder(ctx);
+        b.setTitle(ctx.getString(R.string.unexpected_response))
+                .setMessage(ctx.getString(R.string.unexpected_response_hint))
+                .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        listener.OnRetry();
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                })
+                .show();
+    }
+
+    public static void displayGenericConnectionError(Context ctx, final OnRetryListener listener) {
+        AlertDialog.Builder b = new AlertDialog.Builder(ctx);
+        b.setTitle(ctx.getString(R.string.generic_connection_error))
+                .setMessage(ctx.getString(R.string.generic_connection_error_hint))
+                .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        listener.OnRetry();
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                })
+                .show();
+    }
+
+    public interface OnRetryListener {
+        void OnRetry();
     }
 }
