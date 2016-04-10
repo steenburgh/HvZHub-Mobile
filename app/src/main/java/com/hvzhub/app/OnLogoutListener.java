@@ -1,6 +1,6 @@
 package com.hvzhub.app;
 
 
-interface OnLogoutListener {
+public interface OnLogoutListener {
     void onLogout();
 }
