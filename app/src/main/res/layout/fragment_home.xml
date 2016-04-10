@@ -17,10 +17,98 @@
         android:orientation="vertical">
 
         <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Game Status:"
+            android:layout_gravity="center"
+            android:textSize="40dp"
+            android:paddingBottom="20dp"
+            android:id="@+id/statusHeader" />
+
+        <View android:layout_width="fill_parent"
+            android:layout_height="2dip"
+            android:background="@color/colorAccent"
+            android:layout_marginBottom="10dp"
+            />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Humans: "
+                android:paddingRight="20dp"
+                android:paddingBottom="10dp"
+                android:id="@+id/textView"
+                android:layout_weight="1"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="0"
+                android:layout_weight="1"
+                android:id="@+id/humanNum" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Zombies: "
+                android:layout_weight="1"
+                android:id="@+id/textView4"
+                android:paddingRight="20dp"
+                android:paddingBottom="20dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="0"
+                android:layout_weight="1"
+                android:id="@+id/zombieNum" />
+        </LinearLayout>
+
+        <View android:layout_width="fill_parent"
+            android:layout_height="2dip"
+            android:background="@color/colorAccent"
+            android:layout_marginBottom="10dp"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Game Rules:"
+            android:id="@+id/RuleHeader"
+            android:paddingBottom="20dp"
+            android:textSize="40dp"
+            android:layout_gravity="center_horizontal" />
+
+        <View android:layout_width="fill_parent"
+            android:layout_height="2dip"
+            android:background="@color/colorAccent"
+            android:layout_marginBottom="10dp"
+            />
+
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:autoLink="all"
-            android:text="Welcome home. here's a link http://www.google.com" />
+            android:id="@+id/rules"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="" />
 
     </LinearLayout>
 </ScrollView>
