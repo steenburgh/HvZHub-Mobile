@@ -49,7 +49,7 @@
     <string name="hack_the_planet">HACK THE PLANET!!</string>
     <string name="ayy">ayy</string>
     <string name="lmao">lmao</string>
-    <string name="enter_code">Enter Code</string>
+    <string name="enter_code">Enter Code (Codes are all caps)</string>
     <string name="select_a_chapter">Select a Chapter</string>
     <string name="my_code_warning">Write this down and keep this on you at all times! When you are tagged, give it to a zombie so that they can track the tag. Otherwise, that\'s like breaking rule #1</string>
     <string name="empty_code">------</string>
@@ -104,5 +104,7 @@
     <string name="are_you_sure_you_want_to_quit">Are you sure you want to quit?</string>
     <string name="quit">Quit</string>
     <string name="tap_and_hold_to_move">Tap and hold to move</string>
+    <string name="tap_to_enter_location">Tap to enter location</string>
+    <string name="tag_code">Tag Code:</string>
 
 </resources>

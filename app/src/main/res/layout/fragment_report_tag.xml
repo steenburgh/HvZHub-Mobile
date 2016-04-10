@@ -30,29 +30,27 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Tag:"
+            android:text="@string/tag_code"
             android:textSize="@dimen/header_size"
             android:id="@+id/tagHeader"
             android:layout_gravity="center_horizontal"
             android:paddingTop="0dp"
             android:paddingBottom="0dp" />
 
-        <EditText
+        <android.support.design.widget.TextInputLayout
+            android:layout_gravity="center_horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/tag_reported"
-            android:layout_gravity="center_horizontal"
-            android:paddingBottom="30dp"
-            android:inputType="textCapCharacters" />
+            android:paddingTop="20dp"
+            android:layout_height="wrap_content">
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/tag_reported"
+                android:hint="@string/enter_code"
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="(codes are all caps)"
-            android:id="@+id/reminder"
-            android:layout_gravity="center_horizontal"
-            android:paddingTop="10dp" />
+                android:inputType="textCapCharacters" />
+        </android.support.design.widget.TextInputLayout>
+
 
         <TextView
             android:layout_width="wrap_content"
@@ -81,7 +79,7 @@
                 android:layout_weight="1"
                 android:textSize="@dimen/date_size"
                 android:gravity="center"
-                android:paddingBottom="30dp"
+                android:paddingBottom="5dp"
                 android:paddingTop="20dp" />
 
             <TextView
@@ -95,27 +93,29 @@
                 android:textSize="@dimen/date_size"
                 android:gravity="center"
                 android:paddingTop="20dp"
-                android:paddingBottom="30dp" />
+                android:paddingBottom="5dp" />
         </LinearLayout>
 
         <View android:layout_width="fill_parent"
             android:layout_height="2dip"
             android:background="@color/colorAccent"
-            android:layout_marginBottom="20dp"
-            android:layout_marginTop="10dp"/>
+            android:layout_marginBottom="10dp"
+            />
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Location?"
+            android:background="?android:attr/selectableItemBackground"
+            android:text="@string/tap_to_enter_location"
             android:id="@+id/location"
-            android:layout_gravity="center_horizontal" />
+            android:gravity="center"
+            android:paddingTop="10dp"
+            android:paddingBottom="5dp"/>
 
         <View android:layout_width="fill_parent"
             android:layout_height="2dip"
             android:background="@color/colorAccent"
-            android:layout_marginBottom="20dp"
-            android:layout_marginTop="10dp"/>
+            android:layout_marginBottom="20dp"/>
 
         <Button
             android:layout_width="match_parent"
