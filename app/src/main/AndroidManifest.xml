@@ -103,11 +103,9 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings" />
-        <activity
-            android:name=".TagLocationActivity"
-            android:label="@string/title_activity_tag_location" />
         <activity android:name=".TagMapActivity" />
-        <activity android:name=".HeatmapActivity"></activity>
+        <activity android:name=".HeatmapActivity"/>
+        <activity android:name=".ModUpdateViewActivity"/>
     </application>
 
 </manifest>
