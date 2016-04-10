@@ -102,7 +102,7 @@ public class GameActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         // Open the initial fragment
@@ -114,25 +114,7 @@ public class GameActivity extends AppCompatActivity
         } else {
             fragmentToOpen = GAME_NEWS_FRAGMENT; // default tab
         }
-        switch (fragmentToOpen) {
-            case CHAT_FRAGMENT:
-                switchToTab(R.id.nav_chat);
-                break;
-            case MOD_UPDATES_FRAGMENT:
-                switchToTab(R.id.nav_mod_updates);
-                break;
-            case GAME_NEWS_FRAGMENT:
-                switchToTab(R.id.nav_game_news);
-                break;
-            case MY_CODE_FRAGMENT:
-                switchToTab(R.id.nav_my_code);
-                break;
-            case REPORT_TAG_FRAGMENT:
-                switchToTab(R.id.nav_report_tag);
-                break;
-            default:
-                throw new RuntimeException("Invalid tab found");
-        }
+        switchToTab(getResourceIdFromArgument(fragmentToOpen));
 
         // Keep curTab up to date
         getSupportFragmentManager().addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
@@ -150,6 +132,7 @@ public class GameActivity extends AppCompatActivity
                 } else if (f instanceof ReportTagFragment) {
                     curTab = REPORT_TAG_FRAGMENT;
                 }
+                navigationView.setCheckedItem(getResourceIdFromArgument(curTab));
             }
         });
 
@@ -310,6 +293,23 @@ public class GameActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         return switchToTab(item.getItemId());
+    }
+
+    public int getResourceIdFromArgument(int tabArgument) {
+        switch (tabArgument) {
+            case CHAT_FRAGMENT:
+                return R.id.nav_chat;
+            case MOD_UPDATES_FRAGMENT:
+                return R.id.nav_mod_updates;
+            case GAME_NEWS_FRAGMENT:
+                return R.id.nav_game_news;
+            case MY_CODE_FRAGMENT:
+                return R.id.nav_my_code;
+            case REPORT_TAG_FRAGMENT:
+                return R.id.nav_report_tag;
+            default:
+                throw new RuntimeException("Invalid tab found");
+        }
     }
 
     public boolean switchToTab(int id) {
