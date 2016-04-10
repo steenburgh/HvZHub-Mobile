@@ -93,11 +93,6 @@ public class GameActivity extends AppCompatActivity
 
         NavigationView navView= (NavigationView) drawer.findViewById(R.id.nav_view);
         View header = navView.getHeaderView(0);
-        zedNum = (TextView) header.findViewById(R.id.zedcount);
-        humanNum = (TextView) header.findViewById(R.id.humancount);
-
-        humanNum.setText("1000 Humans");
-        zedNum.setText("100 Zombies");
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);

@@ -13,6 +13,7 @@ import com.hvzhub.app.API.model.Games.HeatmapTagContainer;
 import com.hvzhub.app.API.model.Games.News.GameNewsContainer;
 import com.hvzhub.app.API.model.Games.News.ModUpdateContainer;
 import com.hvzhub.app.API.model.Games.News.ModUpdatesContainer;
+import com.hvzhub.app.API.model.Games.PlayerCount;
 import com.hvzhub.app.API.model.Games.RecordContainer;
 import com.hvzhub.app.API.model.Login.LoginRequest;
 import com.hvzhub.app.API.model.Login.Session;
@@ -73,6 +74,13 @@ public interface HvZHubClient {
     Call<APISuccess> reportTag(
             @Path("id") int id,
             @Body TagPlayerRequest tagPlayerRequest
+    );
+
+    @POST("games/{id}/num_players")
+    Call<PlayerCount> numPlayers(
+            @Body Uuid uuid,
+            @Path("id") int id
+
     );
 
     @POST("games/{id}/post_chat")
