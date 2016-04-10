@@ -54,10 +54,12 @@ public class TagMapActivity extends FragmentActivity implements OnMapReadyCallba
         LatLng bascom = new LatLng(43.075299, -89.40337299999999);
         tag = tagMap.addMarker(new MarkerOptions()
                         .position(bascom)
-                        .title("Tag Marker")
+                        .title(getString(R.string.tap_and_hold_to_move))
                         .draggable(true)
                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.hand))
         );
+        tag.showInfoWindow();
+
         tagMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
             @Override
             public void onMarkerDragStart(Marker marker) {
