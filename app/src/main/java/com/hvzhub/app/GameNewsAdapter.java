@@ -53,7 +53,7 @@ public class GameNewsAdapter extends BaseAdapter {
         if (convertView == null) {
             viewHolder = new ViewHolder();
             LayoutInflater inflater = LayoutInflater.from(context);
-            convertView = inflater.inflate(R.layout.news_list_item, parent, false);
+            convertView = inflater.inflate(R.layout.game_news_list_item, parent, false);
 
             viewHolder.date = (TextView) convertView.findViewById(R.id.date);
             viewHolder.message = (TextView) convertView.findViewById(R.id.message);
