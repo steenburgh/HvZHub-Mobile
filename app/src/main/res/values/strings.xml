@@ -66,7 +66,7 @@
     <string name="chatting_with_zombies">Chatting with Zombies</string>
     <string name="chatting_with_humans">Chatting with Humans</string>
     <string name="no_games_found">No games found in this chapter ;(</string>
-    <string name="mod_updates">Mod Updates</string>
+    <string name="mod_updates">Missions</string>
     <string name="game_news">Game News</string>
     <string name="game_end_format_string"><![CDATA[The <strong>%s</strong> game has ended]]></string>
     <string name="game_start_format_string"><![CDATA[The <strong>%s</strong> game has started!]]></string>
