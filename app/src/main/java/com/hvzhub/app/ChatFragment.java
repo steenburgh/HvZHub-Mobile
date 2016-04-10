@@ -143,12 +143,8 @@ public class ChatFragment extends Fragment {
         listView.removeHeaderView(loadingHeader);
 
         if (messages.size() == 0) {
-            // First load0
+            // First load
             refreshMessages();
-        } else {
-            // Fragment is simply being re-opened
-            // Check the DB for new messages and add them to the list
-            addMessagesFromDb();
         }
 
         msgBroadcastReceiver = new BroadcastReceiver() {
@@ -532,6 +528,7 @@ public class ChatFragment extends Fragment {
     public void onResume() {
         super.onResume();
         registerMsgReceiver();
+        addMessagesFromDb();
 
         // Chat is now open
         SharedPreferences.Editor prefs = getActivity().getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).edit();
