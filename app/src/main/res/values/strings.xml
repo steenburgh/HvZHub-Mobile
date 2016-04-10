@@ -2,7 +2,7 @@
     <string name="app_name">HvZHub</string>
     <string name="title_activity_home">Home</string>
     <string name="title_activity_login">Sign in to HvZHub</string>
-    <string name="beta_notice">Notice: This app is in Beta. Use the \'send feedback\' button to let us know if you find any bugs, or even if you just have suggestions.</string>
+    <string name="beta_notice">Notice: This app is in Beta. Once you\'re logged in, you can use the \'send feedback\' button to let us know if you find any bugs, or even if you just have suggestions.</string>
 
 
     <!-- Strings related to login -->
