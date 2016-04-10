@@ -106,5 +106,6 @@
     <string name="tap_and_hold_to_move">Tap and hold to move</string>
     <string name="tap_to_enter_location">Tap to enter location</string>
     <string name="tag_code">Tag Code:</string>
+    <string name="home">Home</string>
 
 </resources>
