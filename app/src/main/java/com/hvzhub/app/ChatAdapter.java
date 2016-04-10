@@ -5,15 +5,20 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.hvzhub.app.API.model.Chat.Message;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
 
 public class ChatAdapter extends BaseAdapter {
+    // If two chat messages are more than CHAT_MESSAGE_SEPARATION_THRESHOLD minutes apart,
+    // don't group them
+    public static final int CHAT_MESSAGE_SEPARATION_THRESHOLD = 2;
     private List<Message> chats;
     private Context context;
 
@@ -22,6 +27,7 @@ public class ChatAdapter extends BaseAdapter {
         TextView name;
         TextView date;
         TextView message;
+        LinearLayout chatInfoContainer;
     }
 
     public ChatAdapter(Context context, List<Message> chats) {
@@ -46,31 +52,44 @@ public class ChatAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        final Message msgObject = getItem(position);
 
         // Check if an existing view is being reused, otherwise inflate the view
         ViewHolder viewHolder; // view lookup cache stored in tag
         if (convertView == null) {
             viewHolder = new ViewHolder();
             LayoutInflater inflater = LayoutInflater.from(context);
+
             convertView = inflater.inflate(R.layout.chat_list_item, parent, false);
 
-            // Initialize the other UI elements
             viewHolder.name = (TextView) convertView.findViewById(R.id.name);
             viewHolder.date = (TextView) convertView.findViewById(R.id.date);
             viewHolder.message = (TextView) convertView.findViewById(R.id.message);
-
-
+            viewHolder.chatInfoContainer = (LinearLayout) convertView.findViewById(R.id.chat_info_container);
 
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
-        // Get the data item for this position
-        final Message msgObject = getItem(position);
-        DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
-
         // Populate the data into the template view using the data object
+        if (position > 0 && getItem(position - 1).userId == msgObject.userId) {
+            Message lastItem = getItem(position - 1);
+            if (lastItem.userId == msgObject.userId) {
+                Calendar someTimeAgo = Calendar.getInstance();
+                someTimeAgo.setTime(msgObject.timestamp);
+                someTimeAgo.add(Calendar.MINUTE, -CHAT_MESSAGE_SEPARATION_THRESHOLD);
+                if (lastItem.timestamp.before(someTimeAgo.getTime())) {
+                    viewHolder.chatInfoContainer.setVisibility(View.VISIBLE);
+                } else {
+                    viewHolder.chatInfoContainer.setVisibility(View.GONE);
+                }
+            }
+        } else {
+            viewHolder.chatInfoContainer.setVisibility(View.VISIBLE);
+        }
+
+        DateFormat dateFormat = SimpleDateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
         viewHolder.name.setText(msgObject.name);
         viewHolder.date.setText(dateFormat.format(msgObject.timestamp));
         viewHolder.message.setText(msgObject.message);
