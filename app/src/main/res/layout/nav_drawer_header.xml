@@ -19,28 +19,6 @@
         android:paddingTop="@dimen/nav_header_vertical_spacing"
         android:src="@drawable/ic_launcher_100dp"/>
 
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="bottom">
 
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="0 Humans"
-            android:paddingBottom="10dp"
-            android:id="@+id/humancount" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="0 Zombies"
-            android:paddingBottom="10dp"
-            android:id="@+id/zedcount" />
-    </LinearLayout>
 
 </LinearLayout>
