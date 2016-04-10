@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/widget_vertical_margin"
+    android:paddingTop="@dimen/widget_vertical_margin"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:textAppearance="?android:textAppearanceMedium"
+        tools:text="Saturday mission. Because why the hell not." />
+
+    <!-- This is wrapped in a RelativeLayout to prevent reflow when each news item loads -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:visibility="visible"/>
+        <TextView
+            android:id="@+id/loading_msg"
+            android:layout_below="@id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            tools:text="@string/loading"
+            android:visibility="visible"/>
+        <TextView
+            android:id="@+id/text"
+            tools:text="@string/mod_update_test"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minLines="@integer/mod_updates_preview_num_lines"
+            android:maxLines="@integer/mod_updates_preview_num_lines"
+            android:ellipsize="end"
+            android:visibility="invisible"/>
+    </RelativeLayout>
+
+</LinearLayout>
