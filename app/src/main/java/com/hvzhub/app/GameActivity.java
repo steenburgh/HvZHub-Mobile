@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -61,6 +62,8 @@ public class GameActivity extends AppCompatActivity
     public static final int MY_CODE_FRAGMENT = 4;
     private ReportTagFragment reportTagFragment;
     private static final int REPORT_TAG_FRAGMENT = 5;
+    private HomeFragment homeFragment;
+    public static final int HOME_FRAGMENT = 6;
 
     private BroadcastReceiver mRegistrationBroadcastReceiver;
     private SharedPreferences.OnSharedPreferenceChangeListener gamePrefsListener;
@@ -112,7 +115,7 @@ public class GameActivity extends AppCompatActivity
         } else if (getIntent() != null && getIntent().getExtras() != null) {
             fragmentToOpen = getIntent().getExtras().getInt(ARG_FRAGMENT_NAME);
         } else {
-            fragmentToOpen = GAME_NEWS_FRAGMENT; // default tab
+            fragmentToOpen = HOME_FRAGMENT; // default tab
         }
         switchToTab(getResourceIdFromArgument(fragmentToOpen));
 
@@ -121,7 +124,9 @@ public class GameActivity extends AppCompatActivity
             @Override
             public void onBackStackChanged() {
                 Fragment f = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-                if (f instanceof ChatFragment) {
+                if (f instanceof HomeFragment) {
+                    curTab = HOME_FRAGMENT;
+                } else if (f instanceof ChatFragment) {
                     curTab = CHAT_FRAGMENT;
                 } else if (f instanceof ModUpdatesFragment) {
                     curTab = MOD_UPDATES_FRAGMENT;
@@ -192,6 +197,8 @@ public class GameActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        notificationManager.cancelAll();
         registerReceiver();
 
         if (gamePrefsListener == null) {
@@ -297,6 +304,8 @@ public class GameActivity extends AppCompatActivity
 
     public int getResourceIdFromArgument(int tabArgument) {
         switch (tabArgument) {
+            case HOME_FRAGMENT:
+                return R.id.nav_home;
             case CHAT_FRAGMENT:
                 return R.id.nav_chat;
             case MOD_UPDATES_FRAGMENT:
@@ -315,8 +324,14 @@ public class GameActivity extends AppCompatActivity
     public boolean switchToTab(int id) {
         Intent i;
         Fragment toSwitch = null;
-        boolean activityWasOpened = true;
         switch (id) {
+            case R.id.nav_home:
+                if (homeFragment == null) {
+                    homeFragment = HomeFragment.newInstance();
+                }
+                toSwitch = homeFragment;
+                curTab = HOME_FRAGMENT;
+                break;
             case R.id.nav_mod_updates:
                 if (modUpdatesFragment == null) {
                     modUpdatesFragment = ModUpdatesFragment.newInstance();
@@ -366,8 +381,7 @@ public class GameActivity extends AppCompatActivity
                 startActivity(i);
                 break;
             case R.id.nav_feedback:
-                String devEmail = FeedbackConfig.DEV_EMAIL;
-                i = new Intent(Intent.ACTION_SENDTO, Uri.fromParts("mailto", devEmail, null));
+                i = new Intent(Intent.ACTION_SENDTO, Uri.fromParts("mailto", FeedbackConfig.DEV_EMAIL, null));
                 i.putExtra(Intent.EXTRA_SUBJECT, "HvZHub App Feedback");
                 startActivity(Intent.createChooser(i, "Send Email Using: "));
                 break;

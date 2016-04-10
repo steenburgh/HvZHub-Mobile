@@ -15,6 +15,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.Html;
 import android.text.TextUtils;
@@ -528,6 +529,9 @@ public class ChatFragment extends Fragment {
     public void onResume() {
         super.onResume();
         registerMsgReceiver();
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getActivity());
+        notificationManager.cancelAll();
         addMessagesFromDb();
 
         // Chat is now open

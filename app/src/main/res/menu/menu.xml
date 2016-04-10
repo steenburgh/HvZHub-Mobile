@@ -4,6 +4,10 @@
     <group android:id="@+id/tabs"
         android:checkableBehavior="single">
         <item
+            android:id="@+id/nav_home"
+            android:icon="@drawable/ic_home_black_24px"
+            android:title="@string/home" />
+        <item
             android:id="@+id/nav_mod_updates"
             android:icon="@drawable/ic_priority_high_black_24px"
             android:title="@string/mod_updates" />
