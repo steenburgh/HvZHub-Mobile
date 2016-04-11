@@ -349,4 +349,12 @@ public abstract class NewsFragment<T1, T2 extends NewsContainer<T1>> extends Fra
         super.onDetach();
         mListener = null;
     }
+
+    @Override
+    public void onPause(){
+        super.onPause();
+        if (sb != null && sb.isShown()){
+            sb.dismiss();
+        }
+    }
 }
