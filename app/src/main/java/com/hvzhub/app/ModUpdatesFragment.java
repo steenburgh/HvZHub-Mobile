@@ -55,23 +55,7 @@ public class ModUpdatesFragment extends NewsFragment<ModUpdateShort, ModUpdatesC
                 startActivity(i);
             }
         });
-        if (adapter.isEmpty()){
-            sb = Snackbar.make(
-                    getActivity().findViewById(R.id.list_view),
-                    "There are no Mission Updates currently",
-                    Snackbar.LENGTH_INDEFINITE
-            );
-            sb.setAction(R.string.dismiss, new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // Do nothing. This should also auto-close the snackbar
-                }
-            });
-            View viewSnack = sb.getView();
-            TextView tv = (TextView) viewSnack.findViewById(android.support.design.R.id.snackbar_text);
-            tv.setTextColor(Color.WHITE);
-            sb.show();
-        }
+
     }
 
     @Override
