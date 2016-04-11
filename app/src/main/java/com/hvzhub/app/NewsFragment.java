@@ -3,7 +3,9 @@ package com.hvzhub.app;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
@@ -12,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.hvzhub.app.API.ErrorUtils;
 import com.hvzhub.app.API.NetworkUtils;
@@ -44,6 +47,7 @@ public abstract class NewsFragment<T1, T2 extends NewsContainer<T1>> extends Fra
     protected View loadingFooter;
     protected List<T1> newsList;
     protected SwipeRefreshLayout swipeContainer;
+    private Snackbar sb;
 
 
     public NewsFragment(boolean infiniteScrollMode) {
@@ -158,7 +162,10 @@ public abstract class NewsFragment<T1, T2 extends NewsContainer<T1>> extends Fra
      * @param refresh whether or not to do a complete refresh
      *                (eg. clear everything on screen + get the latest news)
      */
-    private void loadNews(final boolean refresh) {
+    public void loadNews(final boolean refresh) {
+        if (sb != null && sb.isShown()) {
+            sb.dismiss();
+        }
         if (!NetworkUtils.networkIsAvailable(getActivity())) {
             loading = false;
             if (refresh) {
@@ -230,6 +237,23 @@ public abstract class NewsFragment<T1, T2 extends NewsContainer<T1>> extends Fra
                                 showListViewProgress(false);
                             }
                         }
+                        if (adapter.isEmpty()) {
+                            sb = Snackbar.make(
+                                    getActivity().findViewById(R.id.list_view),
+                                    R.string.emptyMissions,
+                                    Snackbar.LENGTH_INDEFINITE
+                            );
+                            sb.setAction(R.string.dismiss, new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    // Do nothing. This should also auto-close the snackbar
+                                }
+                            });
+                            View viewSnack = sb.getView();
+                            TextView tv = (TextView) viewSnack.findViewById(android.support.design.R.id.snackbar_text);
+                            tv.setTextColor(Color.WHITE);
+                            sb.show();
+                        }
                     } else {
                         loading = false;
                         if (refresh) {
@@ -290,6 +314,7 @@ public abstract class NewsFragment<T1, T2 extends NewsContainer<T1>> extends Fra
                 }
             });
         }
+
     }
 
     private void showListViewProgress(boolean show) {

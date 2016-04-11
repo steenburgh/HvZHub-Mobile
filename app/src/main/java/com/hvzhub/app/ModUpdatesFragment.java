@@ -25,6 +25,8 @@ import retrofit2.Call;
 
 public class ModUpdatesFragment extends NewsFragment<ModUpdateShort, ModUpdatesContainer> {
 
+    private Snackbar sb;
+
     public ModUpdatesFragment() {
         super(false);
     }
@@ -54,7 +56,7 @@ public class ModUpdatesFragment extends NewsFragment<ModUpdateShort, ModUpdatesC
             }
         });
         if (adapter.isEmpty()){
-            Snackbar sb = Snackbar.make(
+            sb = Snackbar.make(
                     getActivity().findViewById(R.id.list_view),
                     "There are no Mission Updates currently",
                     Snackbar.LENGTH_INDEFINITE
@@ -96,5 +98,6 @@ public class ModUpdatesFragment extends NewsFragment<ModUpdateShort, ModUpdatesC
             gameId
         );
     }
+
 
 }
