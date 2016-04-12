@@ -168,6 +168,19 @@ public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallb
         // Add a tile overlay to the map, using the heat map tile provider.
         mOverlay = heatMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
         mOverlay.clearTileCache();
+
+        double lat = 0;
+        double lon = 0;
+
+        for (int i = 0; i < list.size(); i++) {
+            lat += list.get(i).latitude;
+            lon += list.get(i).longitude;
+        }
+
+        LatLng center = new LatLng((lat / list.size()), (lon / list.size()));
+
+        heatMap.moveCamera(CameraUpdateFactory.zoomTo(15));
+        heatMap.moveCamera(CameraUpdateFactory.newLatLng(center));
     }
 
 
