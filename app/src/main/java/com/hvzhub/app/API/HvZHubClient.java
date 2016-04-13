@@ -8,6 +8,7 @@ import com.hvzhub.app.API.model.Chat.PostChatResponse;
 import com.hvzhub.app.API.model.Chat.PostChatRequest;
 import com.hvzhub.app.API.model.Code;
 import com.hvzhub.app.API.model.CurrentUser;
+import com.hvzhub.app.API.model.GameData;
 import com.hvzhub.app.API.model.Games.GameListContainer;
 import com.hvzhub.app.API.model.Games.HeatmapTagContainer;
 import com.hvzhub.app.API.model.Games.News.GameNewsContainer;
@@ -55,7 +56,11 @@ public interface HvZHubClient {
             @Body Uuid uuid
     );
 
-
+    @POST("games/{id}")
+    Call<GameData> getGameInfo(
+            @Path("id") int gameId,
+            @Body Uuid uuid
+    );
 
     @POST("games/{id}/join")
     Call<Status> joinGame(
