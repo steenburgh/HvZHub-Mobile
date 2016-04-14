@@ -164,6 +164,7 @@ public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallb
         mProvider = new HeatmapTileProvider.Builder()
                 .data(list)
                 .gradient(gradient)
+                .radius(30)
                 .build();
         // Add a tile overlay to the map, using the heat map tile provider.
         mOverlay = heatMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
