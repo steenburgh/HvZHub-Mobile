@@ -268,8 +268,6 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
 
         notificationManager.notify(messageList.size(), notificationBuilder.build());
 
-
-
         if (messageList.size() > 1) {
             NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle()
                     .setBigContentTitle(String.format("%d new messages", messageList.size()))

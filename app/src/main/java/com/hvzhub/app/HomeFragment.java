@@ -80,8 +80,13 @@ public class HomeFragment extends Fragment {
                 }
                 else{
                     APIError apiError = ErrorUtils.parseError(response);
-                    String err = apiError.error.toLowerCase();
+                    String err;
                     String errorMessage;
+                    if (apiError.error == null ) {
+                        err = "";
+                    } else {
+                        err = apiError.error.toLowerCase();
+                    }
                     if (err.contains("invalid")) {
                         Toast.makeText(getActivity().getApplicationContext(), "Invalid Session ID. Logging Out...", Toast.LENGTH_SHORT);
                         logout();

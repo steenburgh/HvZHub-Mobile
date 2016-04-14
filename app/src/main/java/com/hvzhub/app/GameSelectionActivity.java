@@ -122,7 +122,12 @@ public class GameSelectionActivity extends AppCompatActivity {
                         Collections.sort(gameList); // Ensure the list is sorted. See Game.compareTo() for more info
                     } else {
                         APIError apiError = ErrorUtils.parseError(response);
-                        String err = apiError.error.toLowerCase();
+                        String err;
+                        if (apiError.error == null) {
+                            err = "";
+                        } else {
+                            err = apiError.error.toLowerCase();
+                        }
                         if (err.equals(getString(R.string.invalid_session_id))) {
                             // This should never happen, but if it does, log the user out so they can obtain a new sessionID
                             Toast t = Toast.makeText(GameSelectionActivity.this, R.string.unexpected_response, Toast.LENGTH_LONG);
