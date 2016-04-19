@@ -44,11 +44,10 @@ public class HomeFragment extends Fragment {
     private TextView zombieCount;
     private TextView gameRules;
     private Snackbar sb;
+    private boolean loading;
 
     protected Call<ChapterInfo> loadChapInfo;
     protected Call<PlayerCount> loadPlayerCount;
-
-    protected boolean loading;
 
     private SwipeRefreshLayout swipeContainer;
 
@@ -83,7 +82,9 @@ public class HomeFragment extends Fragment {
                swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
                        @Override
                         public void onRefresh() {
-                                refreshHome(true);
+                                if (!loading) {
+                                    refreshHome();
+                                }
                             }
                     });
 
@@ -188,6 +189,7 @@ public class HomeFragment extends Fragment {
                 Log.d("Error", t.getMessage());
             }
         });
+        loading = false;
     }
 
 
@@ -220,19 +222,19 @@ public class HomeFragment extends Fragment {
         getActivity().finish();
     }
 
-    private void refreshHome(final boolean refresh){
+    private void refreshHome(){
+        loading = true;
         if (!NetworkUtils.networkIsAvailable(getActivity())) {
+            swipeContainer.setRefreshing(false);
+
             loading = false;
-            if (refresh) {
-                swipeContainer.setRefreshing(false);
-            }
             AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
             b.setTitle(getString(R.string.network_not_available))
                     .setMessage(getString(R.string.network_not_available_hint))
                     .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            refreshHome(true);
+                            refreshHome();
                         }
                     })
                     .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -242,80 +244,11 @@ public class HomeFragment extends Fragment {
                     })
                     .show();
         } else {
-            loading = true;
             HvZHubClient client = API.getInstance(getActivity()).getHvZHubClient();
             String uuid = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
             int gameId = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
             String chapterURL = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
-            if (loadChapInfo != null) {
-                // Cancel the last call in case it is still in progress.
-                loadChapInfo.cancel();
-            }
-            loadChapInfo = client.getChapterInfo(new Uuid(uuid), chapterURL);
-            loadChapInfo.enqueue(new Callback<ChapterInfo>() {
-                @Override
-                public void onResponse(Call<ChapterInfo> call, Response<ChapterInfo> response) {
-                    if (refresh) {
-                        swipeContainer.setRefreshing(false);
-                    }
-                    if (response.isSuccessful()) {
-                        gameRules.setText(response.body().rules);
 
-                    } else {
-                        loading = false;
-                        if (refresh) {
-                            swipeContainer.setRefreshing(false);
-                        }
-
-                        APIError apiError = ErrorUtils.parseError(response);
-                        String err = apiError.error.toLowerCase();
-                        if (err.contains(getString(R.string.invalid_session_id))) {
-                            // Notify the parent activity that the user should be logged out
-                            // Don't bother stopping the loading animation
-                            logout();
-                        } else {
-                            AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
-                            b.setTitle(getString(R.string.unexpected_response))
-                                    .setMessage(getString(R.string.unexpected_response_hint))
-                                    .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            refreshHome(true);
-                                        }
-                                    })
-                                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                        }
-                                    })
-                                    .show();
-                        }
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<ChapterInfo> call, Throwable t) {
-                    loading = false;
-                    if (refresh) {
-                        swipeContainer.setRefreshing(false);
-                    }
-                    AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
-                    b.setTitle(getString(R.string.generic_connection_error))
-                            .setMessage(getString(R.string.generic_connection_error_hint))
-                            .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    refreshHome(true);
-                                }
-                            })
-                            .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                }
-                            })
-                            .show();
-                }
-            });
             if (loadPlayerCount != null) {
                 // Cancel the last call in case it is still in progress.
                 loadPlayerCount.cancel();
@@ -324,18 +257,19 @@ public class HomeFragment extends Fragment {
             loadPlayerCount.enqueue(new Callback<PlayerCount>() {
                 @Override
                 public void onResponse(Call<PlayerCount> call, Response<PlayerCount> response) {
-                    if (refresh) {
+
                         swipeContainer.setRefreshing(false);
-                    }
+
                     if (response.isSuccessful()) {
                         humanCount.setText(Integer.toString(response.body().humans));
                         zombieCount.setText(Integer.toString(response.body().zombies));
+                        loading = false;
 
                     } else {
+                        swipeContainer.setRefreshing(false);
+
                         loading = false;
-                        if (refresh) {
-                            swipeContainer.setRefreshing(false);
-                        }
+
 
                         APIError apiError = ErrorUtils.parseError(response);
                         String err = apiError.error.toLowerCase();
@@ -350,7 +284,7 @@ public class HomeFragment extends Fragment {
                                     .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
-                                            refreshHome(true);
+                                            refreshHome();
                                         }
                                     })
                                     .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -365,17 +299,17 @@ public class HomeFragment extends Fragment {
 
                 @Override
                 public void onFailure(Call<PlayerCount> call, Throwable t) {
+                    swipeContainer.setRefreshing(false);
+
                     loading = false;
-                    if (refresh) {
-                        swipeContainer.setRefreshing(false);
-                    }
+
                     AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
                     b.setTitle(getString(R.string.generic_connection_error))
                             .setMessage(getString(R.string.generic_connection_error_hint))
                             .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    refreshHome(true);
+                                    refreshHome();
                                 }
                             })
                             .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
