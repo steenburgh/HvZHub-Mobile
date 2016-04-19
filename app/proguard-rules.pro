@@ -15,3 +15,7 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+-dontwarn freemarker.**
+-dontwarn okio.**
+-dontwarn retrofit2.**
