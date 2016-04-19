@@ -5,8 +5,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +20,7 @@ import android.widget.Toast;
 import com.hvzhub.app.API.API;
 import com.hvzhub.app.API.ErrorUtils;
 import com.hvzhub.app.API.HvZHubClient;
+import com.hvzhub.app.API.NetworkUtils;
 import com.hvzhub.app.API.model.APIError;
 import com.hvzhub.app.API.model.APISuccess;
 import com.hvzhub.app.API.model.Chapters.ChapterInfo;
@@ -26,6 +30,8 @@ import com.hvzhub.app.API.model.Uuid;
 import com.hvzhub.app.Prefs.GamePrefs;
 
 import org.w3c.dom.Text;
+
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -37,6 +43,14 @@ public class HomeFragment extends Fragment {
     private TextView humanCount;
     private TextView zombieCount;
     private TextView gameRules;
+    private Snackbar sb;
+
+    protected Call<ChapterInfo> loadChapInfo;
+    protected Call<PlayerCount> loadPlayerCount;
+
+    protected boolean loading;
+
+    private SwipeRefreshLayout swipeContainer;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -65,24 +79,30 @@ public class HomeFragment extends Fragment {
         humanCount = (TextView) view.findViewById(R.id.humanNum);
         zombieCount = (TextView) view.findViewById(R.id.zombieNum);
         gameRules = (TextView) view.findViewById(R.id.rules);
+        swipeContainer = (SwipeRefreshLayout) view.findViewById(R.id.swipe_container);
+               swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                       @Override
+                        public void onRefresh() {
+                                refreshHome(true);
+                            }
+                    });
 
         String uuid = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
         int gameId = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
 
         HvZHubClient client = API.getInstance(getActivity()).getHvZHubClient();
-        Call<PlayerCount> call = client.numPlayers(new Uuid(uuid), gameId);
-        call.enqueue(new Callback<PlayerCount>() {
+        loadPlayerCount = client.numPlayers(new Uuid(uuid), gameId);
+        loadPlayerCount.enqueue(new Callback<PlayerCount>() {
             @Override
             public void onResponse(Call<PlayerCount> call, Response<PlayerCount> response) {
                 if (response.isSuccessful()) {
                     humanCount.setText(Integer.toString(response.body().humans));
                     zombieCount.setText(Integer.toString(response.body().zombies));
-                }
-                else{
+                } else {
                     APIError apiError = ErrorUtils.parseError(response);
                     String err;
                     String errorMessage;
-                    if (apiError.error == null ) {
+                    if (apiError.error == null) {
                         err = "";
                     } else {
                         err = apiError.error.toLowerCase();
@@ -90,22 +110,22 @@ public class HomeFragment extends Fragment {
                     if (err.contains("invalid")) {
                         Toast.makeText(getActivity().getApplicationContext(), "Invalid Session ID. Logging Out...", Toast.LENGTH_SHORT);
                         logout();
-                    }
-                    else {
+                    } else {
                         AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
 
                         b.setTitle(R.string.unexpected_response)
-                            .setMessage(R.string.unexpected_response_hint)
-                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    // Do nothing
-                                }
-                            })
-                            .show();
+                                .setMessage(R.string.unexpected_response_hint)
+                                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // Do nothing
+                                    }
+                                })
+                                .show();
                     }
                 }
             }
+
             @Override
             public void onFailure(Call<PlayerCount> call, Throwable t) {
                 AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
@@ -123,8 +143,8 @@ public class HomeFragment extends Fragment {
         });
 
         String chapterURL = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
-        Call<ChapterInfo> call2 = client.getChapterInfo(new Uuid(uuid), chapterURL);
-        call2.enqueue(new Callback<ChapterInfo>() {
+        loadChapInfo = client.getChapterInfo(new Uuid(uuid), chapterURL);
+        loadChapInfo.enqueue(new Callback<ChapterInfo>() {
             @Override
             public void onResponse(Call<ChapterInfo> call, Response<ChapterInfo> response) {
                 if (response.isSuccessful()) {
@@ -198,5 +218,176 @@ public class HomeFragment extends Fragment {
         Intent i = new Intent(getActivity(), LoginActivity.class);
         startActivity(i);
         getActivity().finish();
+    }
+
+    private void refreshHome(final boolean refresh){
+        if (!NetworkUtils.networkIsAvailable(getActivity())) {
+            loading = false;
+            if (refresh) {
+                swipeContainer.setRefreshing(false);
+            }
+            AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+            b.setTitle(getString(R.string.network_not_available))
+                    .setMessage(getString(R.string.network_not_available_hint))
+                    .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            refreshHome(true);
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                        }
+                    })
+                    .show();
+        } else {
+            loading = true;
+            HvZHubClient client = API.getInstance(getActivity()).getHvZHubClient();
+            String uuid = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
+            int gameId = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
+            String chapterURL = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
+            if (loadChapInfo != null) {
+                // Cancel the last call in case it is still in progress.
+                loadChapInfo.cancel();
+            }
+            loadChapInfo = client.getChapterInfo(new Uuid(uuid), chapterURL);
+            loadChapInfo.enqueue(new Callback<ChapterInfo>() {
+                @Override
+                public void onResponse(Call<ChapterInfo> call, Response<ChapterInfo> response) {
+                    if (refresh) {
+                        swipeContainer.setRefreshing(false);
+                    }
+                    if (response.isSuccessful()) {
+                        gameRules.setText(response.body().rules);
+
+                    } else {
+                        loading = false;
+                        if (refresh) {
+                            swipeContainer.setRefreshing(false);
+                        }
+
+                        APIError apiError = ErrorUtils.parseError(response);
+                        String err = apiError.error.toLowerCase();
+                        if (err.contains(getString(R.string.invalid_session_id))) {
+                            // Notify the parent activity that the user should be logged out
+                            // Don't bother stopping the loading animation
+                            logout();
+                        } else {
+                            AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                            b.setTitle(getString(R.string.unexpected_response))
+                                    .setMessage(getString(R.string.unexpected_response_hint))
+                                    .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            refreshHome(true);
+                                        }
+                                    })
+                                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                        }
+                                    })
+                                    .show();
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ChapterInfo> call, Throwable t) {
+                    loading = false;
+                    if (refresh) {
+                        swipeContainer.setRefreshing(false);
+                    }
+                    AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                    b.setTitle(getString(R.string.generic_connection_error))
+                            .setMessage(getString(R.string.generic_connection_error_hint))
+                            .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    refreshHome(true);
+                                }
+                            })
+                            .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                }
+                            })
+                            .show();
+                }
+            });
+            if (loadPlayerCount != null) {
+                // Cancel the last call in case it is still in progress.
+                loadPlayerCount.cancel();
+            }
+            loadPlayerCount = client.numPlayers(new Uuid(uuid), gameId);
+            loadPlayerCount.enqueue(new Callback<PlayerCount>() {
+                @Override
+                public void onResponse(Call<PlayerCount> call, Response<PlayerCount> response) {
+                    if (refresh) {
+                        swipeContainer.setRefreshing(false);
+                    }
+                    if (response.isSuccessful()) {
+                        humanCount.setText(Integer.toString(response.body().humans));
+                        zombieCount.setText(Integer.toString(response.body().zombies));
+
+                    } else {
+                        loading = false;
+                        if (refresh) {
+                            swipeContainer.setRefreshing(false);
+                        }
+
+                        APIError apiError = ErrorUtils.parseError(response);
+                        String err = apiError.error.toLowerCase();
+                        if (err.contains(getString(R.string.invalid_session_id))) {
+                            // Notify the parent activity that the user should be logged out
+                            // Don't bother stopping the loading animation
+                            logout();
+                        } else {
+                            AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                            b.setTitle(getString(R.string.unexpected_response))
+                                    .setMessage(getString(R.string.unexpected_response_hint))
+                                    .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            refreshHome(true);
+                                        }
+                                    })
+                                    .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                        }
+                                    })
+                                    .show();
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<PlayerCount> call, Throwable t) {
+                    loading = false;
+                    if (refresh) {
+                        swipeContainer.setRefreshing(false);
+                    }
+                    AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                    b.setTitle(getString(R.string.generic_connection_error))
+                            .setMessage(getString(R.string.generic_connection_error_hint))
+                            .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    refreshHome(true);
+                                }
+                            })
+                            .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                }
+                            })
+                            .show();
+                }
+            });
+
+        }
+
     }
 }
