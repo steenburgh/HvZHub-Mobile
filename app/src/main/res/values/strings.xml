@@ -1,76 +1,41 @@
 <resources>
     <string name="app_name">HvZHub</string>
-    <string name="title_activity_home">Home</string>
+
+
+    <!-- Login -->
     <string name="title_activity_login">Sign in to HvZHub</string>
-    <string name="beta_notice">Notice: This app is in Beta. Once you\'re logged in, you can use the \'send feedback\' button to let us know if you find any bugs, or even if you just have suggestions.</string>
-
-
-    <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
     <string name="action_sign_in">Sign In</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
+    <string name="beta_notice">Notice: This app is in Beta. Once you\'re logged in, you can use the \'send feedback\' button to let us know if you find any bugs, or even if you just have suggestions.</string>
+
+    <string name="select_a_chapter">Select a Chapter</string>
+    <string name="choose_a_game">Choose a Game</string>
 
     <!--Nav Drawer-->
     <string name="title_activity_nav_drawer">NavDrawerActivity</string>
-    <string name="loading">Loading…</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="report_tag">Report Tag</string>
-    <string name="my_code">My Code</string>
-    <string name="chat">Chat</string>
-    <string name="settings">Settings</string>
 
-    <!--Network related error messages-->
-    <string name="connection_timeout">Connection timed out.</string>
-    <string name="connection_timeout_hint">Looks like HvZHub is down  :(</string>
-    <string name="unexpected_response">Unexpected response from HvZHub.com</string>
-    <string name="unexpected_response_hint">Contact the HvZHub.com dev team if this issue persists.</string>
-    <string name="generic_connection_error">Couldn\'t connect to HvZHub.com</string>
-    <string name="generic_connection_error_hint">Check your internet connection and try again. It\'s also possible that HvZHub.com is down.</string>
-    <string name="network_not_available">Unable to connect to the internet</string>
-    <string name="network_not_available_hint">Check your internet connection and try again</string>
-    <string name="emptyMissions">There are currently no Mission Updates.</string>
-    <string name="emptyGameNews">There are no Game Updates currently</string>
-    <string name="retry">Retry</string>
-
-
-    <!--Chat-->
-    <string name="Send">Send</string>
-
-    <!--News-->
-    <string name="newsDefault">This is the NewsView\n\n\nThere will be news here.\n\n\n
-    If all goes to plan\n\n\n\n\n\n\n\n\n\nMore news</string>
-
-    <!--Report Tag-->
-    <string name="title_activity_report_tag">Report Tag</string>
-    <string name="report">Report</string>
-
-    <!--Nothing to see here, move along-->
-    <string name="hack_the_planet">HACK THE PLANET!!</string>
-    <string name="ayy">ayy</string>
-    <string name="lmao">lmao</string>
-    <string name="enter_code">Enter Code (Codes are all caps)</string>
-    <string name="select_a_chapter">Select a Chapter</string>
-    <string name="my_code_warning">Write this down and keep this on you at all times! When you are tagged, give it to a zombie so that they can track the tag. Otherwise, that\'s like breaking rule #1</string>
-    <string name="empty_code">------</string>
-    <string name="tap_to_retry">Tap to retry</string>
-    <string name="invalid_session_id">invalid session uuid</string>
-    <string name="you_have_been_logged_out">You have been logged out</string>
-    <string name="game_not_found">game not found</string>
-    <string name="you_have_not_joined_this_game">you have not joined this game</string>
-    <string name="choose_a_game">Choose a Game</string>
-    <string name="logout">Logout</string>
-    <string name="heatmap">HeatMap</string>
-    <string name="type_a_message">Type a message</string>
-    <string name="enter_a_message">Please enter a message</string>
-    <string name="chatting_with_zombies">Chatting with Zombies</string>
-    <string name="chatting_with_humans">Chatting with Humans</string>
-    <string name="no_games_found">No games found in this chapter ;(</string>
+    <string name="home">Home</string>
     <string name="mod_updates">Missions</string>
     <string name="game_news">Game News</string>
+    <string name="chat">Chat</string>
+    <string name="report_tag">Report Tag</string>
+    <string name="my_code">My Code</string>
+    <string name="heatmap">HeatMap</string>
+    <string name="logout">Logout</string>
+
+    <string name="settings">Settings</string>
+    <string name="send_feedback">Send feedback</string>
+
+    <!--Mod Updates-->
+    <string name="emptyMissions">There are currently no Mission Updates yet.</string>
+
+    <!--Game News-->
     <string name="game_end_format_string"><![CDATA[The <strong>%s</strong> game has ended]]></string>
     <string name="game_start_format_string"><![CDATA[The <strong>%s</strong> game has started!]]></string>
     <string name="joined_the_game">joined the game</string>
@@ -80,35 +45,78 @@
     <string name="error_loading_item">Error loading item</string>
     <string name="with_help_from">with help from</string>
     <string name="and">and</string>
-    <string name="title_activity_settings">Settings</string>
+    <string name="emptyGameNews">There is no game news yet.</string>
 
-    <!-- Example settings for Notifications -->
+    <!--Chat-->
+    <string name="type_a_message">Type a message</string>
+    <string name="enter_a_message">Please enter a message</string>
+    <string name="chatting_with_zombies">Chatting with Zombies</string>
+    <string name="chatting_with_humans">Chatting with Humans</string>
+    <string name="human_chat">Human chat</string>
+    <string name="zombie_chat">Zombie chat</string>
+
+    <string name="Send">Send</string>
+    <string name="you_were_just_turned_reloading_chat">You were just turned. Reloading chat.</string>
+
+
+    <!--Report Tag-->
+    <string name="report">Report</string>
+    <string name="tag_code">Tag Code:</string>
+    <string name="enter_code">Enter Code (Codes are all caps)</string>
+
+    <string name="you_must_submit_a_tag_code">You must submit a tag code</string>
+    <string name="that_code_doesnt_belong_to_a_player">That code doesn\'t belong to a player</string>
+    <string name="you_must_enter_a_timestamp">You must submit a tag timestamp</string>
+    <string name="you_must_be_a_zombie_to_make_a_tag">You must be a zombie to make a tag!</string>
+
+    <string name="title_activity_tag_location">TagLocator</string>
+    <string name="tap_and_hold_to_move">Tap and hold to move</string>
+    <string name="tap_to_enter_location">Tap to enter location</string>
+
+    <!--My Code-->
+    <string name="empty_code">------</string>
+    <string name="my_code_warning">Write this down and keep this on you at all times! When you are tagged, give it to a zombie so that they can track the tag. Otherwise, that\'s like breaking rule #1</string>
+
+    <!--Heatmap-->
+    <string name="no_tags_have_a_location_yet">No tags have a location yet :(</string>
+
+    <!--Nothing to see here, move along-->
+    <string name="hack_the_planet">HACK THE PLANET!!</string>
+    <string name="ayy">ayy</string>
+    <string name="lmao">lmao</string>
+
+    <!--Settings-->
     <string name="pref_header_notifications">Notifications</string>
     <string name="pref_title_ringtone">Ringtone</string>
     <string name="pref_ringtone_silent">Silent</string>
     <string name="pref_title_vibrate">Vibrate</string>
     <string name="pref_title_chat__notifications">Chat notifications</string>
-    <string name="human_chat">Human chat</string>
-    <string name="zombie_chat">Zombie chat</string>
-    <string name="send_feedback">Send feedback</string>
-    <string name="title_activity_tag_location">TagLocator</string>
 
+    <!--Error messages-->
+    <string name="connection_timeout">Connection timed out.</string>
+    <string name="connection_timeout_hint">Looks like HvZHub is down  :(</string>
+    <string name="unexpected_response">Unexpected response from HvZHub.com</string>
+    <string name="unexpected_response_hint">Contact the HvZHub.com dev team if this issue persists.</string>
+    <string name="generic_connection_error">Couldn\'t connect to HvZHub.com</string>
+    <string name="generic_connection_error_hint">Check your internet connection and try again. It\'s also possible that HvZHub.com is down.</string>
+    <string name="network_not_available">Unable to connect to the internet</string>
+    <string name="network_not_available_hint">Check your internet connection and try again</string>
+
+    <string name="invalid_session_id">invalid session uuid</string>
+    <string name="you_have_been_logged_out">You have been logged out</string>
+    <string name="game_not_found">game not found</string>
+    <string name="you_have_not_joined_this_game">you have not joined this game</string>
+    <string name="no_games_found">No games found in this chapter ;(</string>
     <string name="invalid_team">gtfo betch, you ain\'t on that team</string>
-    <string name="you_were_just_turned_reloading_chat">You were just turned. Reloading chat.</string>
-    <string name="you_must_submit_a_tag_code">You must submit a tag code</string>
-    <string name="that_code_doesnt_belong_to_a_player">That code doesn\'t belong to a player</string>
-    <string name="you_must_enter_a_timestamp">You must submit a tag timestamp</string>
-    <string name="you_must_be_a_zombie_to_make_a_tag">You must be a zombie to make a tag!</string>
-    <string name="no_tags_have_a_location_yet">No tags have a location yet :(</string>
-    <string name="dismiss">Dismiss</string>
-    <string name="news">News</string>
+
+
+    <!--Other Generic Strings-->
+    <string name="retry">Retry</string>
+    <string name="tap_to_retry">Tap to retry</string>
     <string name="couldnt_load_update">Couldn\'t load update :(</string>
-    <string name="mod_update_test">tl;dr - Human Day Objective: Provide photographic reconnaissance of as many of the five potential supply drop zones. Photos must feature a three-person human pyramid. For scale, of course.   Story: It\'s been a rough year for the East India Military Company. Recruitment\'s at an all time low ever since the war broke out - all the real patriots joined the national army already, anyway. Your crew was part of a team sent out to some hellhole in the South Republic, contracted by the North to defend the location from any advancing enemy forces. You were only there for a few weeks, a little bit of fighting scattered hither and thither to keep you on your toes. That\'s why you signed on, after all, right? Escape, adventure, but, most importantly, the pay. It was pretty reliable work.   So, when your CO called everyone in for a briefing, you weren\'t expecting to hear the news: EIMC\'s past three checks have retroactively bounced. You pull out your phone, and, sure enough, your bank account\'s about twelve grand short of what you thought it was. You\'re not used to seeing the balance in red. Overdraft\'s a bitch. You can feel your neck burning hot under your collar.   \"Screw them!\" someone shouted from the crowd. Sounds and nods of approval rippled across the room. This wasn\'t your war - you were a gun for hire. Your loyalty dried up along with the cash flow. And your team has been an unwilling benefactor to this conflict for long enough - bullets are expensive, after all. There was really only the one thing to do: leave.   Weak, under-supplied, and broke, your crew packed back up on the transport ship and you start to make your way back home. Who cared what those broke-ass armchair generals thought, anyway?   It was only three days, three days at sea before the storm came. You were fighters, not sailors. The night was dark (duh), the waves immense, and the lightning ominous. The ship bucked and bowed atop the crests - you\'d swear you were going to capsize at least a dozen times. It was, quite literally, all hands on deck trying to keep the ship together. There was a blinding flash, a tremendous clap of thunder, and a monstrous, twenty-foot wave crashed down on the deck. You\'re knocked off your feet, and everything goes black.   You come to some time after. It\'s sunny. There\'s a seagull or two cawing in the distance. You rub... sand? from your eyes and push yourself up on the still-drenched deck. Your ship isn\'t moving anymore - you can tell, you\'ve usually been seasick three times over by this point. You look around to your comrades, also coming to after the long, story night. You walk over to the bow and peer over. You\'re marooned. On a desert island. In the middle of goddamn nowhere.   Your CO calls for a little pow-wow. Obviously, this wasn\'t exactly according to plan. You were low on food and supplies to begin with - and no one was exactly stockpiling for a island getaway. He\'s been in contact with one of East India\'s remote operators - one that\'s still getting paid, of course - and he thinks he can help. The conflict to the South was a hungry beast, a gaping maw that devoured bullets, jeeps, and human lives. Your old buds the North routinely send supply airdrops of food and weapons across the pond - automated, of course, pilots are damned expensive. He thinks he can reroute one of the aircraft flying closeby to take a path directly over the island you\'ve shipwrecked on. All he needs, he says, is a dropzone. He transmits some old satellite reconnaissance data. There\'s five possible zone candidates to drop the supplies - he needs you to check each of them out and see where he should send the plane. Go to the sites, check them out, and report back.</string>
+    <string name="dismiss">Dismiss</string>
     <string name="are_you_sure_you_want_to_quit">Are you sure you want to quit?</string>
     <string name="quit">Quit</string>
-    <string name="tap_and_hold_to_move">Tap and hold to move</string>
-    <string name="tap_to_enter_location">Tap to enter location</string>
-    <string name="tag_code">Tag Code:</string>
-    <string name="home">Home</string>
+    <string name="news">News</string>
 
 </resources>
