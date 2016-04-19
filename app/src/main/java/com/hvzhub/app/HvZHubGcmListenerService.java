@@ -53,8 +53,6 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
     @Override
     public void onMessageReceived(String from, final Bundle data) {
         String rawData = data.toString();
-        Log.d(TAG, "From: " + from);
-        Log.d(TAG, "Raw Data: " + rawData);
 
         if (from.startsWith("/topics/")) {
             final String topic = from.split("/")[2];
@@ -79,9 +77,6 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
 
         // Check for the correct team
         if (topicTeamIsHuman != isHuman) {
-            Log.d(TAG, "Received notification from the wrong team. Updating subscriptions.");
-            Log.d(TAG, String.format("Topic: %s", topicTeamStr) );
-            Log.d(TAG, String.format("Current team: %s", isHuman ? "human" : "zombie") );
             updateNotificationSubscriptions();
             return false;
         }
@@ -91,7 +86,6 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
         if (uidString != null) {
             userId = Integer.parseInt(uidString);
         } else {
-            Log.e(TAG, "No user ID received for Chat message");
             return false;
         }
 
@@ -110,7 +104,6 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
         if (msgIdString != null) {
             msgId = Integer.parseInt(msgIdString);
         } else {
-            Log.e(TAG, "No message ID received for Chat message");
             return false;
         }
 
@@ -120,7 +113,6 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
         try {
             date = API.dateFromUtcString(dateStr);
         } catch (ParseException e) {
-            Log.e(TAG, String.format("Error parsing date from string: %s", dateStr));
             return false;
         }
 
@@ -140,7 +132,6 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
         editor.apply();
 
         Intent messageReceived = new Intent(ChatPrefs.MESSAGE_RECEIVED_BROADCAST);
-        Log.d(TAG, "Sending broadcast: message received ");
         LocalBroadcastManager.getInstance(this).sendBroadcast(messageReceived);
 
         boolean notificationsEnabled = PreferenceManager.getDefaultSharedPreferences(this)
@@ -168,19 +159,15 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
                     SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).edit();
                     editor.putBoolean(GamePrefs.PREFS_IS_HUMAN, r.status == Record.HUMAN);
                     editor.apply();
-                    Log.d(TAG, String.format("Status updated: status = %d", r.status));
 
                     listener.OnIsHumanRefreshed();
                 } else {
-                    Log.e(TAG, "Refresh is human failed.");
-                    Log.e(TAG, response.errorBody().toString());
                     listener.OnIsHumanRefreshed();
                 }
             }
 
             @Override
             public void onFailure(Call<RecordContainer> call, Throwable t) {
-                Log.e(TAG, "Refresh is human failed.", t);
                 listener.OnIsHumanRefreshed(); // Call this anyways. we don't want to lose notifications
             }
         });

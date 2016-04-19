@@ -79,7 +79,6 @@ public class LoginActivity extends AppCompatActivity {
 
         String lastEmail = getSharedPreferences(LoginPrefs.NAME, MODE_PRIVATE).getString(LoginPrefs.SAVED_EMAIL, null);
         if (lastEmail != null) {
-            Log.v(TAG, "User has already logged in once before. AutoFilling email field-.");
             mEmailView.setText(lastEmail);
             mPasswordView.requestFocus();
         }
@@ -185,9 +184,6 @@ public class LoginActivity extends AppCompatActivity {
                         prefs.putString(GamePrefs.PREFS_SESSION_ID, s.uuid);
                         prefs.apply();
 
-                        Log.i(TAG, "Login successful");
-                        Log.i(TAG, s.uuid + " : " + s.createdOn);
-
                         getUserId();
                     } else {
                         showProgress(false);
@@ -210,7 +206,6 @@ public class LoginActivity extends AppCompatActivity {
                                         }
                                     })
                                     .show();
-                            Log.i("Login Response Error", apiError.error);
                         }
 
                     }
@@ -229,7 +224,6 @@ public class LoginActivity extends AppCompatActivity {
                                 }
                             })
                             .show();
-                    Log.d("Error", t.getMessage());
                 }
             });
         }
@@ -254,7 +248,6 @@ public class LoginActivity extends AppCompatActivity {
                     SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit();
                     prefs.putInt(GamePrefs.PREFS_USER_ID, userId);
                     prefs.apply();
-                    Log.d(TAG, String.format("Got user id: %d", userId));
 
                     String chapterUrl = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
                     if (chapterUrl == null) {
@@ -275,7 +268,6 @@ public class LoginActivity extends AppCompatActivity {
                                 }
                             })
                             .show();
-                    Log.e(TAG, "Error getting userId");
                 }
             }
 
@@ -292,7 +284,6 @@ public class LoginActivity extends AppCompatActivity {
                             }
                         })
                         .show();
-                Log.d("Error", t.getMessage());
             }
         });
     }

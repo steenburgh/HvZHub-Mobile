@@ -212,7 +212,6 @@ public class GameSelectionActivity extends AppCompatActivity {
                                     }
                                 })
                                 .show();
-                        Log.i("Join Game Error", apiError.error);
                     }
                 }
             }
@@ -230,7 +229,6 @@ public class GameSelectionActivity extends AppCompatActivity {
                             }
                         })
                         .show();
-                Log.d("Error", t.getMessage());
             }
         });
     }
@@ -250,7 +248,6 @@ public class GameSelectionActivity extends AppCompatActivity {
                     SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).edit();
                     editor.putBoolean(GamePrefs.PREFS_IS_HUMAN, r.status == Record.HUMAN);
                     editor.apply();
-                    Log.d(TAG, String.format("Status updated: status = %d", r.status));
 
                     Intent i = new Intent(GameSelectionActivity.this, GameActivity.class);
                     i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -283,7 +280,6 @@ public class GameSelectionActivity extends AppCompatActivity {
                             }
                         })
                         .show();
-                Log.d("Error", t.getMessage());
             }
         });
     }

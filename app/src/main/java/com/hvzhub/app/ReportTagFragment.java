@@ -247,7 +247,6 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
                             }
                         })
                         .show();
-                Log.d("Error", t.getMessage());
             }
         });
     }

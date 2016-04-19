@@ -72,8 +72,6 @@ public class GCMRegIntentService extends IntentService {
             boolean isAdmin = extras.getBoolean(ARG_IS_ADMIN, false);
             boolean isHuman = extras.getBoolean(ARG_IS_HUMAN, false);
 
-            Log.d(TAG, String.format("Updating chat subscriptions for gameId: %s", gameId));
-
             if (isAdmin) {
                 toSubscribe = new String[2];
                 toSubscribe[0] = String.format("games_%d_chat_human", gameId);
@@ -103,7 +101,6 @@ public class GCMRegIntentService extends IntentService {
             }
 
             int gameId = extras.getInt(ARGS_GAME_ID, -1);
-            Log.d(TAG, String.format("Unsubscribing from everything for current game ID: %s", gameId));
 
             toUnsubscribe = new String[2];
             toUnsubscribe[0] = String.format("games_%d_chat_human", gameId);
@@ -132,7 +129,6 @@ public class GCMRegIntentService extends IntentService {
             String token = instanceID.getToken(getString(R.string.gcm_defaultSenderId),
                     GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
             // [END get_token]
-            Log.i(TAG, "GCM Registration Token: " + token);
 
             // Subscribe to topic channels
             updateSubscriptions(token);
@@ -144,7 +140,6 @@ public class GCMRegIntentService extends IntentService {
             sharedPreferences.edit().putBoolean(GCMRegistationPrefs.SENT_TOKEN_TO_SERVER, true).apply();
             // [END register_for_gcm]
         } catch (Exception e) {
-            Log.e(TAG, "Failed to complete token refresh", e);
             // If an exception happens while fetching the new token or updating our registration data
             // on a third-party server, this ensures that we'll attempt the update at a later time.
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -162,21 +157,12 @@ public class GCMRegIntentService extends IntentService {
         if (toSubscribe != null) {
             for (String topic : toSubscribe) {
                 pubSub.subscribe(token, "/topics/" + topic, null);
-                Log.d(TAG, String.format("Subscribed to: /topics/%s", topic));
             }
         }
         if (toUnsubscribe != null) {
             for (String topic : toUnsubscribe) {
                 pubSub.unsubscribe(token, "/topics/" + topic);
-                Log.d(TAG, String.format("Unsubscribed from: /topics/%s", topic));
             }
         }
-
-        if (toSubscribe == null && toUnsubscribe == null){
-            Log.w(TAG, "No subscription changes were made. Did you forget to specify arguments?");
-        }
-
-
-
     }
 }

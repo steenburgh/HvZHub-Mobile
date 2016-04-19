@@ -139,7 +139,6 @@ public class HomeFragment extends Fragment {
                             }
                         })
                         .show();
-                Log.d("Error", t.getMessage());
             }
         });
 
@@ -186,7 +185,6 @@ public class HomeFragment extends Fragment {
                             }
                         })
                         .show();
-                Log.d("Error", t.getMessage());
             }
         });
         loading = false;

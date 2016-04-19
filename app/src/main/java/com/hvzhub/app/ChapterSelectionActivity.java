@@ -198,7 +198,6 @@ public class ChapterSelectionActivity extends AppCompatActivity {
                                     }
                                 })
                                 .show();
-                        Log.i("Join Chapter Error", err);
                     }
 
                 }
@@ -217,7 +216,6 @@ public class ChapterSelectionActivity extends AppCompatActivity {
                             }
                         })
                         .show();
-                Log.d("Error", t.getMessage());
             }
         });
     }

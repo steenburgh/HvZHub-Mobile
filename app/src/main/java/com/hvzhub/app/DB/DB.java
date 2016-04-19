@@ -61,7 +61,6 @@ public class DB {
         chatDao.deleteAll();
         messageDao.deleteAll();
         closeReopenDatabase();
-        Log.d(TAG, "Wiped all tables.");
     }
 
 

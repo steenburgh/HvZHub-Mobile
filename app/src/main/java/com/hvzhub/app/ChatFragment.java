@@ -183,7 +183,6 @@ public class ChatFragment extends Fragment {
             getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit()
                     .putBoolean(GamePrefs.PREFS_JUST_TURNED, false)
                     .apply();
-            Log.d(TAG, "Player was just turned. Reloading chat list");
         } else {
             final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
             List<com.hvzhub.app.DB.Message> msgsFromDb = DB.getInstance(getActivity().getApplicationContext()).getMessages(isHuman ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
@@ -196,7 +195,6 @@ public class ChatFragment extends Fragment {
 
                 messages.add(msgObj);
             }
-            Log.i(TAG, "Received new chat message(s), populating chat list.");
             DB.getInstance(getActivity().getApplicationContext()).wipeDatabase();
         }
 
@@ -216,7 +214,6 @@ public class ChatFragment extends Fragment {
     }
 
     private void getMsgsFromServer(final boolean refresh, final int numToFetch) {
-        Log.i(TAG, "Getting new messages");
         if (!NetworkUtils.networkIsAvailable(getActivity())) {
             AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
             b.setTitle(getString(R.string.network_not_available))
@@ -259,7 +256,6 @@ public class ChatFragment extends Fragment {
 
                         List<Message> msgsFromServer = response.body().messages;
                         if (msgsFromServer == null || msgsFromServer.isEmpty()) {
-                            Log.d(TAG, "Reached beginning of chats. Not loading any more");
                             showListViewProgress(false);
                             atBeginningOfChats = true;
                             loading = false;
@@ -432,14 +428,6 @@ public class ChatFragment extends Fragment {
                         TextView tv = (TextView) view.findViewById(android.support.design.R.id.snackbar_text);
                         tv.setTextColor(Color.WHITE);
                         snackbar.show();
-                        Log.i("API Error", "Error connecting to HvZHub.com");
-
-                        if (err.equals("")) {
-                            Log.i("API Error", String.format("Error was: %s", err));
-                        } else {
-                            Log.i("API Error", response.errorBody().toString());
-                        }
-
                     }
                 }
             }

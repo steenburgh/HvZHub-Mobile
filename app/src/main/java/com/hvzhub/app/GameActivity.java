@@ -142,13 +142,8 @@ public class GameActivity extends AppCompatActivity
             public void onReceive(Context context, Intent intent) {
                 SharedPreferences sharedPreferences =
                         PreferenceManager.getDefaultSharedPreferences(context);
-                boolean sentToken = sharedPreferences
+                sharedPreferences
                         .getBoolean(GCMRegistationPrefs.SENT_TOKEN_TO_SERVER, false);
-                if (sentToken) {
-                    Log.i(TAG, "Token retrieved and sent to server!");
-                } else {
-                    Log.i(TAG, "An error occurred while either fetching the InstanceID token, sending the fetched token to the server or subscribing to the PubSub topic.");
-                }
             }
         };
 
@@ -254,7 +249,6 @@ public class GameActivity extends AppCompatActivity
                 apiAvailability.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST)
                         .show();
             } else {
-                Log.i(TAG, "This device is not supported.");
                 finish();
             }
             return false;
@@ -440,7 +434,6 @@ public class GameActivity extends AppCompatActivity
                     SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).edit();
                     editor.putBoolean(GamePrefs.PREFS_IS_HUMAN, r.status == Record.HUMAN);
                     editor.apply();
-                    Log.d(TAG, String.format("Status updated: status = %d", r.status));
                     listener.OnIsHumanRefreshed();
                 } else {
                     AlertDialog.Builder b = new AlertDialog.Builder(GameActivity.this);

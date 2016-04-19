@@ -126,14 +126,6 @@ public class MyCodeFragment extends Fragment {
                             showProgress(false);
                             showContentView(false);
                             showErrorView(true);
-                            Log.i("API Error", "Error connecting to HvZHub.com");
-
-                            if (err.equals("")) {
-                                Log.i("API Error", String.format("Error was: %s", err));
-                            } else {
-                                Log.i("API Error", response.errorBody().toString());
-                            }
-
                         }
 
                     }

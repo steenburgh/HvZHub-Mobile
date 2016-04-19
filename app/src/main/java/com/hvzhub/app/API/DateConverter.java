@@ -15,8 +15,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-import freemarker.template.utility.StringUtil;
-
 public class DateConverter implements JsonDeserializer<Date>, JsonSerializer<Date> {
     private final String DATE_FORMAT_PREFERRED = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
