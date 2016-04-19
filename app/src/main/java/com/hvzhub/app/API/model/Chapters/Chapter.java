@@ -11,7 +11,7 @@ public class Chapter {
     }
 
     public String getUrl() {
-        return this._links.self.replace(this._links.collection, "");
+        return this._links.self.replace(this._links.collection, "").substring(1);
     }
 
     @Override
