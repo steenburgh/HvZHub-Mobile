@@ -13,10 +13,10 @@ public class TagPlayerRequest {
     public Date taggedOn;
 
     @SerializedName("lat")
-    public double Lat;
+    public Double Lat;
 
     @SerializedName("long")
-    public double Long;
+    public Double Long;
 
     public String uuid;
 
@@ -26,5 +26,11 @@ public class TagPlayerRequest {
         this.uuid = uuid;
         this.Lat = Lat;
         this.Long = Long;
+    }
+
+    public TagPlayerRequest(String uuid, String taggedCode, Date taggedOnDateUtc) {
+        this.taggedCode = taggedCode;
+        this.taggedOn = taggedOnDateUtc;
+        this.uuid = uuid;
     }
 }

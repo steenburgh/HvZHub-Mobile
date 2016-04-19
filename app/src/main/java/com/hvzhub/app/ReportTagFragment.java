@@ -115,13 +115,14 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
                 //start TagMap
                 Intent mapstart = new Intent(getActivity(), TagMapActivity.class);
                 startActivity(mapstart);
-                setLatLng();
             }
         });
 
         myCodeContainer = (LinearLayout) view.findViewById(R.id.my_code_container);
         progressBar = (ProgressBar) view.findViewById(R.id.progress_bar);
         errorView = (LinearLayout) view.findViewById(R.id.error_view);
+
+        setLatLng();
 
         SharedPreferences prefs = getActivity().getSharedPreferences(TagLocationPref.NAME, 0);
         listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
@@ -142,16 +143,29 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
         String tagCode = submitCode.getText().toString();
         Date tagDate = tagTime.getTime();
 
-        double Lat = Double.parseDouble(getActivity().getSharedPreferences(TagLocationPref.NAME, 0).getString(TagLocationPref.Latitude, "0"));
-        double Long = Double.parseDouble(getActivity().getSharedPreferences(TagLocationPref.NAME, 0).getString(TagLocationPref.Longitude, "0"));
+        final SharedPreferences prefs = getActivity().getSharedPreferences(TagLocationPref.NAME, Context.MODE_PRIVATE);
+        String latStr = prefs.getString(TagLocationPref.Latitude, null);
+        String longStr = prefs.getString(TagLocationPref.Longitude, null);
 
-        TagPlayerRequest tpr = new TagPlayerRequest(
-                uuid,
-                tagCode,
-                tagDate,
-                Lat,
-                Long
-        );
+        TagPlayerRequest tpr;
+        if (latStr == null || longStr == null) {
+            tpr = new TagPlayerRequest(
+                    uuid,
+                    tagCode,
+                    tagDate
+            );
+        } else {
+            double Lat = Double.parseDouble(latStr);
+            double Long = Double.parseDouble(longStr);
+            tpr = new TagPlayerRequest(
+                    uuid,
+                    tagCode,
+                    tagDate,
+                    Lat,
+                    Long
+            );
+        }
+
         Call<APISuccess> call = client.reportTag(gameId, tpr);
         call.enqueue(new Callback<APISuccess>() {
             @Override
@@ -170,6 +184,8 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
                                     }
                                 })
                                 .show();
+                        prefs.edit().clear().apply();
+                        setLatLng();
                     } else {
                         AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
                         b.setTitle(getString(R.string.unexpected_response))
@@ -234,11 +250,6 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
                 Log.d("Error", t.getMessage());
             }
         });
-        //set prfs
-        SharedPreferences.Editor prefs = getActivity().getSharedPreferences(TagLocationPref.NAME, 0).edit();
-        prefs.putString(TagLocationPref.Latitude, String.valueOf(0));
-        prefs.putString(TagLocationPref.Longitude, String.valueOf(0));
-        prefs.apply();
     }
 
     private void showDatePickerDialog() {
@@ -287,6 +298,9 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
 
     @Override
     public void onAttach(Context context) {
+        // Clear the location if one was entered
+        getActivity().getSharedPreferences(TagLocationPref.NAME, 0).edit().clear().apply();
+
         super.onAttach(context);
         if (context instanceof OnLogoutListener) {
             mListener = (OnLogoutListener) context;
@@ -335,15 +349,19 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
 
     public void setLatLng(){
         SharedPreferences prefs = getActivity().getSharedPreferences(TagLocationPref.NAME, 0);
-        String latVal = prefs.getString(TagLocationPref.Latitude, "0"); // If Latitude isn't set, return "0"
+        String latVal = prefs.getString(TagLocationPref.Latitude, null); // If Latitude isn't set, return "0"
+        String longVal = prefs.getString(TagLocationPref.Longitude, null); // If Latitude isn't set, return "0"
+        if (latVal == null || longVal == null) {
+            LocationInput.setText(R.string.tap_to_enter_location);
+            return;
+        }
+
         if(latVal.length() >= 11){
             latVal = latVal.substring(0, 10);
         }
-        String longVal = prefs.getString(TagLocationPref.Longitude, "0"); // If Latitude isn't set, return "0"
         if(longVal.length() >= 11) {
             longVal = longVal.substring(0, 10);
         }
-
         LocationInput.setText("(" + latVal + "," + longVal + ")");
     }
 }
