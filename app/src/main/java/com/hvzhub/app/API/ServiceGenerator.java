@@ -6,7 +6,6 @@ import com.google.gson.GsonBuilder;
 import java.util.Date;
 
 import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -25,12 +24,6 @@ public class ServiceGenerator {
 
     public static Retrofit retrofit() {
         if (retrofit == null) {
-            // TODO: Remove these lines
-            // To enable logging, uncomment these lines and import okhttp3.logging
-            HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
-            logging.setLevel(HttpLoggingInterceptor.Level.BODY);
-            httpClient.addInterceptor(logging);
-
             Gson gson = new GsonBuilder()
                     .registerTypeAdapter(Date.class, DateConverter.getInstance())
                     .create();
