@@ -18,4 +18,4 @@
 
 -dontwarn freemarker.**
 -dontwarn okio.**
--dontwarn retrofit2.**
+-dontwarn retrofit2.Platform$Java8
