@@ -1,9 +1,0 @@
-diff a/app/src/main/java/com/hvzhub/app/API/ServiceGenerator.java b/app/src/main/java/com/hvzhub/app/API/ServiceGenerator.java	(rejected hunks)
-@@ -6,7 +6,6 @@
- import java.util.Date;
- 
- import okhttp3.OkHttpClient;
--import okhttp3.logging.HttpLoggingInterceptor;
- import retrofit2.Retrofit;
- import retrofit2.converter.gson.GsonConverterFactory;
- 
