@@ -12,10 +12,10 @@ public class TagPlayerRequest {
     @SerializedName("tagged_on")
     public Date taggedOn;
 
-    @SerializedName("lat")
+    @SerializedName("tag_lat")
     public Double Lat;
 
-    @SerializedName("long")
+    @SerializedName("tag_long")
     public Double Long;
 
     public String uuid;
