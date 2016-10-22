@@ -178,14 +178,14 @@ public class ChatFragment extends Fragment {
     private void addMessagesFromDb() {
         boolean justTurned = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_JUST_TURNED, false);
         if (justTurned) {
-            DB.getInstance(getActivity().getApplicationContext()).wipeDatabase();
+            DB.getInstance().wipeDatabase();
             refreshMessages();
             getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit()
                     .putBoolean(GamePrefs.PREFS_JUST_TURNED, false)
                     .apply();
         } else {
             final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
-            List<com.hvzhub.app.DB.Message> msgsFromDb = DB.getInstance(getActivity().getApplicationContext()).getMessages(isHuman ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
+            List<com.hvzhub.app.DB.Message> msgsFromDb = DB.getInstance().getMessages(isHuman ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
             for (com.hvzhub.app.DB.Message dbMsg : msgsFromDb) {
                 Message msgObj = new Message(dbMsg);
 
@@ -195,7 +195,7 @@ public class ChatFragment extends Fragment {
 
                 messages.add(msgObj);
             }
-            DB.getInstance(getActivity().getApplicationContext()).wipeDatabase();
+            DB.getInstance().wipeDatabase();
         }
 
         adapter.notifyDataSetChanged();
@@ -303,7 +303,7 @@ public class ChatFragment extends Fragment {
                                 loading = false;
                             }
 
-                            DB.getInstance(getActivity().getApplicationContext()).wipeDatabase();
+                            DB.getInstance().wipeDatabase();
                         }
                     } else {
                         showListViewProgress(false);

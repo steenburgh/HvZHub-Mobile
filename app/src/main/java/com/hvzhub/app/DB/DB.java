@@ -29,11 +29,15 @@ public class DB {
         initDatabase();
     }
 
-    public static synchronized DB getInstance(Context context) {
+    public static synchronized DB getInstance() {
         if (mInstance == null) {
-            mInstance = new DB(context);
+            throw new RuntimeException("Database not initialized. Make sure to call DB.newInstance() first to initialize the DB.");
         }
         return mInstance;
+    }
+
+    public static synchronized void newInstance(Context context) {
+        mInstance = new DB(context);
     }
 
     private void initDatabase() {

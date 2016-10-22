@@ -116,7 +116,7 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
             return false;
         }
 
-        DB.getInstance(this).addMessageToChat(new Message(
+        DB.getInstance().addMessageToChat(new Message(
                         userId,
                         name,
                         message,
@@ -198,7 +198,7 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
      * @param message GCM message received.
      */
     private void sendNotification(String title, String message, boolean isHumanChat) {
-        List<com.hvzhub.app.DB.Message> messageList = DB.getInstance(this).getMessages(isHumanChat ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
+        List<com.hvzhub.app.DB.Message> messageList = DB.getInstance().getMessages(isHumanChat ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
 
         Intent intent = new Intent(this, GameActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

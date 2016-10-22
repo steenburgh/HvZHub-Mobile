@@ -412,7 +412,7 @@ public class GameActivity extends AppCompatActivity
         // Load the login screen
         Intent i = new Intent(this, LoginActivity.class);
         startActivity(i);
-        DB.getInstance(this).wipeDatabase();
+        DB.getInstance().wipeDatabase();
         finish();
     }
 
