@@ -28,6 +28,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -71,6 +72,7 @@ public class ChatFragment extends Fragment {
     ChatAdapter adapter;
     ListView listView;
     EditText messageBox;
+    LinearLayout sendBox;
     ImageButton send;
     ProgressBar progressBar;
 
@@ -160,6 +162,7 @@ public class ChatFragment extends Fragment {
         final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
         messageBox.setHint(isHuman ? R.string.chatting_with_humans : R.string.chatting_with_zombies);
 
+        sendBox = (LinearLayout) view.findViewById(R.id.send_box);
         send = (ImageButton) view.findViewById(R.id.send);
         send.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -256,7 +259,13 @@ public class ChatFragment extends Fragment {
 
                         List<Message> msgsFromServer = response.body().messages;
                         if (msgsFromServer == null || msgsFromServer.isEmpty()) {
-                            showListViewProgress(false);
+                            listView.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    showListViewProgress(false);
+                                }
+                            });
+
                             atBeginningOfChats = true;
                             loading = false;
                         } else {
@@ -306,7 +315,13 @@ public class ChatFragment extends Fragment {
                             DB.getInstance().wipeDatabase();
                         }
                     } else {
-                        showListViewProgress(false);
+                        listView.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                showListViewProgress(false);
+                            }
+                        });
+
                         loading = false;
                         APIError apiError = ErrorUtils.parseError(response);
                         String err = apiError.error.toLowerCase();
@@ -339,7 +354,13 @@ public class ChatFragment extends Fragment {
 
                 @Override
                 public void onFailure(Call<MessageListContainer> call, Throwable t) {
-                    showListViewProgress(false);
+                    listView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            showListViewProgress(false);
+                        }
+                    });
+
                     loading = false;
                     AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
                     b.setTitle(getString(R.string.generic_connection_error))
@@ -409,7 +430,13 @@ public class ChatFragment extends Fragment {
         call.enqueue(new Callback<PostChatResponse>() {
             @Override
             public void onResponse(Call<PostChatResponse> call, Response<PostChatResponse> response) {
-                showSendProgress(false);
+                sendBox.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        showSendProgress(false);
+                    }
+                });
+
                 if (response.isSuccessful()) {
                     messageBox.setText("");
                 } else {
@@ -435,7 +462,13 @@ public class ChatFragment extends Fragment {
 
             @Override
             public void onFailure(Call<PostChatResponse> call, Throwable t) {
-                showSendProgress(false);
+                sendBox.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        showSendProgress(false);
+                    }
+                });
+
                 // TODO: Make this an alert box
                 Snackbar snackbar = Snackbar.make(listView, R.string.generic_connection_error, Snackbar.LENGTH_LONG);
                 View view = snackbar.getView();
