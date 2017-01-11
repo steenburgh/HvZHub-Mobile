@@ -206,7 +206,8 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
                 .setGroup(isHumanChat ? GROUP_HUMAN_CHAT : GROUP_ZOMBIE_CHAT)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message)) // Make this an expandable notification
                 .setContentTitle(title)
-                .setContentText(message);
+                .setContentText(message)
+                .setSortKey(messageList.size() + "");
 
         notificationManager.notify(messageList.size(), notificationBuilder.build());
         Log.d("HVZNot", messageList.get(0).getName());
@@ -216,7 +217,7 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
                     .setBigContentTitle(String.format("%d new messages", messageList.size()))
                     .setSummaryText(isHumanChat ? getString(R.string.human_chat) : getString(R.string.zombie_chat));
 
-            for (int i = messageList.size() - 1; i >= 0; i--) {
+            for (int i = 0; i < messageList.size(); i++) {
                 com.hvzhub.app.DB.Message msg  = messageList.get(i);
                 style.addLine(String.format("%s   %s", msg.getName(), msg.getMessage()));
             }
