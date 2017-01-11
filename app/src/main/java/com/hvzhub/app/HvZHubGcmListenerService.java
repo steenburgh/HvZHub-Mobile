@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
@@ -41,6 +42,8 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
     private static final String TAG = "HvZHubGcmListener";
     private static final String GROUP_ZOMBIE_CHAT = "chatZombie";
     private static final String GROUP_HUMAN_CHAT = "chatHuman";
+    /** Group messages if *more than* GROUP_THRESHOLD messages are pending */
+    private static final int GROUP_THRESHOLD = 1;
 
     /**
      * Called when message is received.
@@ -203,16 +206,31 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
 
         NotificationCompat.Builder notificationBuilder =
                 applyHvZHubDefaults(new NotificationCompat.Builder(this))
-                .setGroup(isHumanChat ? GROUP_HUMAN_CHAT : GROUP_ZOMBIE_CHAT)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message)) // Make this an expandable notification
                 .setContentTitle(title)
                 .setContentText(message)
                 .setSortKey(messageList.size() + "");
 
-        notificationManager.notify(messageList.size(), notificationBuilder.build());
-        Log.d("HVZNot", messageList.get(0).getName());
+        // setGroup prevents any notification that isn't the group summary
+        // from appearing on kit kat or lower
+        // This appears to be an issue with the NotificationCompat library
+        // https://code.google.com/p/android/issues/detail?id=159947
+        // http://stackoverflow.com/questions/31407607/notification-not-shown-when-setgroup-is-called-in-android-kitkat/34953411#34953411
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {
+            notificationBuilder.setGroup(isHumanChat ? GROUP_HUMAN_CHAT : GROUP_ZOMBIE_CHAT);
+            notificationManager.notify(messageList.size(), notificationBuilder.build());
+        } else {
+            // Hack to make things work on kit kat or lower
+            if (messageList.size() <= GROUP_THRESHOLD){
+                // only display message if the group isn't being displayed
+                notificationManager.notify(messageList.size(), notificationBuilder.build());
+            } else if (messageList.size() == GROUP_THRESHOLD + 1){
+                // If we're about to transition into a group, cancel the non-grouped notifications
+                notificationManager.cancelAll();
+            }
+        }
 
-        if (messageList.size() > 1) {
+        if (messageList.size() > GROUP_THRESHOLD) {
             NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle()
                     .setBigContentTitle(String.format("%d new messages", messageList.size()))
                     .setSummaryText(isHumanChat ? getString(R.string.human_chat) : getString(R.string.zombie_chat));
