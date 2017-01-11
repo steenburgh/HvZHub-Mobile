@@ -28,6 +28,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -71,6 +72,7 @@ public class ChatFragment extends Fragment {
     ChatAdapter adapter;
     ListView listView;
     EditText messageBox;
+    LinearLayout sendBox;
     ImageButton send;
     ProgressBar progressBar;
 
@@ -90,7 +92,7 @@ public class ChatFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        getActivity().setTitle(getActivity().getString(R.string.chat));
+        getActivity().setTitle(getContext().getString(R.string.chat));
 
         // Inflate the layout for this fragment
         mContainer = container;
@@ -134,7 +136,7 @@ public class ChatFragment extends Fragment {
         if (messages == null) {
             messages = new LinkedList<>();
         }
-        adapter = new ChatAdapter(getActivity(), messages);
+        adapter = new ChatAdapter(getContext(), messages);
 
         // Due to the way listView works in android, if we want to add a headerView later,
         // it must be first added before the adapter is set, and then removed immediately afterwards
@@ -157,9 +159,10 @@ public class ChatFragment extends Fragment {
 
         messageBox = (EditText) view.findViewById(R.id.compose_msg);
 
-        final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+        final boolean isHuman = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
         messageBox.setHint(isHuman ? R.string.chatting_with_humans : R.string.chatting_with_zombies);
 
+        sendBox = (LinearLayout) view.findViewById(R.id.send_box);
         send = (ImageButton) view.findViewById(R.id.send);
         send.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -176,15 +179,15 @@ public class ChatFragment extends Fragment {
      * Retrieve these messages and add them to the message list
      */
     private void addMessagesFromDb() {
-        boolean justTurned = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_JUST_TURNED, false);
+        boolean justTurned = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_JUST_TURNED, false);
         if (justTurned) {
             DB.getInstance().wipeDatabase();
             refreshMessages();
-            getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit()
+            getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit()
                     .putBoolean(GamePrefs.PREFS_JUST_TURNED, false)
                     .apply();
         } else {
-            final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+            final boolean isHuman = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
             List<com.hvzhub.app.DB.Message> msgsFromDb = DB.getInstance().getMessages(isHuman ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
             for (com.hvzhub.app.DB.Message dbMsg : msgsFromDb) {
                 Message msgObj = new Message(dbMsg);
@@ -214,8 +217,8 @@ public class ChatFragment extends Fragment {
     }
 
     private void getMsgsFromServer(final boolean refresh, final int numToFetch) {
-        if (!NetworkUtils.networkIsAvailable(getActivity())) {
-            AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+        if (!NetworkUtils.networkIsAvailable(getContext())) {
+            AlertDialog.Builder b = new AlertDialog.Builder(getContext());
             b.setTitle(getString(R.string.network_not_available))
                     .setMessage(getString(R.string.network_not_available_hint))
                     .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
@@ -233,10 +236,10 @@ public class ChatFragment extends Fragment {
         } else {
             showListViewProgress(true);
             loading = true;
-            HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
-            String uuid = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
-            int gameId = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
-            final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+            HvZHubClient client = API.getInstance(getContext()).getHvZHubClient();
+            String uuid = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
+            int gameId = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
+            final boolean isHuman = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
 
             Call<MessageListContainer> call = client.getChats(
                     new Uuid(uuid),
@@ -256,7 +259,13 @@ public class ChatFragment extends Fragment {
 
                         List<Message> msgsFromServer = response.body().messages;
                         if (msgsFromServer == null || msgsFromServer.isEmpty()) {
-                            showListViewProgress(false);
+                            listView.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    showListViewProgress(false);
+                                }
+                            });
+
                             atBeginningOfChats = true;
                             loading = false;
                         } else {
@@ -306,7 +315,13 @@ public class ChatFragment extends Fragment {
                             DB.getInstance().wipeDatabase();
                         }
                     } else {
-                        showListViewProgress(false);
+                        listView.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                showListViewProgress(false);
+                            }
+                        });
+
                         loading = false;
                         APIError apiError = ErrorUtils.parseError(response);
                         String err = apiError.error.toLowerCase();
@@ -318,7 +333,7 @@ public class ChatFragment extends Fragment {
                             if (checkForWrongTeamError(err)) {
                                 return; // If there was an error, the activity will be reloaded. skip everything else
                             }
-                            AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                            AlertDialog.Builder b = new AlertDialog.Builder(getContext());
                             b.setTitle(getString(R.string.unexpected_response))
                                     .setMessage(getString(R.string.unexpected_response_hint))
                                     .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
@@ -339,9 +354,15 @@ public class ChatFragment extends Fragment {
 
                 @Override
                 public void onFailure(Call<MessageListContainer> call, Throwable t) {
-                    showListViewProgress(false);
+                    listView.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            showListViewProgress(false);
+                        }
+                    });
+
                     loading = false;
-                    AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                    AlertDialog.Builder b = new AlertDialog.Builder(getContext());
                     b.setTitle(getString(R.string.generic_connection_error))
                             .setMessage(getString(R.string.generic_connection_error_hint))
                             .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
@@ -370,8 +391,8 @@ public class ChatFragment extends Fragment {
             messageBox.requestFocus();
             return;
         }
-        if (!NetworkUtils.networkIsAvailable(getActivity().getApplicationContext())) {
-            AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+        if (!NetworkUtils.networkIsAvailable(getContext())) {
+            AlertDialog.Builder b = new AlertDialog.Builder(getContext());
             b.setTitle(getString(R.string.network_not_available))
                     .setMessage(getString(R.string.network_not_available_hint))
                     .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
@@ -390,12 +411,12 @@ public class ChatFragment extends Fragment {
             return;
         }
 
-        String uuid = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
-        int gameId = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
-        int userId = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_USER_ID, -1);
-        boolean isHuman = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+        String uuid = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
+        int gameId = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
+        int userId = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_USER_ID, -1);
+        boolean isHuman = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
 
-        HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
+        HvZHubClient client = API.getInstance(getContext()).getHvZHubClient();
         Call<PostChatResponse> call = client.postChat(
                 gameId,
                 new PostChatRequest(
@@ -409,7 +430,13 @@ public class ChatFragment extends Fragment {
         call.enqueue(new Callback<PostChatResponse>() {
             @Override
             public void onResponse(Call<PostChatResponse> call, Response<PostChatResponse> response) {
-                showSendProgress(false);
+                sendBox.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        showSendProgress(false);
+                    }
+                });
+
                 if (response.isSuccessful()) {
                     messageBox.setText("");
                 } else {
@@ -435,7 +462,13 @@ public class ChatFragment extends Fragment {
 
             @Override
             public void onFailure(Call<PostChatResponse> call, Throwable t) {
-                showSendProgress(false);
+                sendBox.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        showSendProgress(false);
+                    }
+                });
+
                 // TODO: Make this an alert box
                 Snackbar snackbar = Snackbar.make(listView, R.string.generic_connection_error, Snackbar.LENGTH_LONG);
                 View view = snackbar.getView();
@@ -518,32 +551,33 @@ public class ChatFragment extends Fragment {
         super.onResume();
         registerMsgReceiver();
 
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getActivity());
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getContext());
         notificationManager.cancelAll();
         addMessagesFromDb();
 
         // Chat is now open
-        SharedPreferences.Editor prefs = getActivity().getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor prefs = getContext().getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).edit();
         prefs.putBoolean(ChatPrefs.IS_OPEN, true);
         prefs.apply();
     }
 
+    
     @Override
     public void onPause() {
         super.onPause();
 
-        LocalBroadcastManager.getInstance(getActivity().getApplicationContext()).unregisterReceiver(msgBroadcastReceiver);
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(msgBroadcastReceiver);
         msgReceiverIsRegistered = false;
 
         // Chat is now closed
-        SharedPreferences.Editor prefs = getActivity().getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor prefs = getContext().getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).edit();
         prefs.putBoolean(ChatPrefs.IS_OPEN, false);
         prefs.apply();
     }
 
     private void registerMsgReceiver() {
         if (!msgReceiverIsRegistered) {
-            LocalBroadcastManager.getInstance(getActivity().getApplicationContext())
+            LocalBroadcastManager.getInstance(getContext())
                     .registerReceiver(
                             msgBroadcastReceiver,
                             new IntentFilter(ChatPrefs.MESSAGE_RECEIVED_BROADCAST)
@@ -558,7 +592,7 @@ public class ChatFragment extends Fragment {
 
         // Hide keyboard
         if (getView() != null) {
-            final InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            final InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
         }
 
