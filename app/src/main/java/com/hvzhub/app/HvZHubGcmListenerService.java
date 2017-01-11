@@ -191,7 +191,6 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
         startService(intent);
     }
 
-
     /**
      * Create and show a simple notification containing the received GCM message.
      *
@@ -200,60 +199,17 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
     private void sendNotification(String title, String message, boolean isHumanChat) {
         List<com.hvzhub.app.DB.Message> messageList = DB.getInstance().getMessages(isHumanChat ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
 
-        Intent intent = new Intent(this, GameActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-
-        // Launch the chat activity if clicked
-        Bundle b = new Bundle();
-        b.putInt(GameActivity.ARG_FRAGMENT_NAME, GameActivity.CHAT_FRAGMENT);
-        intent.putExtras(b);
-
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
-                PendingIntent.FLAG_ONE_SHOT);
-
-
-
-        /************ Create the notification *************/
-        // Setup ringtone
-        Uri defaultUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        String soundUriString = PreferenceManager.getDefaultSharedPreferences(this)
-                .getString(SettingsActivity.NOTIFICATIONS_RINGTONE, null);
-        Uri soundUri = (soundUriString == null) ? defaultUri : Uri.parse(soundUriString);
-
-        // Setup Vibrate
-        boolean vibrate = PreferenceManager.getDefaultSharedPreferences(this)
-                .getBoolean(SettingsActivity.NOTIFICATIONS_VIBRATE, false);
-        int defaults;
-        if (vibrate) {
-            defaults = Notification.DEFAULT_VIBRATE | Notification.DEFAULT_LIGHTS;
-        } else {
-            defaults = Notification.DEFAULT_LIGHTS;
-        }
-
-        // Setup large icon
-        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
-
-        // Build the notification
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setSmallIcon(R.drawable.ic_launcher_monocolor_nocircles)
-                .setLargeIcon(largeIcon)
-                .setColor(ContextCompat.getColor(this, R.color.colorPrimaryDark))
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(message)) // Make this an expandable notification
-                .setGroup(isHumanChat ? GROUP_HUMAN_CHAT : GROUP_ZOMBIE_CHAT)
-                .setContentTitle(title)
-                .setContentText(message)
-                .setAutoCancel(true)
-                .setContentIntent(pendingIntent);
-
-        notificationBuilder.setSound(soundUri); // Ringtone
-        notificationBuilder.setDefaults(defaults); // Vibrate + Notification light
-
-
-
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
 
+        NotificationCompat.Builder notificationBuilder =
+                applyHvZHubDefaults(new NotificationCompat.Builder(this))
+                .setGroup(isHumanChat ? GROUP_HUMAN_CHAT : GROUP_ZOMBIE_CHAT)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(message)) // Make this an expandable notification
+                .setContentTitle(title)
+                .setContentText(message);
+
         notificationManager.notify(messageList.size(), notificationBuilder.build());
+        Log.d("HVZNot", messageList.get(0).getName());
 
         if (messageList.size() > 1) {
             NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle()
@@ -265,26 +221,66 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
                 style.addLine(String.format("%s   %s", msg.getName(), msg.getMessage()));
             }
 
-
             com.hvzhub.app.DB.Message firstMsg = messageList.get(messageList.size() - 1);
-            NotificationCompat.Builder notificationBuilder2 = new NotificationCompat.Builder(this)
-                    .setContentIntent(pendingIntent)
-                    .setPriority(NotificationCompat.PRIORITY_HIGH)
-                    .setSmallIcon(R.drawable.ic_launcher_monocolor_nocircles)
-                    .setLargeIcon(largeIcon)
-                    .setColor(ContextCompat.getColor(this, R.color.colorPrimaryDark))
-                    .setContentTitle(String.format("%d new messages", messageList.size()))
-                    .setContentText(String.format("%s    %s", firstMsg.getName(), firstMsg.getMessage()))
-                    .setStyle(style)
+            NotificationCompat.Builder notificationBuilder2 =
+                    applyHvZHubDefaults(new NotificationCompat.Builder(this))
                     .setGroup(isHumanChat ? GROUP_HUMAN_CHAT : GROUP_ZOMBIE_CHAT)
                     .setGroupSummary(true)
-                    .setAutoCancel(true)
-                    .setContentIntent(pendingIntent)
-                    .setSound(soundUri)
-                    .setDefaults(defaults);
+                    .setStyle(style)
+                    .setContentTitle(String.format("%d new messages", messageList.size()))
+                    .setContentText(String.format("%s    %s", firstMsg.getName(), firstMsg.getMessage()));
 
             notificationManager.notify(0, notificationBuilder2.build());
         }
 
+    }
+
+    private NotificationCompat.Builder applyHvZHubDefaults(NotificationCompat.Builder builder) {
+        Intent intent = new Intent(this, GameActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        // Launch the chat activity if clicked
+        Bundle b = new Bundle();
+        b.putInt(GameActivity.ARG_FRAGMENT_NAME, GameActivity.CHAT_FRAGMENT);
+        intent.putExtras(b);
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this,
+                0 /* Request code */,
+                intent,
+                PendingIntent.FLAG_ONE_SHOT
+        );
+
+        builder.setContentIntent(pendingIntent);
+
+        // Setup ringtone
+        Uri defaultUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        String soundUriString = PreferenceManager.getDefaultSharedPreferences(this)
+                .getString(SettingsActivity.NOTIFICATIONS_RINGTONE, null);
+        Uri soundUri = (soundUriString == null) ? defaultUri : Uri.parse(soundUriString);
+
+        builder.setSound(soundUri); // Ringtone
+
+        // Setup Vibrate
+        boolean vibrate = PreferenceManager.getDefaultSharedPreferences(this)
+                .getBoolean(SettingsActivity.NOTIFICATIONS_VIBRATE, false);
+        int defaults;
+        if (vibrate) {
+            defaults = Notification.DEFAULT_VIBRATE | Notification.DEFAULT_LIGHTS;
+        } else {
+            defaults = Notification.DEFAULT_LIGHTS;
+        }
+
+        builder.setDefaults(defaults); // Vibrate + Notification light
+
+        // Setup large icon
+        Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
+        builder.setLargeIcon(largeIcon);
+
+
+        return builder.setSmallIcon(R.drawable.ic_launcher_monocolor_nocircles)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setColor(ContextCompat.getColor(this, R.color.colorPrimaryDark))
+                .setAutoCancel(true);
     }
 }
