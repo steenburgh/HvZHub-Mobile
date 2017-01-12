@@ -67,12 +67,6 @@ public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallb
     @Override
     public void onMapReady(GoogleMap googleMap) {
         heatMap = googleMap;
-
-        // Add a marker in Sydney, Australia, and move the camera.
-        LatLng bascom = new LatLng(43.075299, -89.40337299999999);
-
-        heatMap.moveCamera(CameraUpdateFactory.zoomTo(15));
-        heatMap.moveCamera(CameraUpdateFactory.newLatLng(bascom));
         loadData();
     }
 
