@@ -20,7 +20,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
@@ -44,7 +43,6 @@ import retrofit2.Response;
 
 public class GameActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-        OnLogoutListener,
         OnRefreshIsHumanListener {
 
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
@@ -169,17 +167,6 @@ public class GameActivity extends AppCompatActivity
         intent.putExtra(GCMRegIntentService.ARGS_GAME_ID, gameId);
         intent.putExtra(GCMRegIntentService.ARG_IS_HUMAN, isHuman);
         intent.putExtra(GCMRegIntentService.ARG_IS_ADMIN, isAdmin);
-
-        startService(intent);
-    }
-
-    public void unsubscribeAll() {
-        Intent intent = new Intent(this, GCMRegIntentService.class);
-        intent.putExtra(GCMRegIntentService.CHAT_UNSUBSCRIBE_ALL, true);
-
-        SharedPreferences prefs = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE);
-        int gameId = prefs.getInt(GamePrefs.PREFS_GAME_ID, -1);
-        intent.putExtra(GCMRegIntentService.ARGS_GAME_ID, gameId);
 
         startService(intent);
     }
@@ -361,7 +348,7 @@ public class GameActivity extends AppCompatActivity
                 startActivity(i);
                 break;
             case R.id.nav_logout:
-                onLogout();
+                SessionManager.getInstance().logout();
                 break;
             case R.id.nav_settings:
                 i = new Intent(GameActivity.this, SettingsActivity.class);
@@ -389,31 +376,6 @@ public class GameActivity extends AppCompatActivity
         } else {
             return false; // If a fragment wasn't opened, don't highlight the navigation item.
         }
-    }
-
-    @Override
-    public void onLogout() {
-        // Clear notification subscriptions
-        unsubscribeAll();
-
-        // Clear *all* GamePrefs
-        SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit();
-        editor.clear();
-        editor.apply();
-
-        // Notify the user
-        Toast t = Toast.makeText(
-                this,
-                R.string.you_have_been_logged_out,
-                Toast.LENGTH_LONG
-        );
-        t.show();
-
-        // Load the login screen
-        Intent i = new Intent(this, LoginActivity.class);
-        startActivity(i);
-        DB.getInstance().wipeDatabase();
-        finish();
     }
 
     /**

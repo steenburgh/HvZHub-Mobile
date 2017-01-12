@@ -5,12 +5,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,16 +20,10 @@ import com.hvzhub.app.API.ErrorUtils;
 import com.hvzhub.app.API.HvZHubClient;
 import com.hvzhub.app.API.NetworkUtils;
 import com.hvzhub.app.API.model.APIError;
-import com.hvzhub.app.API.model.APISuccess;
 import com.hvzhub.app.API.model.Chapters.ChapterInfo;
-import com.hvzhub.app.API.model.Games.HeatmapTagContainer;
 import com.hvzhub.app.API.model.Games.PlayerCount;
 import com.hvzhub.app.API.model.Uuid;
 import com.hvzhub.app.Prefs.GamePrefs;
-
-import org.w3c.dom.Text;
-
-import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -39,7 +31,6 @@ import retrofit2.Response;
 
 public class HomeFragment extends Fragment {
 
-    private OnLogoutListener mListener;
     private TextView humanCount;
     private TextView zombieCount;
     private TextView gameRules;
@@ -110,7 +101,7 @@ public class HomeFragment extends Fragment {
                     }
                     if (err.contains("invalid")) {
                         Toast.makeText(getActivity().getApplicationContext(), "Invalid Session ID. Logging Out...", Toast.LENGTH_SHORT);
-                        logout();
+                        SessionManager.getInstance().logout();
                     } else {
                         AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
 
@@ -156,7 +147,7 @@ public class HomeFragment extends Fragment {
                     String errorMessage;
                     if (err.contains("invalid")) {
                         Toast.makeText(getActivity().getApplicationContext(), "Invalid Session ID. Logging Out...", Toast.LENGTH_SHORT);
-                        logout();
+                        SessionManager.getInstance().logout();
                     }
                     else {
                         AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
@@ -188,36 +179,6 @@ public class HomeFragment extends Fragment {
             }
         });
         loading = false;
-    }
-
-
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnLogoutListener) {
-            mListener = (OnLogoutListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must be an instance of OnLogoutListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    public void logout(){
-        SharedPreferences.Editor editor = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit();
-        editor.clear();
-        editor.apply();
-
-        // Show the login screen again
-        Intent i = new Intent(getActivity(), LoginActivity.class);
-        startActivity(i);
-        getActivity().finish();
     }
 
     private void refreshHome(){
@@ -274,7 +235,7 @@ public class HomeFragment extends Fragment {
                         if (err.contains(getString(R.string.invalid_session_id))) {
                             // Notify the parent activity that the user should be logged out
                             // Don't bother stopping the loading animation
-                            logout();
+                            SessionManager.getInstance().logout();
                         } else {
                             AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
                             b.setTitle(getString(R.string.unexpected_response))

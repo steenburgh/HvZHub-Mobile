@@ -19,7 +19,6 @@ import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.Html;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -61,7 +60,6 @@ public class ChatFragment extends Fragment {
 
     private BroadcastReceiver msgBroadcastReceiver;
     private boolean msgReceiverIsRegistered;
-    private OnLogoutListener mLogoutListener;
     private OnRefreshIsHumanListener mRefreshIsHumanListener;
     private ViewGroup mContainer;
     private boolean loading;
@@ -328,7 +326,7 @@ public class ChatFragment extends Fragment {
                         if (err.contains(getString(R.string.invalid_session_id))) {
                             // Notify the parent activity that the user should be logged out
                             // Don't bother stopping the loading animation
-                            mLogoutListener.onLogout();
+                            SessionManager.getInstance().logout();
                         } else {
                             if (checkForWrongTeamError(err)) {
                                 return; // If there was an error, the activity will be reloaded. skip everything else
@@ -443,9 +441,7 @@ public class ChatFragment extends Fragment {
                     APIError apiError = ErrorUtils.parseError(response);
                     String err = apiError.error.toLowerCase();
                     if (err.contains(getString(R.string.invalid_session_id))) {
-                        // Notify the parent activity that the user should be logged out
-                        // Don't bother stopping the loading animation
-                        mLogoutListener.onLogout();
+                        SessionManager.getInstance().logout();
                     } else {
                         if (checkForWrongTeamError(err)) {
                             return; // If there was an error, the activity will be reloaded. skip everything else
@@ -601,13 +597,6 @@ public class ChatFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnLogoutListener) {
-            mLogoutListener = (OnLogoutListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must be an instance of OnLogoutListener");
-        }
-
         if (context instanceof OnRefreshIsHumanListener) {
             mRefreshIsHumanListener = (OnRefreshIsHumanListener) context;
         } else {
@@ -619,6 +608,6 @@ public class ChatFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        mLogoutListener = null;
+        mRefreshIsHumanListener = null;
     }
 }

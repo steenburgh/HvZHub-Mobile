@@ -275,14 +275,7 @@ public class ChapterSelectionActivity extends AppCompatActivity {
     }
 
     private void logout() {
-        // Clear *all* GamePrefs
-        SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit();
-        editor.clear();
-        editor.apply();
-
-        // Show the login screen again
-        Intent i = new Intent(this, LoginActivity.class);
-        startActivity(i);
+        SessionManager.getInstance().logout();
         finish();
     }
 }

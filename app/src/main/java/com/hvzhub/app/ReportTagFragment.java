@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -53,9 +52,6 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
     LatLng tagLocation;
     FragmentManager mapManager;
     SharedPreferences.OnSharedPreferenceChangeListener listener;
-
-
-    private OnLogoutListener mListener;
 
     public ReportTagFragment() {
         tagTime = Calendar.getInstance();
@@ -293,26 +289,6 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
 
     private void showProgress(final boolean showProgress) {
         progressBar.setVisibility(showProgress ? View.VISIBLE : View.GONE);
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        // Clear the location if one was entered
-        getActivity().getSharedPreferences(TagLocationPref.NAME, 0).edit().clear().apply();
-
-        super.onAttach(context);
-        if (context instanceof OnLogoutListener) {
-            mListener = (OnLogoutListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must be an instance of OnLogoutListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
     }
 
     @Override

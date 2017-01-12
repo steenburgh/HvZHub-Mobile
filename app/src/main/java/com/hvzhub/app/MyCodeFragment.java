@@ -5,7 +5,6 @@ import android.support.v4.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,8 +31,6 @@ public class MyCodeFragment extends Fragment {
     ProgressBar progressBar;
     LinearLayout myCodeContainer;
     LinearLayout errorView;
-
-    private OnLogoutListener mListener;
 
     public MyCodeFragment() {
         // Required empty public constructor
@@ -120,7 +117,7 @@ public class MyCodeFragment extends Fragment {
                         if (err.contains(getString(R.string.invalid_session_id))) {
                             // Notify the parent activity that the user should be logged out
                             // Don't bother stopping the loading animation
-                            mListener.onLogout();
+                            SessionManager.getInstance().logout();
                         } else {
                             setError(getString(R.string.unexpected_response), getString(R.string.unexpected_response_hint));
                             showProgress(false);
@@ -174,22 +171,5 @@ public class MyCodeFragment extends Fragment {
 
     private void showProgress(final boolean showProgress) {
         progressBar.setVisibility(showProgress ? View.VISIBLE : View.GONE);
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnLogoutListener) {
-            mListener = (OnLogoutListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must be an instance of OnLogoutListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
     }
 }
