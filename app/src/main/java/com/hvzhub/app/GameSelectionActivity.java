@@ -99,10 +99,9 @@ public class GameSelectionActivity extends AppCompatActivity {
             showProgress(true);
             HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
 
-            String uuid = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
             String chapterUrl = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
             Call<ChapterInfo> call = client.getChapterInfo(
-                    new Uuid(uuid),
+                    SessionManager.getInstance().getSessionUUID(),
                     chapterUrl
             );
             call.enqueue(new Callback<ChapterInfo>() {
@@ -182,8 +181,10 @@ public class GameSelectionActivity extends AppCompatActivity {
     private void joinGame(final Game game) {
         showProgress(true);
         HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
-        String uuid = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
-        Call<Status> call = client.joinGame(game.id, new Uuid(uuid));
+        Call<Status> call = client.joinGame(
+                game.id,
+                SessionManager.getInstance().getSessionUUID()
+        );
         call.enqueue(new Callback<Status>() {
             @Override
             public void onResponse(Call<Status> call, Response<Status> response) {
@@ -236,9 +237,11 @@ public class GameSelectionActivity extends AppCompatActivity {
     public void updateIsHuman() {
         HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
         SharedPreferences prefs = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE);
-        String uuid = prefs.getString(GamePrefs.PREFS_SESSION_ID, null);
         int gameId = prefs.getInt(GamePrefs.PREFS_GAME_ID, -1);
-        Call<RecordContainer> call = client.getMyRecord(new Uuid(uuid), gameId);
+        Call<RecordContainer> call = client.getMyRecord(
+                SessionManager.getInstance().getSessionUUID(),
+                gameId
+        );
         call.enqueue(new Callback<RecordContainer>() {
             @Override
             public void onResponse(Call<RecordContainer> call, Response<RecordContainer> response) {

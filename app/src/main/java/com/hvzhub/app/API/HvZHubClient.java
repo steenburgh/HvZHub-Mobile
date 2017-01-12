@@ -32,6 +32,9 @@ public interface HvZHubClient {
     @POST("login")
     Call<Session> login(@Body LoginRequest loginRequest);
 
+    @POST("logout")
+    Call<Status> logout(@Body Uuid uuid);
+
     @POST("currentuser")
     Call<CurrentUser> getCurrentUser(@Body Uuid uuid);
 

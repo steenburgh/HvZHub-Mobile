@@ -61,9 +61,8 @@ public class ModUpdateViewActivity extends AppCompatActivity {
     private void load() {
         showProgress(true);
         HvZHubClient client = API.getInstance(this).getHvZHubClient();
-        String uuid = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
         Call<ModUpdateContainer> call = client.getModUpdate(
-                new Uuid(uuid),
+                SessionManager.getInstance().getSessionUUID(),
                 updateId
         );
         call.enqueue(new Callback<ModUpdateContainer>() {

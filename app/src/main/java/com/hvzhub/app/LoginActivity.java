@@ -178,11 +178,8 @@ public class LoginActivity extends AppCompatActivity {
                 public void onResponse(Call<Session> call, Response<Session> response) {
 
                     if (response.isSuccessful()) {
-                        // Persist the uuid in sharedPrefs
-                        SharedPreferences.Editor prefs = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit();
                         Session s = response.body();
-                        prefs.putString(GamePrefs.PREFS_SESSION_ID, s.uuid);
-                        prefs.apply();
+                        SessionManager.getInstance().createSession(s);
 
                         getUserId();
                     } else {
@@ -235,9 +232,9 @@ public class LoginActivity extends AppCompatActivity {
 
     private void getUserId() {
         HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
-        String uuid = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE)
-                .getString(GamePrefs.PREFS_SESSION_ID, null);
-        Call<CurrentUser> call = client.getCurrentUser(new Uuid(uuid));
+        Call<CurrentUser> call = client.getCurrentUser(
+                SessionManager.getInstance().getSessionUUID()
+        );
         call.enqueue(new Callback<CurrentUser>() {
             @Override
             public void onResponse(Call<CurrentUser> call, Response<CurrentUser> response) {
