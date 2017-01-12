@@ -100,8 +100,10 @@ public class MyCodeFragment extends Fragment {
             myCode.setText(R.string.empty_code);
         } else {
             HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
-            String uuid = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
-            Call<Code> call = client.getMyCode(gameId, new Uuid(uuid));
+            Call<Code> call = client.getMyCode(
+                    gameId,
+                    SessionManager.getInstance().getSessionUUID()
+            );
             call.enqueue(new Callback<Code>() {
                 @Override
                 public void onResponse(Call<Code> call, Response<Code> response) {

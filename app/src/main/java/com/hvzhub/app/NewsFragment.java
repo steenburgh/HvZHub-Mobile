@@ -193,14 +193,13 @@ public abstract class NewsFragment<T1, T2 extends NewsContainer<T1>> extends Fra
                 showListViewProgress(true);
             }
 
-            String uuid = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
             int gameId = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
             if (loadNewsCall != null) {
                 // Cancel the last call in case it is still in progress.
                 loadNewsCall.cancel();
             }
             loadNewsCall = createLoadNewsCall(
-                    new Uuid(uuid),
+                    SessionManager.getInstance().getSessionUUID(),
                     gameId,
                     refresh ? 0 : newsList.size(),
                     !infiniteScrollMode,

@@ -151,9 +151,11 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
     public void OnRefreshIsHuman(final OnRefreshIsHumanListener.OnIsHumanRefreshedListener listener) {
         HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
         SharedPreferences prefs = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE);
-        String uuid = prefs.getString(GamePrefs.PREFS_SESSION_ID, null);
         int gameId = prefs.getInt(GamePrefs.PREFS_GAME_ID, -1);
-        Call<RecordContainer> call = client.getMyRecord(new Uuid(uuid), gameId);
+        Call<RecordContainer> call = client.getMyRecord(
+                SessionManager.getInstance().getSessionUUID(),
+                gameId
+        );
         call.enqueue(new Callback<RecordContainer>() {
             @Override
             public void onResponse(Call<RecordContainer> call, Response<RecordContainer> response) {

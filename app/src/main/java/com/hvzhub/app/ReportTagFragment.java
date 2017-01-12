@@ -135,7 +135,6 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
     private void tryToTag() {
         int gameId = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
         HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
-        String uuid = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
         String tagCode = submitCode.getText().toString();
         Date tagDate = tagTime.getTime();
 
@@ -146,7 +145,7 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
         TagPlayerRequest tpr;
         if (latStr == null || longStr == null) {
             tpr = new TagPlayerRequest(
-                    uuid,
+                    SessionManager.getInstance().getSessionUUID(),
                     tagCode,
                     tagDate
             );
@@ -154,7 +153,7 @@ public class ReportTagFragment extends Fragment implements DatePickerFragment.On
             double Lat = Double.parseDouble(latStr);
             double Long = Double.parseDouble(longStr);
             tpr = new TagPlayerRequest(
-                    uuid,
+                    SessionManager.getInstance().getSessionUUID(),
                     tagCode,
                     tagDate,
                     Lat,

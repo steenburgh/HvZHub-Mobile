@@ -235,12 +235,11 @@ public class ChatFragment extends Fragment {
             showListViewProgress(true);
             loading = true;
             HvZHubClient client = API.getInstance(getContext()).getHvZHubClient();
-            String uuid = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
             int gameId = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
             final boolean isHuman = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
 
             Call<MessageListContainer> call = client.getChats(
-                    new Uuid(uuid),
+                    SessionManager.getInstance().getSessionUUID(),
                     gameId,
                     isHuman ? 'T' : 'F',
                     refresh ? 0 : messages.size(),
@@ -409,7 +408,6 @@ public class ChatFragment extends Fragment {
             return;
         }
 
-        String uuid = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
         int gameId = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
         int userId = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_USER_ID, -1);
         boolean isHuman = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
@@ -418,7 +416,7 @@ public class ChatFragment extends Fragment {
         Call<PostChatResponse> call = client.postChat(
                 gameId,
                 new PostChatRequest(
-                        uuid,
+                        SessionManager.getInstance().getSessionUUID(),
                         userId,
                         messageBox.getText().toString(),
                         isHuman

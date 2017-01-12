@@ -79,11 +79,13 @@ public class HomeFragment extends Fragment {
                             }
                     });
 
-        String uuid = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
         int gameId = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
 
         HvZHubClient client = API.getInstance(getActivity()).getHvZHubClient();
-        loadPlayerCount = client.numPlayers(new Uuid(uuid), gameId);
+        loadPlayerCount = client.numPlayers(
+                SessionManager.getInstance().getSessionUUID(),
+                gameId
+        );
         loadPlayerCount.enqueue(new Callback<PlayerCount>() {
             @Override
             public void onResponse(Call<PlayerCount> call, Response<PlayerCount> response) {
@@ -134,7 +136,10 @@ public class HomeFragment extends Fragment {
         });
 
         String chapterURL = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
-        loadChapInfo = client.getChapterInfo(new Uuid(uuid), chapterURL);
+        loadChapInfo = client.getChapterInfo(
+                SessionManager.getInstance().getSessionUUID(),
+                chapterURL
+        );
         loadChapInfo.enqueue(new Callback<ChapterInfo>() {
             @Override
             public void onResponse(Call<ChapterInfo> call, Response<ChapterInfo> response) {
@@ -204,7 +209,6 @@ public class HomeFragment extends Fragment {
                     .show();
         } else {
             HvZHubClient client = API.getInstance(getActivity()).getHvZHubClient();
-            String uuid = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
             int gameId = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
             String chapterURL = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
 
@@ -212,7 +216,10 @@ public class HomeFragment extends Fragment {
                 // Cancel the last call in case it is still in progress.
                 loadPlayerCount.cancel();
             }
-            loadPlayerCount = client.numPlayers(new Uuid(uuid), gameId);
+            loadPlayerCount = client.numPlayers(
+                    SessionManager.getInstance().getSessionUUID(),
+                    gameId
+            );
             loadPlayerCount.enqueue(new Callback<PlayerCount>() {
                 @Override
                 public void onResponse(Call<PlayerCount> call, Response<PlayerCount> response) {

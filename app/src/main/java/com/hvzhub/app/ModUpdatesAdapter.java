@@ -106,10 +106,8 @@ public class ModUpdatesAdapter extends BaseAdapter {
 
         showProgress(viewHolder, true);
         HvZHubClient client = API.getInstance(context).getHvZHubClient();
-        String uuid = context.getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE)
-                .getString(GamePrefs.PREFS_SESSION_ID, null);
         Call<ModUpdateContainer> call = client.getModUpdate(
-                new Uuid(uuid),
+                SessionManager.getInstance().getSessionUUID(),
                 modUpdateId
         );
         call.enqueue(new Callback<ModUpdateContainer>() {
