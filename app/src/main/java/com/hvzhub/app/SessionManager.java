@@ -1,12 +1,23 @@
 package com.hvzhub.app;
 
 import android.app.Application;
+import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
+import com.hvzhub.app.API.API;
+import com.hvzhub.app.API.HvZHubClient;
 import com.hvzhub.app.API.model.Login.Session;
+import com.hvzhub.app.API.model.Status;
 import com.hvzhub.app.API.model.Uuid;
+import com.hvzhub.app.Prefs.GamePrefs;
 import com.hvzhub.app.Prefs.SessionPrefs;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -66,6 +77,31 @@ public class SessionManager {
     }
 
     public void logout() {
+        // Call the logout API route
+        HvZHubClient client = API.getInstance(mAppCtx).getHvZHubClient();
+        Call<Status> call = client.logout(getSessionUUID());
+        call.enqueue(new Callback<Status>() {
+            @Override
+            public void onResponse(Call<Status> call, Response<Status> response) {
+                if (response.isSuccessful()) {
+                    Log.d(TAG, "Logout Successful");
+                } else {
+                    Log.e(TAG, "Couldn't logout: unexpected response from server");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Status> call, Throwable t) {
+                Log.e(TAG, "Logout failed");
+            }
+        });
+
+        // Stored session info
+        this.session = null;
+        SharedPreferences.Editor prefs = mAppCtx.getSharedPreferences(SessionPrefs.NAME, MODE_PRIVATE).edit();
+        prefs.clear();
+        prefs.apply();
+
         if (this.onLogoutListener != null) {
             this.onLogoutListener.onLogout();
         }
