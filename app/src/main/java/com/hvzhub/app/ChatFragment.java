@@ -19,6 +19,7 @@ import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.Html;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -66,6 +67,9 @@ public class ChatFragment extends Fragment {
     private boolean loading;
     private boolean atBeginningOfChats;
     private View loadingHeader;
+
+    private Call<MessageListContainer> loadMsgsCall;
+    private Call<PostChatResponse> postChatCall;
 
     List<Message> messages;
     ChatAdapter adapter;
@@ -250,7 +254,7 @@ public class ChatFragment extends Fragment {
             int gameId = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
             final boolean isHuman = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
 
-            Call<MessageListContainer> call = client.getChats(
+            loadMsgsCall = client.getChats(
                     SessionManager.getInstance().getSessionUUID(),
                     gameId,
                     isHuman ? 'T' : 'F',
@@ -258,7 +262,7 @@ public class ChatFragment extends Fragment {
                     numToFetch
             );
 
-            call.enqueue(new Callback<MessageListContainer>() {
+            loadMsgsCall.enqueue(new Callback<MessageListContainer>() {
                 @Override
                 public void onResponse(Call<MessageListContainer> call, Response<MessageListContainer> response) {
                     if (response.isSuccessful()) {
@@ -268,13 +272,7 @@ public class ChatFragment extends Fragment {
 
                         List<Message> msgsFromServer = response.body().messages;
                         if (msgsFromServer == null || msgsFromServer.isEmpty()) {
-                            listView.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    showListViewProgress(false);
-                                }
-                            });
-
+                            showListViewProgress(false);
                             atBeginningOfChats = true;
                             loading = false;
                         } else {
@@ -293,12 +291,8 @@ public class ChatFragment extends Fragment {
                                 final int positionToSave = listView.getFirstVisiblePosition() + msgsFromServer.size();
 
                                 adapter.notifyDataSetChanged();
-                                listView.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        listView.setSelection(positionToSave);
-                                    }
-                                });
+                                listView.setSelection(positionToSave);
+
                                 // Don't draw the list until the list's position has been updated.
                                 // This effectively skips drawing the frames where the list jerks.
                                 listView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
@@ -324,13 +318,7 @@ public class ChatFragment extends Fragment {
                             DB.getInstance().wipeDatabase();
                         }
                     } else {
-                        listView.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                showListViewProgress(false);
-                            }
-                        });
-
+                        showListViewProgress(false);
                         loading = false;
                         APIError apiError = ErrorUtils.parseError(response);
                         String err = apiError.error.toLowerCase();
@@ -363,12 +351,11 @@ public class ChatFragment extends Fragment {
 
                 @Override
                 public void onFailure(Call<MessageListContainer> call, Throwable t) {
-                    listView.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            showListViewProgress(false);
-                        }
-                    });
+                    if (call.isCanceled()) {
+                        Log.d(TAG, "Load msgs call Cancelled");
+                        return;
+                    }
+                    showListViewProgress(false);
 
                     loading = false;
                     AlertDialog.Builder b = new AlertDialog.Builder(getContext());
@@ -425,7 +412,7 @@ public class ChatFragment extends Fragment {
         boolean isHuman = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
 
         HvZHubClient client = API.getInstance(getContext()).getHvZHubClient();
-        Call<PostChatResponse> call = client.postChat(
+        postChatCall = client.postChat(
                 gameId,
                 new PostChatRequest(
                         SessionManager.getInstance().getSessionUUID(),
@@ -435,15 +422,11 @@ public class ChatFragment extends Fragment {
                 )
         );
         showSendProgress(true);
-        call.enqueue(new Callback<PostChatResponse>() {
+        postChatCall.enqueue(new Callback<PostChatResponse>() {
             @Override
             public void onResponse(Call<PostChatResponse> call, Response<PostChatResponse> response) {
-                sendBox.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        showSendProgress(false);
-                    }
-                });
+                postChatCall = null;
+                showSendProgress(false);
 
                 if (response.isSuccessful()) {
                     messageBox.setText("");
@@ -463,17 +446,16 @@ public class ChatFragment extends Fragment {
                         snackbar.show();
                     }
                 }
-            }
 
+            }
 
             @Override
             public void onFailure(Call<PostChatResponse> call, Throwable t) {
-                sendBox.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        showSendProgress(false);
-                    }
-                });
+                postChatCall = null;
+                if (call.isCanceled()) {
+                    return;
+                }
+                showSendProgress(false);
 
                 // TODO: Make this an alert box
                 Snackbar snackbar = Snackbar.make(listView, R.string.generic_connection_error, Snackbar.LENGTH_LONG);
@@ -571,6 +553,13 @@ public class ChatFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
+
+        if (loadMsgsCall != null) {
+            loadMsgsCall.cancel();
+        }
+        if (postChatCall != null) {
+            postChatCall.cancel();
+        }
 
         LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(msgBroadcastReceiver);
         msgReceiverIsRegistered = false;
