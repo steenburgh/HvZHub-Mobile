@@ -49,25 +49,18 @@ public class GameActivity extends AppCompatActivity
     private static final String TAG = "GameActivity";
     public static final String ARG_FRAGMENT_NAME = "fragmentName";
 
-
-    private ModUpdatesFragment modUpdatesFragment;
-    public static final int MOD_UPDATES_FRAGMENT = 1;
-    private GameNewsFragment gameNewsFragment;
-    public static final int GAME_NEWS_FRAGMENT = 2;
-    private ChatFragment chatFragment;
-    public static final int CHAT_FRAGMENT = 3;
-    private MyCodeFragment myCodeFragment;
-    public static final int MY_CODE_FRAGMENT = 4;
-    private ReportTagFragment reportTagFragment;
-    private static final int REPORT_TAG_FRAGMENT = 5;
-    private HomeFragment homeFragment;
-    public static final int HOME_FRAGMENT = 6;
+    public static final String TAG_MOD_UPDATES_FRAGMENT = "modUpdates";
+    public static final String TAG_GAME_NEWS_FRAGMENT = "gameNews";
+    public static final String TAG_CHAT_FRAGMENT = "chat";
+    public static final String TAG_MY_CODE_FRAGMENT = "myCode";
+    private static final String TAG_REPORT_TAG_FRAGMENT = "reportTag";
+    public static final String TAG_HOME_FRAGMENT = "home";
 
     private BroadcastReceiver mRegistrationBroadcastReceiver;
     private SharedPreferences.OnSharedPreferenceChangeListener gamePrefsListener;
     private boolean isReceiverRegistered;
 
-    public int curTab;
+    public String curTab;
     public TextView zedNum;
     public TextView humanNum;
 
@@ -102,35 +95,24 @@ public class GameActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         // Open the initial fragment
-        int fragmentToOpen;
+        String fragmentToOpen;
         if (savedInstanceState != null) {
-            fragmentToOpen = savedInstanceState.getInt(ARG_FRAGMENT_NAME);
+            fragmentToOpen = savedInstanceState.getString(ARG_FRAGMENT_NAME);
         } else if (getIntent() != null && getIntent().getExtras() != null) {
-            fragmentToOpen = getIntent().getExtras().getInt(ARG_FRAGMENT_NAME);
+            fragmentToOpen = getIntent().getExtras().getString(ARG_FRAGMENT_NAME);
         } else {
-            fragmentToOpen = HOME_FRAGMENT; // default tab
+            fragmentToOpen = TAG_HOME_FRAGMENT; // default tab
         }
-        switchToTab(getResourceIdFromArgument(fragmentToOpen));
+        switchToTab(getNavIdFromArgument(fragmentToOpen));
+
 
         // Keep curTab up to date
         getSupportFragmentManager().addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
             @Override
             public void onBackStackChanged() {
                 Fragment f = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-                if (f instanceof HomeFragment) {
-                    curTab = HOME_FRAGMENT;
-                } else if (f instanceof ChatFragment) {
-                    curTab = CHAT_FRAGMENT;
-                } else if (f instanceof ModUpdatesFragment) {
-                    curTab = MOD_UPDATES_FRAGMENT;
-                } else if (f instanceof GameNewsFragment) {
-                    curTab = GAME_NEWS_FRAGMENT;
-                } else if (f instanceof MyCodeFragment) {
-                    curTab = MY_CODE_FRAGMENT;
-                } else if (f instanceof ReportTagFragment) {
-                    curTab = REPORT_TAG_FRAGMENT;
-                }
-                navigationView.setCheckedItem(getResourceIdFromArgument(curTab));
+                curTab = f.getTag();
+                navigationView.setCheckedItem(getNavIdFromArgument(curTab));
             }
         });
 
@@ -187,10 +169,12 @@ public class GameActivity extends AppCompatActivity
                         updateNotificationSubscriptions();
 
                         // Force a reload of all affected fragments
+                        Fragment chatFragment = getSupportFragmentManager().findFragmentByTag(TAG_CHAT_FRAGMENT);
                         if (chatFragment != null) {
                             getSupportFragmentManager().beginTransaction().remove(chatFragment).commit();
-                            chatFragment = null;
-                            if (curTab == CHAT_FRAGMENT) {
+                            // If the user was in this tab, their UI is now displaying a blank screen
+                            // Explain to them what happened and reload the UI
+                            if (curTab.equals(TAG_CHAT_FRAGMENT)) {
                                 Toast t = Toast.makeText(GameActivity.this, getString(R.string.you_were_just_turned_reloading_chat), Toast.LENGTH_LONG);
                                 t.show();
                                 switchToTab(R.id.nav_chat);
@@ -278,19 +262,19 @@ public class GameActivity extends AppCompatActivity
         return switchToTab(item.getItemId());
     }
 
-    public int getResourceIdFromArgument(int tabArgument) {
+    public int getNavIdFromArgument(String tabArgument) {
         switch (tabArgument) {
-            case HOME_FRAGMENT:
+            case TAG_HOME_FRAGMENT:
                 return R.id.nav_home;
-            case CHAT_FRAGMENT:
+            case TAG_CHAT_FRAGMENT:
                 return R.id.nav_chat;
-            case MOD_UPDATES_FRAGMENT:
+            case TAG_MOD_UPDATES_FRAGMENT:
                 return R.id.nav_mod_updates;
-            case GAME_NEWS_FRAGMENT:
+            case TAG_GAME_NEWS_FRAGMENT:
                 return R.id.nav_game_news;
-            case MY_CODE_FRAGMENT:
+            case TAG_MY_CODE_FRAGMENT:
                 return R.id.nav_my_code;
-            case REPORT_TAG_FRAGMENT:
+            case TAG_REPORT_TAG_FRAGMENT:
                 return R.id.nav_report_tag;
             default:
                 throw new RuntimeException("Invalid tab found");
@@ -302,46 +286,46 @@ public class GameActivity extends AppCompatActivity
         Fragment toSwitch = null;
         switch (id) {
             case R.id.nav_home:
-                if (homeFragment == null) {
-                    homeFragment = HomeFragment.newInstance();
+                toSwitch = getSupportFragmentManager().findFragmentByTag(TAG_HOME_FRAGMENT);
+                if (toSwitch == null) {
+                    toSwitch = HomeFragment.newInstance();
                 }
-                toSwitch = homeFragment;
-                curTab = HOME_FRAGMENT;
+                curTab = TAG_HOME_FRAGMENT;
                 break;
             case R.id.nav_mod_updates:
-                if (modUpdatesFragment == null) {
-                    modUpdatesFragment = ModUpdatesFragment.newInstance();
+                toSwitch = getSupportFragmentManager().findFragmentByTag(TAG_MOD_UPDATES_FRAGMENT);
+                if (toSwitch == null) {
+                    toSwitch = ModUpdatesFragment.newInstance();
                 }
-                toSwitch = modUpdatesFragment;
-                curTab = MOD_UPDATES_FRAGMENT;
+                curTab = TAG_MOD_UPDATES_FRAGMENT;
                 break;
             case R.id.nav_game_news:
-                if (gameNewsFragment == null) {
-                    gameNewsFragment = GameNewsFragment.newInstance();
+                toSwitch = getSupportFragmentManager().findFragmentByTag(TAG_GAME_NEWS_FRAGMENT);
+                if (toSwitch == null) {
+                    toSwitch = GameNewsFragment.newInstance();
                 }
-                toSwitch = gameNewsFragment;
-                curTab = GAME_NEWS_FRAGMENT;
+                curTab = TAG_GAME_NEWS_FRAGMENT;
                 break;
             case R.id.nav_chat:
-                if (chatFragment == null) {
-                    chatFragment = ChatFragment.newInstance();
+                toSwitch = getSupportFragmentManager().findFragmentByTag(TAG_CHAT_FRAGMENT);
+                if (toSwitch == null) {
+                    toSwitch = ChatFragment.newInstance();
                 }
-                toSwitch = chatFragment;
-                curTab = CHAT_FRAGMENT;
+                curTab = TAG_CHAT_FRAGMENT;
                 break;
             case R.id.nav_report_tag:
-                if (reportTagFragment == null) {
-                    reportTagFragment = ReportTagFragment.newInstance();
+                toSwitch = getSupportFragmentManager().findFragmentByTag(TAG_REPORT_TAG_FRAGMENT);
+                if (toSwitch == null) {
+                    toSwitch = ReportTagFragment.newInstance();
                 }
-                toSwitch = reportTagFragment;
-                curTab = REPORT_TAG_FRAGMENT;
+                curTab = TAG_REPORT_TAG_FRAGMENT;
                 break;
             case R.id.nav_my_code:
-                if (myCodeFragment == null) {
-                    myCodeFragment = MyCodeFragment.newInstance();
+                toSwitch = getSupportFragmentManager().findFragmentByTag(TAG_MY_CODE_FRAGMENT);
+                if (toSwitch == null) {
+                    toSwitch = MyCodeFragment.newInstance();
                 }
-                toSwitch = myCodeFragment;
-                curTab = MY_CODE_FRAGMENT;
+                curTab = TAG_MY_CODE_FRAGMENT;
                 break;
             case R.id.nav_heatmap:
                 i = new Intent(GameActivity.this, HeatmapActivity.class);
@@ -366,7 +350,7 @@ public class GameActivity extends AppCompatActivity
         }
         if (toSwitch != null) {
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, toSwitch)
+                    .replace(R.id.fragment_container, toSwitch, curTab)
                     .addToBackStack(null)
                     .commit();
 
@@ -431,7 +415,7 @@ public class GameActivity extends AppCompatActivity
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        outState.putInt(ARG_FRAGMENT_NAME, curTab);
+        outState.putString(ARG_FRAGMENT_NAME, curTab);
         super.onSaveInstanceState(outState);
     }
 }

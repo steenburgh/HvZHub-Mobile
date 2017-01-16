@@ -262,7 +262,7 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
 
         // Launch the chat activity if clicked
         Bundle b = new Bundle();
-        b.putInt(GameActivity.ARG_FRAGMENT_NAME, GameActivity.CHAT_FRAGMENT);
+        b.putString(GameActivity.ARG_FRAGMENT_NAME, GameActivity.TAG_CHAT_FRAGMENT);
         intent.putExtras(b);
 
         PendingIntent pendingIntent = PendingIntent.getActivity(
