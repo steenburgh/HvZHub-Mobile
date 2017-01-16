@@ -57,6 +57,7 @@ import retrofit2.Response;
 public class ChatFragment extends Fragment {
     private static final int MESSAGES_TO_FETCH_AT_ONCE = 20; // TODO: Make this work with lower numbers
     private static final String TAG = "ChatFragment";
+    private static final String ARG_SAVED_MSG = "savedMsg";
 
     private BroadcastReceiver msgBroadcastReceiver;
     private boolean msgReceiverIsRegistered;
@@ -85,6 +86,14 @@ public class ChatFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        if (messageBox != null) {
+            outState.putString(ARG_SAVED_MSG, messageBox.getText().toString());
+        }
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -156,6 +165,9 @@ public class ChatFragment extends Fragment {
         };
 
         messageBox = (EditText) view.findViewById(R.id.compose_msg);
+        if (savedInstanceState != null) {
+            messageBox.setText(savedInstanceState.getString(ARG_SAVED_MSG, ""));
+        }
 
         final boolean isHuman = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
         messageBox.setHint(isHuman ? R.string.chatting_with_humans : R.string.chatting_with_zombies);
