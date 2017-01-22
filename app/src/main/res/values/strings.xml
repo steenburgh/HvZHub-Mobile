@@ -33,7 +33,7 @@
     <string name="send_feedback">Send feedback</string>
 
     <!--Mod Updates-->
-    <string name="emptyMissions">There are currently no Mission Updates yet.</string>
+    <string name="emptyMissions">There are no Mission Updates yet.</string>
 
     <!--Game News-->
     <string name="game_end_format_string"><![CDATA[The <strong>%s</strong> game has ended]]></string>
