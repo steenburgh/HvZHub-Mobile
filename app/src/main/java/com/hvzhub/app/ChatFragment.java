@@ -284,35 +284,20 @@ public class ChatFragment extends Fragment {
                             }
                             messages.addAll(0, msgsFromServer);
 
+                            int savedPosition = listView.getFirstVisiblePosition();
+                            // First visible list item(not including loader)
+                            View v = listView.getChildAt(listView.getHeaderViewsCount());
+                            int distanceFromTop = (v == null) ? 0 : (v.getTop() - listView.getPaddingTop());
 
-                            // If we're in loadMore mode, save the current position so the list
-                            // doesn't jerk upwards when new content is loaded
+                            loading = false;
+                            adapter.notifyDataSetChanged();
+                            showListViewProgress(false);
+
                             if (!refresh) {
-                                final int positionToSave = listView.getFirstVisiblePosition() + msgsFromServer.size();
-
-                                adapter.notifyDataSetChanged();
-                                listView.setSelection(positionToSave);
-
-                                // Don't draw the list until the list's position has been updated.
-                                // This effectively skips drawing the frames where the list jerks.
-                                listView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-                                    @Override
-                                    public boolean onPreDraw() {
-                                        if (listView.getFirstVisiblePosition() == (positionToSave - 1)) {
-                                            listView.getViewTreeObserver().removeOnPreDrawListener(this);
-
-                                            // Don't hide call showListViewProgress to hide
-                                            // the loader, as this causes the list to jerk upwards
-                                            loading = false;
-                                            return true;
-                                        } else {
-                                            return false;
-                                        }
-                                    }
-                                });
-                            } else {
-                                adapter.notifyDataSetChanged();
-                                loading = false;
+                                // If we're adding new messages, scroll to approximately the same
+                                // position as before the new items were added.
+                                // If we don't do this, the list keeps scrolling upwards forever and loading new items
+                                listView.setSelectionFromTop(savedPosition + msgsFromServer.size(), distanceFromTop);
                             }
 
                             DB.getInstance().wipeDatabase();
