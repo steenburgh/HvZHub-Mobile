@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:background="?android:selectableItemBackground"
+    android:clickable="true"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="@dimen/widget_horizontal_margin"
+    android:paddingBottom="@dimen/widget_horizontal_margin">
+
+    <ImageView
+        android:id="@+id/retry_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_refresh"
+        android:layout_gravity="center"
+        android:contentDescription="@string/tap_to_retry"/>
+
+    <TextView
+        android:id="@+id/error_msg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="Error loading the stuff, tap to retry"
+        android:textAppearance="?android:textAppearanceMedium"
+        android:layout_gravity="center_horizontal"/>
+
+    <TextView
+        android:layout_marginTop="8dp"
+        android:id="@+id/error_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="The error loading the stuff might be caused by the thing that happened. Maybe you should try doing the thing with the stuff and it might fix it."
+        android:layout_gravity="center_horizontal"/>
+</LinearLayout>
