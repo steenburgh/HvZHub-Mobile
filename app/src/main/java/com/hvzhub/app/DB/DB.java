@@ -1,8 +1,7 @@
 package com.hvzhub.app.DB;
 
-import android.content.Context;
+import android.app.Application;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
 
 import java.util.Date;
 import java.util.LinkedList;
@@ -15,7 +14,7 @@ public class DB {
     public static final String TAG = "DB";
 
     private static DB mInstance;
-    private final Context mCtx;
+    private final Application mAppCtx; // Force the use of an application as context to avoid memory leaks.
 
     DaoMaster.DevOpenHelper hvzHubDBHelper;
     SQLiteDatabase hvzHubDB;
@@ -24,20 +23,24 @@ public class DB {
     MessageDao messageDao;
     ChatDao chatDao;
 
-    private DB(Context context) {
-        mCtx = context;
+    private DB(Application appCtx) {
+        mAppCtx = appCtx;
         initDatabase();
     }
 
-    public static synchronized DB getInstance(Context context) {
+    public static synchronized DB getInstance() {
         if (mInstance == null) {
-            mInstance = new DB(context);
+            throw new RuntimeException("Database not initialized. Make sure to call DB.newInstance() first to initialize the DB.");
         }
         return mInstance;
     }
 
+    public static synchronized void newInstance(Application appCtx) {
+        mInstance = new DB(appCtx);
+    }
+
     private void initDatabase() {
-        hvzHubDBHelper = new DaoMaster.DevOpenHelper(mCtx, "ORM.sqlite", null);
+        hvzHubDBHelper = new DaoMaster.DevOpenHelper(mAppCtx, "ORM.sqlite", null);
         hvzHubDB = hvzHubDBHelper.getWritableDatabase();
 
         // Get DaoMaster
@@ -162,7 +165,7 @@ public class DB {
     }
 
     public void openDatabase() {
-        hvzHubDBHelper = new DaoMaster.DevOpenHelper(mCtx, "ORM.sqlite", null);
+        hvzHubDBHelper = new DaoMaster.DevOpenHelper(mAppCtx, "ORM.sqlite", null);
         hvzHubDB = hvzHubDBHelper.getWritableDatabase();
 
         //Get DaoMaster

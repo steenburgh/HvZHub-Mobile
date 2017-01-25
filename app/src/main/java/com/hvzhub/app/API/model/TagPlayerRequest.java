@@ -12,25 +12,25 @@ public class TagPlayerRequest {
     @SerializedName("tagged_on")
     public Date taggedOn;
 
-    @SerializedName("lat")
+    @SerializedName("tag_lat")
     public Double Lat;
 
-    @SerializedName("long")
+    @SerializedName("tag_long")
     public Double Long;
 
     public String uuid;
 
-    public TagPlayerRequest(String uuid, String taggedCode, Date taggedOnDateUtc, double Lat, double Long) {
+    public TagPlayerRequest(Uuid uuid, String taggedCode, Date taggedOnDateUtc, double Lat, double Long) {
         this.taggedCode = taggedCode;
         this.taggedOn = taggedOnDateUtc;
-        this.uuid = uuid;
+        this.uuid = uuid.uuid;
         this.Lat = Lat;
         this.Long = Long;
     }
 
-    public TagPlayerRequest(String uuid, String taggedCode, Date taggedOnDateUtc) {
+    public TagPlayerRequest(Uuid uuid, String taggedCode, Date taggedOnDateUtc) {
         this.taggedCode = taggedCode;
         this.taggedOn = taggedOnDateUtc;
-        this.uuid = uuid;
+        this.uuid = uuid.uuid;
     }
 }

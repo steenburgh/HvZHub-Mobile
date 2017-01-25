@@ -28,6 +28,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -57,20 +58,24 @@ import retrofit2.Response;
 public class ChatFragment extends Fragment {
     private static final int MESSAGES_TO_FETCH_AT_ONCE = 20; // TODO: Make this work with lower numbers
     private static final String TAG = "ChatFragment";
+    private static final String ARG_SAVED_MSG = "savedMsg";
 
     private BroadcastReceiver msgBroadcastReceiver;
     private boolean msgReceiverIsRegistered;
-    private OnLogoutListener mLogoutListener;
     private OnRefreshIsHumanListener mRefreshIsHumanListener;
     private ViewGroup mContainer;
     private boolean loading;
     private boolean atBeginningOfChats;
     private View loadingHeader;
 
+    private Call<MessageListContainer> loadMsgsCall;
+    private Call<PostChatResponse> postChatCall;
+
     List<Message> messages;
     ChatAdapter adapter;
     ListView listView;
     EditText messageBox;
+    LinearLayout sendBox;
     ImageButton send;
     ProgressBar progressBar;
 
@@ -88,9 +93,17 @@ public class ChatFragment extends Fragment {
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        if (messageBox != null) {
+            outState.putString(ARG_SAVED_MSG, messageBox.getText().toString());
+        }
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        getActivity().setTitle(getActivity().getString(R.string.chat));
+        getActivity().setTitle(getContext().getString(R.string.chat));
 
         // Inflate the layout for this fragment
         mContainer = container;
@@ -134,7 +147,7 @@ public class ChatFragment extends Fragment {
         if (messages == null) {
             messages = new LinkedList<>();
         }
-        adapter = new ChatAdapter(getActivity(), messages);
+        adapter = new ChatAdapter(getContext(), messages);
 
         // Due to the way listView works in android, if we want to add a headerView later,
         // it must be first added before the adapter is set, and then removed immediately afterwards
@@ -156,10 +169,14 @@ public class ChatFragment extends Fragment {
         };
 
         messageBox = (EditText) view.findViewById(R.id.compose_msg);
+        if (savedInstanceState != null) {
+            messageBox.setText(savedInstanceState.getString(ARG_SAVED_MSG, ""));
+        }
 
-        final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+        final boolean isHuman = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
         messageBox.setHint(isHuman ? R.string.chatting_with_humans : R.string.chatting_with_zombies);
 
+        sendBox = (LinearLayout) view.findViewById(R.id.send_box);
         send = (ImageButton) view.findViewById(R.id.send);
         send.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -176,16 +193,16 @@ public class ChatFragment extends Fragment {
      * Retrieve these messages and add them to the message list
      */
     private void addMessagesFromDb() {
-        boolean justTurned = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_JUST_TURNED, false);
+        boolean justTurned = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_JUST_TURNED, false);
         if (justTurned) {
-            DB.getInstance(getActivity().getApplicationContext()).wipeDatabase();
+            DB.getInstance().wipeDatabase();
             refreshMessages();
-            getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit()
+            getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit()
                     .putBoolean(GamePrefs.PREFS_JUST_TURNED, false)
                     .apply();
         } else {
-            final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
-            List<com.hvzhub.app.DB.Message> msgsFromDb = DB.getInstance(getActivity().getApplicationContext()).getMessages(isHuman ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
+            final boolean isHuman = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+            List<com.hvzhub.app.DB.Message> msgsFromDb = DB.getInstance().getMessages(isHuman ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
             for (com.hvzhub.app.DB.Message dbMsg : msgsFromDb) {
                 Message msgObj = new Message(dbMsg);
 
@@ -195,7 +212,7 @@ public class ChatFragment extends Fragment {
 
                 messages.add(msgObj);
             }
-            DB.getInstance(getActivity().getApplicationContext()).wipeDatabase();
+            DB.getInstance().wipeDatabase();
         }
 
         adapter.notifyDataSetChanged();
@@ -214,8 +231,8 @@ public class ChatFragment extends Fragment {
     }
 
     private void getMsgsFromServer(final boolean refresh, final int numToFetch) {
-        if (!NetworkUtils.networkIsAvailable(getActivity())) {
-            AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+        if (!NetworkUtils.networkIsAvailable(getContext())) {
+            AlertDialog.Builder b = new AlertDialog.Builder(getContext());
             b.setTitle(getString(R.string.network_not_available))
                     .setMessage(getString(R.string.network_not_available_hint))
                     .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
@@ -233,20 +250,19 @@ public class ChatFragment extends Fragment {
         } else {
             showListViewProgress(true);
             loading = true;
-            HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
-            String uuid = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
-            int gameId = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
-            final boolean isHuman = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+            HvZHubClient client = API.getInstance(getContext()).getHvZHubClient();
+            int gameId = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
+            final boolean isHuman = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
 
-            Call<MessageListContainer> call = client.getChats(
-                    new Uuid(uuid),
+            loadMsgsCall = client.getChats(
+                    SessionManager.getInstance().getSessionUUID(),
                     gameId,
                     isHuman ? 'T' : 'F',
                     refresh ? 0 : messages.size(),
                     numToFetch
             );
 
-            call.enqueue(new Callback<MessageListContainer>() {
+            loadMsgsCall.enqueue(new Callback<MessageListContainer>() {
                 @Override
                 public void onResponse(Call<MessageListContainer> call, Response<MessageListContainer> response) {
                     if (response.isSuccessful()) {
@@ -268,42 +284,23 @@ public class ChatFragment extends Fragment {
                             }
                             messages.addAll(0, msgsFromServer);
 
+                            int savedPosition = listView.getFirstVisiblePosition();
+                            // First visible list item(not including loader)
+                            View v = listView.getChildAt(listView.getHeaderViewsCount());
+                            int distanceFromTop = (v == null) ? 0 : (v.getTop() - listView.getPaddingTop());
 
-                            // If we're in loadMore mode, save the current position so the list
-                            // doesn't jerk upwards when new content is loaded
+                            loading = false;
+                            adapter.notifyDataSetChanged();
+                            showListViewProgress(false);
+
                             if (!refresh) {
-                                final int positionToSave = listView.getFirstVisiblePosition() + msgsFromServer.size();
-
-                                adapter.notifyDataSetChanged();
-                                listView.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        listView.setSelection(positionToSave);
-                                    }
-                                });
-                                // Don't draw the list until the list's position has been updated.
-                                // This effectively skips drawing the frames where the list jerks.
-                                listView.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-                                    @Override
-                                    public boolean onPreDraw() {
-                                        if (listView.getFirstVisiblePosition() == (positionToSave - 1)) {
-                                            listView.getViewTreeObserver().removeOnPreDrawListener(this);
-
-                                            // Don't hide call showListViewProgress to hide
-                                            // the loader, as this causes the list to jerk upwards
-                                            loading = false;
-                                            return true;
-                                        } else {
-                                            return false;
-                                        }
-                                    }
-                                });
-                            } else {
-                                adapter.notifyDataSetChanged();
-                                loading = false;
+                                // If we're adding new messages, scroll to approximately the same
+                                // position as before the new items were added.
+                                // If we don't do this, the list keeps scrolling upwards forever and loading new items
+                                listView.setSelectionFromTop(savedPosition + msgsFromServer.size(), distanceFromTop);
                             }
 
-                            DB.getInstance(getActivity().getApplicationContext()).wipeDatabase();
+                            DB.getInstance().wipeDatabase();
                         }
                     } else {
                         showListViewProgress(false);
@@ -313,12 +310,12 @@ public class ChatFragment extends Fragment {
                         if (err.contains(getString(R.string.invalid_session_id))) {
                             // Notify the parent activity that the user should be logged out
                             // Don't bother stopping the loading animation
-                            mLogoutListener.onLogout();
+                            SessionManager.getInstance().logout();
                         } else {
                             if (checkForWrongTeamError(err)) {
                                 return; // If there was an error, the activity will be reloaded. skip everything else
                             }
-                            AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                            AlertDialog.Builder b = new AlertDialog.Builder(getContext());
                             b.setTitle(getString(R.string.unexpected_response))
                                     .setMessage(getString(R.string.unexpected_response_hint))
                                     .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
@@ -339,9 +336,14 @@ public class ChatFragment extends Fragment {
 
                 @Override
                 public void onFailure(Call<MessageListContainer> call, Throwable t) {
+                    if (call.isCanceled()) {
+                        Log.d(TAG, "Load msgs call Cancelled");
+                        return;
+                    }
                     showListViewProgress(false);
+
                     loading = false;
-                    AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+                    AlertDialog.Builder b = new AlertDialog.Builder(getContext());
                     b.setTitle(getString(R.string.generic_connection_error))
                             .setMessage(getString(R.string.generic_connection_error_hint))
                             .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
@@ -370,8 +372,8 @@ public class ChatFragment extends Fragment {
             messageBox.requestFocus();
             return;
         }
-        if (!NetworkUtils.networkIsAvailable(getActivity().getApplicationContext())) {
-            AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
+        if (!NetworkUtils.networkIsAvailable(getContext())) {
+            AlertDialog.Builder b = new AlertDialog.Builder(getContext());
             b.setTitle(getString(R.string.network_not_available))
                     .setMessage(getString(R.string.network_not_available_hint))
                     .setPositiveButton(R.string.retry, new DialogInterface.OnClickListener() {
@@ -390,35 +392,34 @@ public class ChatFragment extends Fragment {
             return;
         }
 
-        String uuid = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
-        int gameId = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
-        int userId = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_USER_ID, -1);
-        boolean isHuman = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
+        int gameId = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
+        int userId = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_USER_ID, -1);
+        boolean isHuman = getContext().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getBoolean(GamePrefs.PREFS_IS_HUMAN, false);
 
-        HvZHubClient client = API.getInstance(getActivity().getApplicationContext()).getHvZHubClient();
-        Call<PostChatResponse> call = client.postChat(
+        HvZHubClient client = API.getInstance(getContext()).getHvZHubClient();
+        postChatCall = client.postChat(
                 gameId,
                 new PostChatRequest(
-                        uuid,
+                        SessionManager.getInstance().getSessionUUID(),
                         userId,
                         messageBox.getText().toString(),
                         isHuman
                 )
         );
         showSendProgress(true);
-        call.enqueue(new Callback<PostChatResponse>() {
+        postChatCall.enqueue(new Callback<PostChatResponse>() {
             @Override
             public void onResponse(Call<PostChatResponse> call, Response<PostChatResponse> response) {
+                postChatCall = null;
                 showSendProgress(false);
+
                 if (response.isSuccessful()) {
                     messageBox.setText("");
                 } else {
                     APIError apiError = ErrorUtils.parseError(response);
                     String err = apiError.error.toLowerCase();
                     if (err.contains(getString(R.string.invalid_session_id))) {
-                        // Notify the parent activity that the user should be logged out
-                        // Don't bother stopping the loading animation
-                        mLogoutListener.onLogout();
+                        SessionManager.getInstance().logout();
                     } else {
                         if (checkForWrongTeamError(err)) {
                             return; // If there was an error, the activity will be reloaded. skip everything else
@@ -430,12 +431,17 @@ public class ChatFragment extends Fragment {
                         snackbar.show();
                     }
                 }
-            }
 
+            }
 
             @Override
             public void onFailure(Call<PostChatResponse> call, Throwable t) {
+                postChatCall = null;
+                if (call.isCanceled()) {
+                    return;
+                }
                 showSendProgress(false);
+
                 // TODO: Make this an alert box
                 Snackbar snackbar = Snackbar.make(listView, R.string.generic_connection_error, Snackbar.LENGTH_LONG);
                 View view = snackbar.getView();
@@ -518,32 +524,40 @@ public class ChatFragment extends Fragment {
         super.onResume();
         registerMsgReceiver();
 
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getActivity());
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getContext());
         notificationManager.cancelAll();
         addMessagesFromDb();
 
         // Chat is now open
-        SharedPreferences.Editor prefs = getActivity().getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor prefs = getContext().getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).edit();
         prefs.putBoolean(ChatPrefs.IS_OPEN, true);
         prefs.apply();
     }
 
+    
     @Override
     public void onPause() {
         super.onPause();
 
-        LocalBroadcastManager.getInstance(getActivity().getApplicationContext()).unregisterReceiver(msgBroadcastReceiver);
+        if (loadMsgsCall != null) {
+            loadMsgsCall.cancel();
+        }
+        if (postChatCall != null) {
+            postChatCall.cancel();
+        }
+
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(msgBroadcastReceiver);
         msgReceiverIsRegistered = false;
 
         // Chat is now closed
-        SharedPreferences.Editor prefs = getActivity().getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).edit();
+        SharedPreferences.Editor prefs = getContext().getSharedPreferences(ChatPrefs.NAME, Context.MODE_PRIVATE).edit();
         prefs.putBoolean(ChatPrefs.IS_OPEN, false);
         prefs.apply();
     }
 
     private void registerMsgReceiver() {
         if (!msgReceiverIsRegistered) {
-            LocalBroadcastManager.getInstance(getActivity().getApplicationContext())
+            LocalBroadcastManager.getInstance(getContext())
                     .registerReceiver(
                             msgBroadcastReceiver,
                             new IntentFilter(ChatPrefs.MESSAGE_RECEIVED_BROADCAST)
@@ -558,7 +572,7 @@ public class ChatFragment extends Fragment {
 
         // Hide keyboard
         if (getView() != null) {
-            final InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            final InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
         }
 
@@ -567,13 +581,6 @@ public class ChatFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnLogoutListener) {
-            mLogoutListener = (OnLogoutListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must be an instance of OnLogoutListener");
-        }
-
         if (context instanceof OnRefreshIsHumanListener) {
             mRefreshIsHumanListener = (OnRefreshIsHumanListener) context;
         } else {
@@ -585,6 +592,6 @@ public class ChatFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        mLogoutListener = null;
+        mRefreshIsHumanListener = null;
     }
 }

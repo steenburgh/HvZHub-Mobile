@@ -67,22 +67,18 @@ public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallb
     @Override
     public void onMapReady(GoogleMap googleMap) {
         heatMap = googleMap;
-
-        // Add a marker in Sydney, Australia, and move the camera.
-        LatLng bascom = new LatLng(43.075299, -89.40337299999999);
-
-        heatMap.moveCamera(CameraUpdateFactory.zoomTo(15));
-        heatMap.moveCamera(CameraUpdateFactory.newLatLng(bascom));
         loadData();
     }
 
     private void loadData() {
 
         int gameId = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
-        String uuid = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
 
         HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
-        Call<HeatmapTagContainer> call = client.getHeatmap(new Uuid(uuid), gameId);
+        Call<HeatmapTagContainer> call = client.getHeatmap(
+                SessionManager.getInstance().getSessionUUID(),
+                gameId
+        );
         call.enqueue(new Callback<HeatmapTagContainer>() {
             @Override
             public void onResponse(Call<HeatmapTagContainer> call, Response<HeatmapTagContainer> response) {
@@ -186,14 +182,7 @@ public class HeatmapActivity extends FragmentActivity implements OnMapReadyCallb
 
 
     private void logout() {
-        // Clear *all* GamePrefs
-        SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit();
-        editor.clear();
-        editor.apply();
-
-        // Show the login screen again
-        Intent i = new Intent(this, LoginActivity.class);
-        startActivity(i);
+        SessionManager.getInstance().logout();
         finish();
     }
 }

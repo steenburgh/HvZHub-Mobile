@@ -18,6 +18,7 @@ public class HvZHubInstanceIDListenerService extends InstanceIDListenerService {
     public void onTokenRefresh() {
         // Fetch updated Instance ID token and notify our app's server of any changes (if applicable).
         Intent intent = new Intent(this, GCMRegIntentService.class);
+        intent.putExtra(GCMRegIntentService.INVALIDATE_TOKEN, true);
         startService(intent);
     }
     // [END refresh_token]

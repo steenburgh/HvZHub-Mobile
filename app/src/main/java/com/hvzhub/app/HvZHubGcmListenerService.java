@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
@@ -41,6 +42,8 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
     private static final String TAG = "HvZHubGcmListener";
     private static final String GROUP_ZOMBIE_CHAT = "chatZombie";
     private static final String GROUP_HUMAN_CHAT = "chatHuman";
+    /** Group messages if *more than* GROUP_THRESHOLD messages are pending */
+    private static final int GROUP_THRESHOLD = 1;
 
     /**
      * Called when message is received.
@@ -116,7 +119,7 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
             return false;
         }
 
-        DB.getInstance(this).addMessageToChat(new Message(
+        DB.getInstance().addMessageToChat(new Message(
                         userId,
                         name,
                         message,
@@ -148,9 +151,11 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
     public void OnRefreshIsHuman(final OnRefreshIsHumanListener.OnIsHumanRefreshedListener listener) {
         HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
         SharedPreferences prefs = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE);
-        String uuid = prefs.getString(GamePrefs.PREFS_SESSION_ID, null);
         int gameId = prefs.getInt(GamePrefs.PREFS_GAME_ID, -1);
-        Call<RecordContainer> call = client.getMyRecord(new Uuid(uuid), gameId);
+        Call<RecordContainer> call = client.getMyRecord(
+                SessionManager.getInstance().getSessionUUID(),
+                gameId
+        );
         call.enqueue(new Callback<RecordContainer>() {
             @Override
             public void onResponse(Call<RecordContainer> call, Response<RecordContainer> response) {
@@ -191,34 +196,91 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
         startService(intent);
     }
 
-
     /**
      * Create and show a simple notification containing the received GCM message.
      *
      * @param message GCM message received.
      */
     private void sendNotification(String title, String message, boolean isHumanChat) {
-        List<com.hvzhub.app.DB.Message> messageList = DB.getInstance(this).getMessages(isHumanChat ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
+        List<com.hvzhub.app.DB.Message> messageList = DB.getInstance().getMessages(isHumanChat ? DB.HUMAN_CHAT : DB.ZOMBIE_CHAT);
 
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+
+        NotificationCompat.Builder notificationBuilder =
+                applyHvZHubDefaults(new NotificationCompat.Builder(this))
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(message)) // Make this an expandable notification
+                .setContentTitle(title)
+                .setContentText(message)
+                .setSortKey(messageList.size() + "");
+
+        // setGroup prevents any notification that isn't the group summary
+        // from appearing on kit kat or lower
+        // This appears to be an issue with the NotificationCompat library
+        // https://code.google.com/p/android/issues/detail?id=159947
+        // http://stackoverflow.com/questions/31407607/notification-not-shown-when-setgroup-is-called-in-android-kitkat/34953411#34953411
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {
+            notificationBuilder.setGroup(isHumanChat ? GROUP_HUMAN_CHAT : GROUP_ZOMBIE_CHAT);
+            notificationManager.notify(messageList.size(), notificationBuilder.build());
+        } else {
+            // Hack to make things work on kit kat or lower
+            if (messageList.size() <= GROUP_THRESHOLD){
+                // only display message if the group isn't being displayed
+                notificationManager.notify(messageList.size(), notificationBuilder.build());
+            } else if (messageList.size() == GROUP_THRESHOLD + 1){
+                // If we're about to transition into a group, cancel the non-grouped notifications
+                notificationManager.cancelAll();
+            }
+        }
+
+        if (messageList.size() > GROUP_THRESHOLD) {
+            NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle()
+                    .setBigContentTitle(String.format("%d new messages", messageList.size()))
+                    .setSummaryText(isHumanChat ? getString(R.string.human_chat) : getString(R.string.zombie_chat));
+
+            for (int i = 0; i < messageList.size(); i++) {
+                com.hvzhub.app.DB.Message msg  = messageList.get(i);
+                style.addLine(String.format("%s   %s", msg.getName(), msg.getMessage()));
+            }
+
+            com.hvzhub.app.DB.Message firstMsg = messageList.get(messageList.size() - 1);
+            NotificationCompat.Builder notificationBuilder2 =
+                    applyHvZHubDefaults(new NotificationCompat.Builder(this))
+                    .setGroup(isHumanChat ? GROUP_HUMAN_CHAT : GROUP_ZOMBIE_CHAT)
+                    .setGroupSummary(true)
+                    .setStyle(style)
+                    .setContentTitle(String.format("%d new messages", messageList.size()))
+                    .setContentText(String.format("%s    %s", firstMsg.getName(), firstMsg.getMessage()));
+
+            notificationManager.notify(0, notificationBuilder2.build());
+        }
+
+    }
+
+    private NotificationCompat.Builder applyHvZHubDefaults(NotificationCompat.Builder builder) {
         Intent intent = new Intent(this, GameActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
         // Launch the chat activity if clicked
         Bundle b = new Bundle();
-        b.putInt(GameActivity.ARG_FRAGMENT_NAME, GameActivity.CHAT_FRAGMENT);
+        b.putString(GameActivity.ARG_FRAGMENT_NAME, GameActivity.TAG_CHAT_FRAGMENT);
         intent.putExtras(b);
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
-                PendingIntent.FLAG_ONE_SHOT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this,
+                0 /* Request code */,
+                intent,
+                PendingIntent.FLAG_ONE_SHOT
+        );
 
+        builder.setContentIntent(pendingIntent);
 
-
-        /************ Create the notification *************/
         // Setup ringtone
         Uri defaultUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         String soundUriString = PreferenceManager.getDefaultSharedPreferences(this)
                 .getString(SettingsActivity.NOTIFICATIONS_RINGTONE, null);
         Uri soundUri = (soundUriString == null) ? defaultUri : Uri.parse(soundUriString);
+
+        builder.setSound(soundUri); // Ringtone
 
         // Setup Vibrate
         boolean vibrate = PreferenceManager.getDefaultSharedPreferences(this)
@@ -230,61 +292,16 @@ public class HvZHubGcmListenerService extends GcmListenerService implements OnRe
             defaults = Notification.DEFAULT_LIGHTS;
         }
 
+        builder.setDefaults(defaults); // Vibrate + Notification light
+
         // Setup large icon
         Bitmap largeIcon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
+        builder.setLargeIcon(largeIcon);
 
-        // Build the notification
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
+
+        return builder.setSmallIcon(R.drawable.ic_launcher_monocolor_nocircles)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setSmallIcon(R.drawable.ic_launcher_monocolor_nocircles)
-                .setLargeIcon(largeIcon)
                 .setColor(ContextCompat.getColor(this, R.color.colorPrimaryDark))
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(message)) // Make this an expandable notification
-                .setGroup(isHumanChat ? GROUP_HUMAN_CHAT : GROUP_ZOMBIE_CHAT)
-                .setContentTitle(title)
-                .setContentText(message)
-                .setAutoCancel(true)
-                .setContentIntent(pendingIntent);
-
-        notificationBuilder.setSound(soundUri); // Ringtone
-        notificationBuilder.setDefaults(defaults); // Vibrate + Notification light
-
-
-
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-
-        notificationManager.notify(messageList.size(), notificationBuilder.build());
-
-        if (messageList.size() > 1) {
-            NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle()
-                    .setBigContentTitle(String.format("%d new messages", messageList.size()))
-                    .setSummaryText(isHumanChat ? getString(R.string.human_chat) : getString(R.string.zombie_chat));
-
-            for (int i = messageList.size() - 1; i >= 0; i--) {
-                com.hvzhub.app.DB.Message msg  = messageList.get(i);
-                style.addLine(String.format("%s   %s", msg.getName(), msg.getMessage()));
-            }
-
-
-            com.hvzhub.app.DB.Message firstMsg = messageList.get(messageList.size() - 1);
-            NotificationCompat.Builder notificationBuilder2 = new NotificationCompat.Builder(this)
-                    .setContentIntent(pendingIntent)
-                    .setPriority(NotificationCompat.PRIORITY_HIGH)
-                    .setSmallIcon(R.drawable.ic_launcher_monocolor_nocircles)
-                    .setLargeIcon(largeIcon)
-                    .setColor(ContextCompat.getColor(this, R.color.colorPrimaryDark))
-                    .setContentTitle(String.format("%d new messages", messageList.size()))
-                    .setContentText(String.format("%s    %s", firstMsg.getName(), firstMsg.getMessage()))
-                    .setStyle(style)
-                    .setGroup(isHumanChat ? GROUP_HUMAN_CHAT : GROUP_ZOMBIE_CHAT)
-                    .setGroupSummary(true)
-                    .setAutoCancel(true)
-                    .setContentIntent(pendingIntent)
-                    .setSound(soundUri)
-                    .setDefaults(defaults);
-
-            notificationManager.notify(0, notificationBuilder2.build());
-        }
-
+                .setAutoCancel(true);
     }
 }

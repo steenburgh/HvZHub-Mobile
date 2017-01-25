@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 import com.google.android.gms.gcm.GcmPubSub;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
@@ -38,6 +37,11 @@ public class GCMRegIntentService extends IntentService {
     public static final String ARG_IS_ADMIN = "isAdmin";
 
     /**
+     * Invalidate our current token and get a new one
+     */
+    public static final String INVALIDATE_TOKEN = "refreshToken";
+
+    /**
      * Subscribe to the correct chat for the specified gameId and user type.
      * ARG_IS_HUMAN and ARG_IS_ADMIN and ARGS_GAME_ID must be provided.
      */
@@ -62,9 +66,28 @@ public class GCMRegIntentService extends IntentService {
         }
         Bundle extras = intent.getExtras();
 
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean tokenValid = sharedPreferences.getBoolean(GCMRegistationPrefs.TOKEN_VALID, false);
+        if (!tokenValid) {
+            try {
+                InstanceID.getInstance(this).deleteInstanceID(); // Delete the old id
+                sharedPreferences.edit().putBoolean(GCMRegistationPrefs.TOKEN_VALID, true).apply();
+            } catch (IOException e) {
+                // The request failed. Will try again next time service is opened
+                e.printStackTrace();
+                return;
+            }
+        }
+
+        /***** Refresh token mode ****/
+        if (intent.getExtras().getBoolean(INVALIDATE_TOKEN, false)) {
+            // Invalidate the token, will refresh next time service is used
+            sharedPreferences.edit().putBoolean(GCMRegistationPrefs.TOKEN_VALID, false).apply();
+            return;
+        }
 
         /*********** Update mode **********/
-        if (intent.getExtras().getBoolean(CHAT_UPDATE_SUBSCRIPTIONS, false)) {
+        else if (intent.getExtras().getBoolean(CHAT_UPDATE_SUBSCRIPTIONS, false)) {
             if (!extras.containsKey(ARGS_GAME_ID) || !extras.containsKey(ARG_IS_HUMAN) || !extras.containsKey(ARG_IS_ADMIN)) {
                 throw new IllegalArgumentException("Invalid arguments for GCMRegIntentService running in CHAT_UPDATE_SUBSCRIPTIONS mode.\n Make sure to specify: ARGS_GAME_ID, ARG_IS_HUMAN and ARG_IS_ADMIN");
             }
@@ -136,13 +159,13 @@ public class GCMRegIntentService extends IntentService {
             // You should store a boolean that indicates whether the generated token has been
             // sent to your server. If the boolean is false, send the token to your server,
             // otherwise your server should have already received the token.
-            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+            sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
             sharedPreferences.edit().putBoolean(GCMRegistationPrefs.SENT_TOKEN_TO_SERVER, true).apply();
             // [END register_for_gcm]
         } catch (Exception e) {
             // If an exception happens while fetching the new token or updating our registration data
             // on a third-party server, this ensures that we'll attempt the update at a later time.
-            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+            sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
             sharedPreferences.edit().putBoolean(GCMRegistationPrefs.SENT_TOKEN_TO_SERVER, false).apply();
         }
         // Notify UI that registration has completed, so the progress indicator can be hidden.

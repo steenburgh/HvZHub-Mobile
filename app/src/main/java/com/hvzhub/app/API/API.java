@@ -1,26 +1,16 @@
 package com.hvzhub.app.API;
 
 import com.hvzhub.app.API.model.APIError;
-import com.hvzhub.app.OnLogoutListener;
-import android.app.Activity;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.support.annotation.NonNull;
-import android.util.Log;
-import android.widget.Toast;
 
-import com.hvzhub.app.LoginActivity;
 import com.hvzhub.app.R;
+import com.hvzhub.app.SessionManager;
 
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.TimeZone;
 
 import retrofit2.Response;
 
@@ -72,17 +62,14 @@ public class API {
      *
      * @param context
      * @param response
-     * @param logoutListener
      * @return  True if the response indicates that the sessionId is valid.
      *          False if the sessionId is invalid and the user has been logged out.
      */
-    public static boolean checkForInvalidSessionIdMsg(Context context, Response response, final OnLogoutListener logoutListener) {
+    public static boolean checkForInvalidSessionIdMsg(Context context, Response response) {
         APIError apiError = ErrorUtils.parseError(response);
         String err = apiError.error.toLowerCase();
         if (err.contains(context.getString(R.string.invalid_session_id))) {
-            // Notify the parent activity that the user should be logged out
-            // Don't bother stopping the loading animation
-            logoutListener.onLogout();
+            SessionManager.getInstance().logout();
             return false;
         }
         return true;

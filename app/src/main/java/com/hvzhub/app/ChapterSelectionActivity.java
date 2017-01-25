@@ -95,8 +95,9 @@ public class ChapterSelectionActivity extends AppCompatActivity {
             showProgress(true);
             HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
 
-            String uuid = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
-            Call<ChapterListContainer> call = client.getChapters(new Uuid(uuid));
+            Call<ChapterListContainer> call = client.getChapters(
+                    SessionManager.getInstance().getSessionUUID()
+            );
             call.enqueue(new Callback<ChapterListContainer>() {
                 @Override
                 public void onResponse(Call<ChapterListContainer> call, Response<ChapterListContainer> response) {
@@ -160,8 +161,10 @@ public class ChapterSelectionActivity extends AppCompatActivity {
     private void joinChapter(final Chapter chapter) {
         showProgress(true);
         HvZHubClient client = API.getInstance(getApplicationContext()).getHvZHubClient();
-        String uuid = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
-        Call<Status> call = client.joinChapter(chapter.getUrl(), new Uuid(uuid));
+        Call<Status> call = client.joinChapter(
+                chapter.getUrl(),
+                SessionManager.getInstance().getSessionUUID()
+        );
         call.enqueue(new Callback<Status>() {
             @Override
             public void onResponse(Call<Status> call, Response<Status> response) {
@@ -275,14 +278,7 @@ public class ChapterSelectionActivity extends AppCompatActivity {
     }
 
     private void logout() {
-        // Clear *all* GamePrefs
-        SharedPreferences.Editor editor = getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).edit();
-        editor.clear();
-        editor.apply();
-
-        // Show the login screen again
-        Intent i = new Intent(this, LoginActivity.class);
-        startActivity(i);
+        SessionManager.getInstance().logout();
         finish();
     }
 }

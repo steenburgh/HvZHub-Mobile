@@ -38,7 +38,6 @@ public abstract class NewsFragment<T1, T2 extends NewsContainer<T1>> extends Fra
     protected static final int ITEMS_TO_FETCH_AT_ONCE = 20;
     protected final boolean infiniteScrollMode;
     protected Call<T2> loadNewsCall;
-    protected OnLogoutListener mListener;
     protected boolean loading;
     protected boolean atEnd;
 
@@ -194,14 +193,13 @@ public abstract class NewsFragment<T1, T2 extends NewsContainer<T1>> extends Fra
                 showListViewProgress(true);
             }
 
-            String uuid = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
             int gameId = getActivity().getSharedPreferences(GamePrefs.NAME, Context.MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
             if (loadNewsCall != null) {
                 // Cancel the last call in case it is still in progress.
                 loadNewsCall.cancel();
             }
             loadNewsCall = createLoadNewsCall(
-                    new Uuid(uuid),
+                    SessionManager.getInstance().getSessionUUID(),
                     gameId,
                     refresh ? 0 : newsList.size(),
                     !infiniteScrollMode,
@@ -267,7 +265,7 @@ public abstract class NewsFragment<T1, T2 extends NewsContainer<T1>> extends Fra
                         if (err.contains(getString(R.string.invalid_session_id))) {
                             // Notify the parent activity that the user should be logged out
                             // Don't bother stopping the loading animation
-                            mListener.onLogout();
+                            SessionManager.getInstance().logout();
                         } else {
                             AlertDialog.Builder b = new AlertDialog.Builder(getActivity());
                             b.setTitle(getString(R.string.unexpected_response))
@@ -331,23 +329,6 @@ public abstract class NewsFragment<T1, T2 extends NewsContainer<T1>> extends Fra
                 listView.removeFooterView(loadingFooter);
             }
         }
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnLogoutListener) {
-            mListener = (OnLogoutListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must be an instance of OnLogoutListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
     }
 
     @Override

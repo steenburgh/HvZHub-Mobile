@@ -1,6 +1,7 @@
 package com.hvzhub.app.API.model.Chat;
 
 import com.google.gson.annotations.SerializedName;
+import com.hvzhub.app.API.model.Uuid;
 
 public class PostChatRequest {
     public String uuid;
@@ -13,8 +14,8 @@ public class PostChatRequest {
     @SerializedName("is_h")
     public boolean isHuman;
 
-    public PostChatRequest(String uuid, int userId, String text, boolean isHuman) {
-        this.uuid = uuid;
+    public PostChatRequest(Uuid uuid, int userId, String text, boolean isHuman) {
+        this.uuid = uuid.uuid;
         this.userId = userId;
         this.text = text;
         this.isHuman = isHuman;

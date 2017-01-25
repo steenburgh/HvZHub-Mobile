@@ -7,7 +7,6 @@ package com.hvzhub.app.Prefs;
 public class GamePrefs {
     public static final String NAME = "gamePrefs";
 
-    public static final String PREFS_SESSION_ID = "sessionID";
     public static final String PREFS_CHAPTER_URL = "chapterUrl";
     public static final String PREFS_GAME_ID = "gameID";
     public static final String PREFS_USER_ID = "userID";

@@ -3,7 +3,6 @@ package com.hvzhub.app;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 
 import com.hvzhub.app.Prefs.GamePrefs;
 
@@ -18,10 +17,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // Decide which activity to start
-        String sessionID = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getString(GamePrefs.PREFS_SESSION_ID, null);
         String chapterUrl = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getString(GamePrefs.PREFS_CHAPTER_URL, null);
         int gameId = getSharedPreferences(GamePrefs.NAME, MODE_PRIVATE).getInt(GamePrefs.PREFS_GAME_ID, -1);
-        if (sessionID == null) {
+        if (!SessionManager.getInstance().hasSession()) {
             finish();
             Intent i = new Intent(this, LoginActivity.class);
             startActivity(i);
