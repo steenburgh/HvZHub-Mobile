@@ -15,7 +15,7 @@ public class TagPlayerRequest {
     @SerializedName("tag_lat")
     public Double Lat;
 
-    @SerializedName("tag_long")
+    @SerializedName("tag_lon")
     public Double Long;
 
     public String uuid;
