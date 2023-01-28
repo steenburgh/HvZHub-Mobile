@@ -3,7 +3,10 @@ HvZHub Mobile is a companion app for the http://www.HvZHub.com/ website, which c
 For more information about Humans vs Zombies, visit http://www.humansvszombies.org/  
 For more information about HvZHub, visit http://www.HvZHub.com/   
   
-Features:  
+## Screenshots
+For screenshots and other assets, check out the [README in the `Images` directory](./Images/)
+
+## Features
 - **Chat:** Chat with fellow humans(or zombies if that's your thing). Now with push notifications!
 - **Mission Updates:** Stay up to date with the latest mission announcements
 - **Game News:** See when people get tagged.
